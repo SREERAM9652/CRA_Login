@@ -237,19 +237,19 @@ export default function LoginPage() {
       {/* TOP HEADER HELPER                                                         */}
       {/* ========================================================================= */}
       <header className="w-full px-4 sm:px-6 md:px-12 py-3 sm:py-4 flex justify-between items-center z-20 shrink-0">
-        <Link 
-          href="/" 
+        <a 
+          href="https://avmlabsindia.vercel.app/" 
           className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs hover:shadow-xs transition-all"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Home</span>
-        </Link>
+        </a>
 
         <div className="flex items-center gap-3 sm:gap-5 text-xs font-semibold text-slate-600">
-          <Link href="/#faq" className="hidden sm:flex items-center gap-1.5 hover:text-[#382685] transition-colors">
+          <a href="https://avmlabsindia.vercel.app/#faq" className="hidden sm:flex items-center gap-1.5 hover:text-[#382685] transition-colors">
             <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             <span>Need help?</span>
-          </Link>
+          </a>
           <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs">
             <Headphones className="h-3.5 w-3.5 text-[#382685]" />
             <span>1800 123 4567</span>
@@ -289,14 +289,14 @@ export default function LoginPage() {
               
               {/* Logo - Direct Clean Presentation without white box border */}
               <div>
-                <Link href="/" className="inline-block hover:scale-105 transition-transform">
+                <a href="https://avmlabsindia.vercel.app/" className="inline-block hover:scale-105 transition-transform">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/logo.jpg"
                     alt="AVMLabs Diagnostics"
                     className="h-16 md:h-18 w-auto object-contain mix-blend-multiply"
                   />
-                </Link>
+                </a>
               </div>
 
               {/* Headline & Subtitle */}
@@ -368,14 +368,14 @@ export default function LoginPage() {
             
             {/* Mobile-Only Prominently Centered Brand Logo */}
             <div className="flex justify-center pb-1 lg:hidden">
-              <Link href="/" className="inline-block hover:scale-102 transition-transform">
+              <a href="https://avmlabsindia.vercel.app/" className="inline-block hover:scale-102 transition-transform">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logo.jpg"
                   alt="AVMLabs Diagnostics"
                   className="h-16 sm:h-20 w-auto max-w-[210px] sm:max-w-[240px] object-contain mix-blend-multiply drop-shadow-xs"
                 />
-              </Link>
+              </a>
             </div>
 
             {/* Header */}
