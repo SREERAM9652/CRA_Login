@@ -236,12 +236,12 @@ export default function LoginPage() {
       {/* TOP HEADER HELPER                                                         */}
       {/* ========================================================================= */}
       <header className="w-full px-4 sm:px-6 md:px-12 py-3 sm:py-4 flex justify-between items-center z-20 shrink-0">
-        <Link href="/" className="inline-block hover:scale-102 transition-transform">
+        <Link href="/" className="inline-block lg:hidden hover:scale-102 transition-transform">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.jpg"
             alt="AVMLabs Diagnostics"
-            className="h-12 sm:h-14 md:h-15 w-auto max-w-[170px] sm:max-w-[220px] object-contain mix-blend-multiply drop-shadow-xs"
+            className="h-12 sm:h-14 w-auto max-w-[170px] sm:max-w-[220px] object-contain mix-blend-multiply drop-shadow-xs"
           />
         </Link>
 
