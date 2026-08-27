@@ -243,8 +243,91 @@ export default function CRACatalogPage() {
         </div>
       </div>
 
-      {/* Tests Table */}
-      <div className="rounded-3xl border border-slate-100 shadow-sm bg-white overflow-hidden">
+      {/* Mobile Tests Card List (Visible on mobile screens < 768px) */}
+      <div className="grid grid-cols-1 gap-3 md:hidden">
+        {filteredTests.map((test) => {
+          const isCopied = copiedCode === test.code
+          const directLink = `https://avmlabs.in/booking?ref=${referralCode}&test=${test.code.toLowerCase()}`
+          const isSelected = selectedTests.some(t => t.code === test.code)
+
+          return (
+            <div 
+              key={test.code} 
+              className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                isSelected 
+                  ? "bg-purple-50/90 border-[#382685]/40 shadow-xs ring-1 ring-[#382685]/30" 
+                  : "bg-white border-slate-100 shadow-2xs"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <label className="flex items-start gap-2.5 flex-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelectTest(test)}
+                    className="h-4.5 w-4.5 mt-0.5 rounded border-slate-300 text-[#382685] focus:ring-[#382685]/30 cursor-pointer"
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-purple-100/80 text-[#382685] border border-purple-200/80">
+                        {test.code}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-bold">• {test.sample}</span>
+                    </div>
+                    <div className="font-bold text-slate-900 text-xs sm:text-sm leading-snug">
+                      {test.name}
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      {test.category} ({test.technology})
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 text-xs">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-medium">Customer Price</div>
+                  <div className="font-black text-slate-900 flex items-center gap-1.5">
+                    <span>₹{test.realizedRevenue}</span>
+                    <span className="text-slate-400 line-through text-[11px] font-normal">₹{test.catalogueRate}</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 font-medium">Your Direct Earning</div>
+                  <div className="font-black text-emerald-800 text-xs bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
+                    ₹{test.c1Incentive} (30%)
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => handleCopyTestLink(test.code, test.name)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                >
+                  {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#382685]" />}
+                  <span>{isCopied ? "Copied" : "Copy Link"}</span>
+                </button>
+
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Book ${test.name} on AVMLabs with 20% discount: ${directLink}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 transition-colors shadow-2xs"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Tests Table (Visible on tablet & desktop >= 768px) */}
+      <div className="hidden md:block rounded-3xl border border-slate-100 shadow-sm bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-100">
@@ -364,54 +447,54 @@ export default function CRACatalogPage() {
       {/* FLOATING MULTI-TEST QUOTATION CART BAR                                    */}
       {/* ========================================================================= */}
       {selectedTests.length > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-8 sm:max-w-2xl bg-slate-900 text-white rounded-2xl p-4 shadow-2xl z-50 flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-8 sm:max-w-2xl bg-slate-950/95 backdrop-blur-md text-white rounded-2xl p-3.5 sm:p-4 shadow-2xl z-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border border-white/20 animate-in slide-in-from-bottom-4 duration-300">
           
           {/* Left summary */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-purple-500/20 text-cyan-300 flex items-center justify-center font-black text-sm border border-white/10 shrink-0">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-purple-500/20 text-cyan-300 flex items-center justify-center font-black text-xs sm:text-sm border border-white/10 shrink-0">
               {selectedTests.length}
             </div>
-            <div>
-              <div className="text-xs font-bold text-slate-300">Quotation Summary ({selectedTests.length} Tests)</div>
-              <div className="text-sm font-black text-white">
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold text-slate-300 truncate">Quotation Summary ({selectedTests.length} Tests)</div>
+              <div className="text-xs sm:text-sm font-black text-white">
                 Price: ₹{totalRR.toLocaleString()} • <span className="text-emerald-400">Your 30%: ₹{totalC1.toLocaleString()}</span>
               </div>
             </div>
           </div>
 
           {/* Right tool buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={handleCopySelectedList}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 cursor-pointer"
               title="Copy Quotation Summary"
             >
               {copiedList ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copiedList ? "Copied" : "Copy"}</span>
+              <span className="hidden sm:inline">{copiedList ? "Copied" : "Copy"}</span>
             </button>
 
             <button
               onClick={handleExportCSV}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-xs font-bold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 cursor-pointer"
               title="Export to Excel CSV"
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
-              <span>Excel</span>
+              <span className="hidden sm:inline">Excel</span>
             </button>
 
             <Link
               href={`/cra/dashboard/estimate?tests=${selectedCodesString}`}
-              className="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105"
+              className="px-3 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1 transition-transform hover:scale-105"
             >
               <Printer className="h-3.5 w-3.5" />
-              <span>PDF Estimate</span>
+              <span>PDF</span>
             </Link>
 
             <Link
               href={`/cra/dashboard/add-lead?tests=${selectedCodesString}`}
-              className="px-3.5 py-1.5 bg-white text-[#1e1b4b] hover:bg-slate-100 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105"
+              className="px-3 py-2 bg-white text-[#1e1b4b] hover:bg-slate-100 font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1 transition-transform hover:scale-105"
             >
-              <span>Book Order</span>
+              <span>Book</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

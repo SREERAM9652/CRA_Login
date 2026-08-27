@@ -228,7 +228,8 @@ export default function AddReferralPage() {
       {/* Top Breadcrumb & Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
         <div>
-          <nav className="flex items-center gap-2 text-xs font-bold text-slate-400 mb-1.5">
+          {/* Desktop Multi-Level Breadcrumb */}
+          <nav className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-400 mb-1.5">
             <Link href="/cra/dashboard" className="hover:text-[#382685] transition-colors">
               Dashboard
             </Link>
@@ -239,24 +240,34 @@ export default function AddReferralPage() {
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-[#251b5c]">Book for a Customer</span>
           </nav>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1e1b4b]">
+
+          {/* Mobile Clean Back Navigation */}
+          <div className="sm:hidden mb-1.5">
+            <Link href="/cra/dashboard/referrals" className="inline-flex items-center gap-1 text-xs font-bold text-[#382685] hover:underline">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Customer Bookings</span>
+            </Link>
+          </div>
+
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-[#1e1b4b]">
             Book Tests for a Customer
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-0.5">
             Select one or multiple tests to book. You earn 30% commission directly into your account once samples are collected.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 pt-1 sm:pt-0">
           <Link
             href="/cra/dashboard/catalog"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 px-3.5 py-2 rounded-xl border border-purple-200/70 transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 px-3 sm:px-3.5 py-2 rounded-xl border border-purple-200/70 transition-colors shadow-2xs"
           >
-            <FlaskConical className="h-3.5 w-3.5" /> View All 63 Test Prices
+            <FlaskConical className="h-3.5 w-3.5" /> 
+            <span>View 63 Test Prices</span>
           </Link>
           <Link
             href="/cra/dashboard/referrals"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] transition-colors shrink-0 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] transition-colors shrink-0 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Bookings
           </Link>
@@ -291,8 +302,8 @@ export default function AddReferralPage() {
               </span>
             </div>
 
-            <div className="p-6 sm:p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-4 sm:p-8">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 
                 {/* Row 1: Name & Mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

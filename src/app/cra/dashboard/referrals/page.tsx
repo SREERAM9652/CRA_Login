@@ -182,8 +182,71 @@ export default function ReferralManagementPage() {
 
         </div>
 
-        {/* Referrals Table */}
-        <div className="overflow-x-auto rounded-2xl border border-slate-100">
+        {/* Mobile Bookings Card List (Visible on mobile screens < 768px) */}
+        <div className="grid grid-cols-1 gap-3 md:hidden">
+          {filteredReferrals.length > 0 ? (
+            filteredReferrals.map((ref) => (
+              <div key={ref.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/70 space-y-3 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-black text-slate-900 text-sm">{ref.customerName}</div>
+                    <div className="text-[11px] text-slate-500 font-mono mt-0.5">{ref.mobile} • {ref.relationship}</div>
+                  </div>
+                  <Badge
+                    variant={
+                      ref.status === "Completed"
+                        ? "success"
+                        : ref.status === "Slot Booked"
+                        ? "default"
+                        : ref.status === "Sample Collected"
+                        ? "accent"
+                        : "warning"
+                    }
+                  >
+                    {ref.status}
+                  </Badge>
+                </div>
+
+                <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                  <div className="text-xs font-bold text-slate-800">{ref.packageOrdered}</div>
+                  <div className="text-[10.5px] text-slate-400 flex items-center justify-between">
+                    <span>Ordered: {ref.referredDate}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-purple-50 text-[#382685] font-extrabold text-[9.5px] border border-purple-100">{ref.tier}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
+                  <div>
+                    <div className="text-[10.5px] text-slate-400">Customer Paid</div>
+                    <div className="font-bold text-slate-800">{ref.realizedRevenue > 0 ? `₹${ref.realizedRevenue.toLocaleString()}` : "—"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-[10.5px] text-slate-400">Your Earning (30%)</div>
+                    <div className="font-black text-[#251b5c]">
+                      {ref.incentiveAmount > 0 ? `₹${Math.round(ref.incentiveAmount).toLocaleString()}` : "Pending"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReferral(ref)}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-[#251b5c] hover:text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+                  >
+                    Details
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+              No referrals found matching your query.
+            </div>
+          )}
+        </div>
+
+        {/* Referrals Table (Visible on tablet & desktop >= 768px) */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-100">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-100">
               <tr>
@@ -221,53 +284,53 @@ export default function ReferralManagementPage() {
                         {ref.tier}
                       </span>
                     </td>
-                      <td className="px-4 py-3.5">
-                        <Badge
-                          variant={
-                            ref.status === "Completed"
-                              ? "success"
-                              : ref.status === "Slot Booked"
-                              ? "default"
-                              : ref.status === "Sample Collected"
-                              ? "accent"
-                              : "warning"
-                          }
-                        >
-                          {ref.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3.5 font-bold text-slate-800">
-                        {ref.realizedRevenue > 0 ? `₹${ref.realizedRevenue.toLocaleString()}` : "—"}
-                      </td>
-                      <td className="px-4 py-3.5 font-extrabold text-primary text-sm">
-                        {ref.incentiveAmount > 0 ? (
-                          <span>₹{Math.round(ref.incentiveAmount).toLocaleString()}</span>
-                        ) : (
-                          <span className="text-slate-400 font-medium text-xs">Pending</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedReferral(ref)}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
-                      No referrals found matching your query.
+                    <td className="px-4 py-3.5">
+                      <Badge
+                        variant={
+                          ref.status === "Completed"
+                            ? "success"
+                            : ref.status === "Slot Booked"
+                            ? "default"
+                            : ref.status === "Sample Collected"
+                            ? "accent"
+                            : "warning"
+                        }
+                      >
+                        {ref.status}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3.5 font-bold text-slate-800">
+                      {ref.realizedRevenue > 0 ? `₹${ref.realizedRevenue.toLocaleString()}` : "—"}
+                    </td>
+                    <td className="px-4 py-3.5 font-extrabold text-primary text-sm">
+                      {ref.incentiveAmount > 0 ? (
+                        <span>₹{Math.round(ref.incentiveAmount).toLocaleString()}</span>
+                      ) : (
+                        <span className="text-slate-400 font-medium text-xs">Pending</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReferral(ref)}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
+                    No referrals found matching your query.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
+      </div>
 
       {/* Customer Detail Drawer / Modal */}
       {selectedReferral && (

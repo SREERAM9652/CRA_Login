@@ -81,7 +81,7 @@ export default function NetworkTiers() {
       </div>
 
       {/* Network Invitation Code Banner (Compact & Sleek) */}
-      <div className="rounded-2xl bg-gradient-to-r from-[#1e1b4b] via-[#2e1f74] to-[#382685] text-white border border-white/10 shadow-lg overflow-hidden relative p-4 sm:p-5">
+      <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#1e1b4b] via-[#2e1f74] to-[#382685] text-white border border-white/10 shadow-lg overflow-hidden relative p-4 sm:p-6">
         <div className="absolute right-0 top-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -101,31 +101,33 @@ export default function NetworkTiers() {
               </div>
             </div>
 
-            {/* Compact Invite Box */}
-            <div className="bg-slate-950/70 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/15 flex flex-wrap sm:flex-nowrap items-center gap-2.5 shadow-xl shrink-0">
-              <div className="px-3 py-1.5 bg-white/10 rounded-lg text-center sm:text-left">
-                <div className="text-[9px] text-cyan-300 font-extrabold uppercase tracking-wider">Invite Code</div>
-                <div className="font-mono text-base sm:text-lg font-black text-white tracking-wider leading-none mt-0.5">{inviteCode}</div>
+            {/* Responsive Invite Box */}
+            <div className="bg-slate-950/70 backdrop-blur-md p-3 rounded-2xl border border-white/15 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shadow-xl w-full lg:w-auto shrink-0">
+              <div className="px-3.5 py-2 bg-white/10 rounded-xl text-center sm:text-left flex items-center justify-between sm:block border border-white/10">
+                <div className="text-[9.5px] text-cyan-300 font-extrabold uppercase tracking-wider">Invite Code</div>
+                <div className="font-mono text-base sm:text-lg font-black text-white tracking-wider leading-none mt-0.5 sm:mt-1">{inviteCode}</div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="h-9 px-3.5 rounded-lg bg-white text-[#251b5c] hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-xs"
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#382685]" />}
-                <span>{copied ? "Copied!" : "Copy Link"}</span>
-              </button>
+              <div className="grid grid-cols-2 sm:flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="h-10 px-4 rounded-xl bg-white text-[#251b5c] hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                >
+                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-[#382685]" />}
+                  <span>{copied ? "Copied!" : "Copy Link"}</span>
+                </button>
 
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(`Join AVMLabs as a partner with me and earn up to 30% on diagnostic tests: ${inviteLink}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="h-9 px-3.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0 shadow-xs"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-                <span>WhatsApp</span>
-              </a>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Join AVMLabs as a partner with me and earn up to 30% on diagnostic tests: ${inviteLink}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-10 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
           </div>
@@ -138,7 +140,7 @@ export default function NetworkTiers() {
         <div className="space-y-4">
           
           {/* Card 1: Active Team Partners */}
-          <div className="rounded-3xl border border-slate-100 shadow-sm bg-white p-5 space-y-2">
+          <div className="rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm bg-white p-5 space-y-2">
             <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Active Team Partners
             </div>
@@ -154,7 +156,7 @@ export default function NetworkTiers() {
           </div>
           
           {/* Card 2: Total 10% Team Bonus */}
-          <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/50 shadow-sm p-5 space-y-2">
+          <div className="rounded-2xl sm:rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/50 shadow-sm p-5 space-y-2">
             <div className="text-xs font-black uppercase tracking-wider text-emerald-800">
               Total 10% Team Bonus Earned
             </div>
@@ -170,7 +172,7 @@ export default function NetworkTiers() {
           </div>
 
           {/* Card 3: Easy Explainer */}
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4 text-xs text-slate-600 space-y-2">
+          <div className="rounded-2xl sm:rounded-3xl border border-slate-100 bg-slate-50/90 p-4 text-xs text-slate-600 space-y-2">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <HelpCircle className="h-4 w-4 text-[#382685]" /> How Team Bonus Works:
             </div>
@@ -180,14 +182,43 @@ export default function NetworkTiers() {
           </div>
         </div>
 
-        {/* Sub-Agencies Performance Table */}
-        <div className="lg:col-span-2 rounded-3xl border border-slate-100 shadow-sm bg-white p-5 sm:p-6 space-y-4">
+        {/* Sub-Agencies Performance Table & Mobile Cards */}
+        <div className="lg:col-span-2 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm bg-white p-5 sm:p-6 space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">Team Performance & Earnings</h3>
+            <h3 className="text-base font-black text-slate-900">Team Performance &amp; Earnings</h3>
             <p className="text-xs text-slate-500 font-medium">Customer bookings and your 10% bonus from each partner</p>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile Cards View (Visible on mobile screens < 768px) */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {subAgencies.map((agency) => (
+              <div key={agency.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/60 space-y-2.5 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-bold text-slate-900 text-sm">{agency.name}</div>
+                    <div className="text-[11px] text-slate-500 font-medium">{agency.leadPerson} • {agency.city}</div>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold border border-emerald-200 shrink-0">
+                    {agency.status}
+                  </span>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-slate-400 text-[10.5px]">Orders Total</span>
+                    <div className="font-bold text-slate-900">₹{agency.totalRR.toLocaleString()} ({agency.referredCount} orders)</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 text-[10.5px]">Your 10% Bonus</span>
+                    <div className="font-black text-[#251b5c]">₹{agency.overrideEarnings.toLocaleString()}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table View (Visible on tablet & desktop >= 768px) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-100">
                 <tr>
