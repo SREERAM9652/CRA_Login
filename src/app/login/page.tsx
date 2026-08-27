@@ -235,13 +235,13 @@ export default function LoginPage() {
       {/* ========================================================================= */}
       {/* TOP HEADER HELPER                                                         */}
       {/* ========================================================================= */}
-      <header className="w-full px-4 sm:px-6 md:px-12 py-3 flex justify-between items-center z-20 shrink-0">
-        <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
+      <header className="w-full px-4 sm:px-6 md:px-12 py-3 sm:py-4 flex justify-between items-center z-20 shrink-0">
+        <Link href="/" className="inline-block hover:scale-102 transition-transform">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.jpg"
             alt="AVMLabs Diagnostics"
-            className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply"
+            className="h-12 sm:h-14 md:h-15 w-auto max-w-[170px] sm:max-w-[220px] object-contain mix-blend-multiply drop-shadow-xs"
           />
         </Link>
 
@@ -250,8 +250,8 @@ export default function LoginPage() {
             <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             <span>Need help?</span>
           </Link>
-          <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/80 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full border sm:border-0 border-slate-200 shadow-2xs sm:shadow-none">
-            <Headphones className="h-3.5 w-3.5 text-[#382685]" />
+          <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/80 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-full border sm:border-0 border-slate-200 shadow-2xs sm:shadow-none">
+            <Headphones className="h-4 w-4 text-[#382685]" />
             <span>1800 123 4567</span>
           </a>
         </div>
