@@ -198,39 +198,39 @@ export default function LoginPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TOP HEADER HELPER (COMPACT 1-ROW)                                          */}
+      {/* TOP HEADER HELPER (CLEAN BALANCED NAVIGATION)                             */}
       {/* ========================================================================= */}
-      <header className="w-full px-3 sm:px-6 md:px-12 py-2 sm:py-2.5 flex justify-between items-center z-20 shrink-0">
+      <header className="w-full px-4 sm:px-6 md:px-12 py-3 sm:py-3.5 flex justify-between items-center z-20 shrink-0">
         <a 
           href="https://avmlabsindia.vercel.app/" 
-          className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-slate-700 hover:text-[#382685] bg-white/85 backdrop-blur-xs px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full border border-slate-200 shadow-2xs hover:shadow-xs transition-all"
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs hover:shadow-xs transition-all"
         >
-          <ArrowLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Home</span>
         </a>
 
-        <div className="flex items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-semibold text-slate-600">
+        <div className="flex items-center gap-3 sm:gap-5 text-xs font-semibold text-slate-600">
           <a href="https://avmlabsindia.vercel.app/#faq" className="hidden sm:flex items-center gap-1.5 hover:text-[#382685] transition-colors">
             <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             <span>Need help?</span>
           </a>
-          <a href="tel:18001234567" className="flex items-center gap-1 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/85 backdrop-blur-xs px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full border border-slate-200 shadow-2xs">
-            <Headphones className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#382685]" />
+          <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs">
+            <Headphones className="h-3.5 w-3.5 text-[#382685]" />
             <span>1800 123 4567</span>
           </a>
         </div>
       </header>
 
       {/* ========================================================================= */}
-      {/* MAIN SPLIT SECTION: 100% ZERO-SCROLL FIT ON ALL VIEWPORTS                 */}
+      {/* MAIN SPLIT SECTION: PROPORTIONATE ON MOBILE & DESKTOP                     */}
       {/* ========================================================================= */}
-      <main className="container mx-auto px-3 sm:px-6 md:px-8 max-w-5xl flex-1 flex items-center justify-center py-1 sm:py-2 relative z-10 min-h-0 overflow-hidden">
+      <main className="container mx-auto px-4 sm:px-6 md:px-8 max-w-5xl flex-1 flex items-center justify-center py-2 sm:py-4 relative z-10 min-h-0 overflow-hidden">
         
         {/* THE UNIFIED CONTAINER */}
-        <div className="w-full max-w-[390px] sm:max-w-md lg:max-w-5xl bg-white/95 rounded-3xl shadow-2xl shadow-indigo-950/10 border border-white/90 overflow-hidden flex flex-col lg:flex-row max-h-[92vh] lg:max-h-[540px] lg:min-h-[480px]">
+        <div className="w-full max-w-[420px] sm:max-w-md lg:max-w-5xl bg-white/95 rounded-3xl shadow-2xl shadow-indigo-950/10 border border-white/90 overflow-hidden flex flex-col lg:flex-row lg:max-h-[560px] lg:min-h-[500px]">
           
           {/* LEFT HALF: SHOWCASE & INTEGRATED LAB BACKGROUND (DESKTOP ONLY) */}
-          <div className="hidden lg:flex lg:w-1/2 flex-col justify-center relative p-6 lg:p-7 bg-gradient-to-br from-slate-50 via-indigo-50/25 to-purple-50/20 border-r border-slate-100 overflow-hidden">
+          <div className="hidden lg:flex lg:w-1/2 flex-col justify-center relative p-7 lg:p-8 bg-gradient-to-br from-slate-50 via-indigo-50/25 to-purple-50/20 border-b lg:border-b-0 lg:border-r border-slate-100 overflow-hidden">
             
             {/* Background Laboratory Image overlay with soft gradient blend */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -249,7 +249,7 @@ export default function LoginPage() {
             </div>
 
             {/* Left Content (Above background) */}
-            <div className="relative z-10 space-y-3 my-auto">
+            <div className="relative z-10 space-y-3.5 my-auto">
               
               {/* Logo - Direct Clean Presentation */}
               <div>
@@ -258,14 +258,14 @@ export default function LoginPage() {
                   <img
                     src="/logo.jpg"
                     alt="AVMLabs Diagnostics"
-                    className="h-14 md:h-16 w-auto object-contain mix-blend-multiply"
+                    className="h-16 md:h-18 w-auto object-contain mix-blend-multiply"
                   />
                 </a>
               </div>
 
               {/* Headline & Subtitle */}
-              <div className="space-y-0.5 w-full">
-                <h1 className="text-2xl sm:text-3xl lg:text-[30px] font-black tracking-tight text-[#251b5c] leading-[1.12]">
+              <div className="space-y-1 w-full">
+                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight text-[#251b5c] leading-[1.12]">
                   Better Diagnostics.<br />
                   <span className="text-[#e04838]">Stronger You.</span>
                 </h1>
@@ -275,49 +275,49 @@ export default function LoginPage() {
               </div>
 
               {/* 4 Feature Items - Clean Transparent Style */}
-              <div className="space-y-2 w-full pt-0.5">
+              <div className="space-y-2.5 w-full pt-1">
                 
                 {/* Feature 1 */}
-                <div className="w-full flex items-center gap-3 py-0.5 px-1">
-                  <div className="h-8 w-8 rounded-xl bg-purple-100/80 border border-purple-200/60 flex items-center justify-center text-[#5538b5] shrink-0 shadow-xs">
-                    <Microscope className="h-4 w-4" />
+                <div className="w-full flex items-center gap-3.5 py-1 px-1">
+                  <div className="h-9 w-9 rounded-xl bg-purple-100/80 border border-purple-200/60 flex items-center justify-center text-[#5538b5] shrink-0 shadow-xs">
+                    <Microscope className="h-4.5 w-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-slate-900 leading-tight">Wide Range of Tests</h4>
-                    <p className="text-[10.5px] text-slate-500 truncate">Accurate results for every health need.</p>
+                    <p className="text-[11px] text-slate-500 truncate">Accurate results for every health need.</p>
                   </div>
                 </div>
 
                 {/* Feature 2 */}
-                <div className="w-full flex items-center gap-3 py-0.5 px-1">
-                  <div className="h-8 w-8 rounded-xl bg-rose-100/80 border border-rose-200/60 flex items-center justify-center text-[#e04838] shrink-0 shadow-xs">
-                    <Home className="h-4 w-4" />
+                <div className="w-full flex items-center gap-3.5 py-1 px-1">
+                  <div className="h-9 w-9 rounded-xl bg-rose-100/80 border border-rose-200/60 flex items-center justify-center text-[#e04838] shrink-0 shadow-xs">
+                    <Home className="h-4.5 w-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-slate-900 leading-tight">Home Collection</h4>
-                    <p className="text-[10.5px] text-slate-500 truncate">Sample collection at your convenience.</p>
+                    <p className="text-[11px] text-slate-500 truncate">Sample collection at your convenience.</p>
                   </div>
                 </div>
 
                 {/* Feature 3 */}
-                <div className="w-full flex items-center gap-3 py-0.5 px-1">
-                  <div className="h-8 w-8 rounded-xl bg-blue-100/80 border border-blue-200/60 flex items-center justify-center text-[#3056d3] shrink-0 shadow-xs">
-                    <FileText className="h-4 w-4" />
+                <div className="w-full flex items-center gap-3.5 py-1 px-1">
+                  <div className="h-9 w-9 rounded-xl bg-blue-100/80 border border-blue-200/60 flex items-center justify-center text-[#3056d3] shrink-0 shadow-xs">
+                    <FileText className="h-4.5 w-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-slate-900 leading-tight">Digital Reports</h4>
-                    <p className="text-[10.5px] text-slate-500 truncate">Access your reports anytime, anywhere.</p>
+                    <p className="text-[11px] text-slate-500 truncate">Access your reports anytime, anywhere.</p>
                   </div>
                 </div>
 
                 {/* Feature 4 */}
-                <div className="w-full flex items-center gap-3 py-0.5 px-1">
-                  <div className="h-8 w-8 rounded-xl bg-amber-100/80 border border-amber-200/60 flex items-center justify-center text-[#e04838] shrink-0 shadow-xs">
-                    <Shield className="h-4 w-4" />
+                <div className="w-full flex items-center gap-3.5 py-1 px-1">
+                  <div className="h-9 w-9 rounded-xl bg-amber-100/80 border border-amber-200/60 flex items-center justify-center text-[#e04838] shrink-0 shadow-xs">
+                    <Shield className="h-4.5 w-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-slate-900 leading-tight">Secure &amp; Confidential</h4>
-                    <p className="text-[10.5px] text-slate-500 truncate">Your data is protected with top security.</p>
+                    <p className="text-[11px] text-slate-500 truncate">Your data is protected with top security.</p>
                   </div>
                 </div>
 
@@ -328,32 +328,32 @@ export default function LoginPage() {
           </div>
 
           {/* RIGHT HALF: CLEAN AUTHENTICATION FORM */}
-          <div className="w-full lg:w-1/2 p-4 sm:p-5 lg:p-7 flex flex-col justify-center bg-white space-y-2.5 sm:space-y-3">
+          <div className="w-full lg:w-1/2 p-5 sm:p-7 lg:p-8 flex flex-col justify-center bg-white space-y-3 sm:space-y-3.5">
             
             {/* Mobile-Only Prominently Centered Brand Logo */}
-            <div className="flex justify-center pb-0.5 lg:hidden">
+            <div className="flex justify-center pb-1 lg:hidden">
               <a href="https://avmlabsindia.vercel.app/" className="inline-block hover:scale-102 transition-transform">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logo.jpg"
                   alt="AVMLabs Diagnostics"
-                  className="h-12 sm:h-14 w-auto max-w-[170px] sm:max-w-[200px] object-contain mix-blend-multiply drop-shadow-xs"
+                  className="h-14 sm:h-16 w-auto max-w-[190px] sm:max-w-[220px] object-contain mix-blend-multiply drop-shadow-xs"
                 />
               </a>
             </div>
 
             {/* Header */}
-            <div className="text-center space-y-0">
-              <h2 className="text-lg sm:text-xl font-black text-[#1e1b4b] tracking-tight leading-tight">
+            <div className="text-center space-y-0.5">
+              <h2 className="text-xl sm:text-2xl font-black text-[#1e1b4b] tracking-tight leading-tight">
                 Welcome Back!
               </h2>
-              <p className="text-[11px] sm:text-xs text-slate-400 font-medium">
+              <p className="text-xs text-slate-400 font-medium">
                 Login to access your account
               </p>
             </div>
 
             {/* Segmented Dual-Role Switcher */}
-            <div className="border border-slate-200 rounded-xl p-0.5 grid grid-cols-2 gap-1 bg-slate-50/70">
+            <div className="border border-slate-200 rounded-2xl p-1 grid grid-cols-2 gap-1 bg-slate-50/70">
               
               {/* Customer Tab */}
               <button
@@ -362,17 +362,17 @@ export default function LoginPage() {
                   setRole("customer")
                   setOtpSent(false)
                 }}
-                className={`p-1.5 sm:p-2 rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between ${
+                className={`p-2.5 sm:p-2 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between ${
                   role === "customer"
                     ? "bg-[#f1effd] border border-[#d3ccf7] text-[#2e1f74] shadow-xs"
                     : "text-slate-500 hover:text-slate-800 hover:bg-white"
                 }`}
               >
-                <div className="flex items-center gap-1 mb-0.5">
-                  <User className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${role === "customer" ? "text-[#382685]" : "text-slate-400"}`} />
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <User className={`h-3.5 w-3.5 ${role === "customer" ? "text-[#382685]" : "text-slate-400"}`} />
                   <span className="font-bold text-xs">Customer</span>
                 </div>
-                <p className="text-[9px] text-slate-500 leading-tight font-medium">Book tests &amp; health</p>
+                <p className="text-[9.5px] sm:text-[9px] text-slate-500 leading-tight font-medium">Book tests &amp; health</p>
               </button>
 
               {/* CRA Tab */}
@@ -382,29 +382,29 @@ export default function LoginPage() {
                   setRole("cra")
                   setOtpSent(false)
                 }}
-                className={`p-1.5 sm:p-2 rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between ${
+                className={`p-2.5 sm:p-2 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between ${
                   role === "cra"
                     ? "bg-[#f1effd] border border-[#d3ccf7] text-[#2e1f74] shadow-xs"
                     : "text-slate-500 hover:text-slate-800 hover:bg-white"
                 }`}
               >
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Users className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${role === "cra" ? "text-[#e04838]" : "text-slate-400"}`} />
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Users className={`h-3.5 w-3.5 ${role === "cra" ? "text-[#e04838]" : "text-slate-400"}`} />
                   <span className="font-bold text-xs">CRA Partner</span>
                 </div>
-                <p className="text-[9px] text-slate-500 leading-tight font-medium">Refer &amp; earn rewards</p>
+                <p className="text-[9.5px] sm:text-[9px] text-slate-500 leading-tight font-medium">Refer &amp; earn rewards</p>
               </button>
 
             </div>
 
             {/* Password Login Form */}
             {loginMode === "password" ? (
-              <form onSubmit={handleLogin} className="space-y-2">
+              <form onSubmit={handleLogin} className="space-y-2.5">
                 
                 {/* Identifier Input */}
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="h-3.5 w-3.5" />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="h-4 w-4" />
                   </div>
                   <input
                     type="text"
@@ -412,14 +412,14 @@ export default function LoginPage() {
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     placeholder={role === "customer" ? "Mobile Number / Email" : "Mobile Number / CRA ID"}
-                    className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900 placeholder:text-slate-400"
+                    className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
 
                 {/* Password Input */}
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="h-3.5 w-3.5" />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Lock className="h-4 w-4" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -427,25 +427,25 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="w-full pl-8 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900 placeholder:text-slate-400"
+                    className="w-full pl-9 pr-9 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900 placeholder:text-slate-400"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
 
                 {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between text-[10.5px] pt-0">
+                <div className="flex items-center justify-between text-[11px] pt-0.5">
                   <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-3 w-3 rounded border-slate-300 text-[#382685] focus:ring-[#382685]"
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-[#382685] focus:ring-[#382685]"
                     />
                     <span className="font-medium">Remember me</span>
                   </label>
@@ -459,19 +459,19 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {loading ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <span>Login</span>
                   )}
                 </button>
 
                 {/* OR Divider */}
-                <div className="relative flex py-0 items-center">
+                <div className="relative flex py-0.5 items-center">
                   <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-2 text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">OR</span>
+                  <span className="flex-shrink mx-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">OR</span>
                   <div className="flex-grow border-t border-slate-200"></div>
                 </div>
 
@@ -482,22 +482,22 @@ export default function LoginPage() {
                     setLoginMode("otp")
                     setOtpSent(false)
                   }}
-                  className="w-full py-1.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="w-full py-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
-                  <Smartphone className="h-3.5 w-3.5 text-[#382685]" />
+                  <Smartphone className="h-4 w-4 text-[#382685]" />
                   <span>Login with OTP</span>
                 </button>
 
               </form>
             ) : (
               /* OTP Login Form */
-              <form onSubmit={otpSent ? handleLogin : handleSendOtp} className="space-y-2">
+              <form onSubmit={otpSent ? handleLogin : handleSendOtp} className="space-y-2.5">
                 
                 {!otpSent ? (
                   <>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                        <Smartphone className="h-3.5 w-3.5" />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Smartphone className="h-4 w-4" />
                       </div>
                       <input
                         type="tel"
@@ -505,17 +505,17 @@ export default function LoginPage() {
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         placeholder="Enter 10-Digit Mobile Number"
-                        className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900"
+                        className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] focus:ring-1 focus:ring-[#382685] transition-all text-slate-900"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-2 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       {loading ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <span>Send Login OTP</span>
                       )}
@@ -523,10 +523,10 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    <div className="text-center text-[10.5px] text-slate-500">
+                    <div className="text-center text-[11px] text-slate-500">
                       Enter 6-digit OTP sent to <span className="font-bold text-slate-800">{identifier}</span>:
                     </div>
-                    <div className="flex justify-between gap-1">
+                    <div className="flex justify-between gap-1.5">
                       {otp.map((d, i) => (
                         <input
                           key={i}
@@ -535,7 +535,7 @@ export default function LoginPage() {
                           maxLength={1}
                           value={d}
                           onChange={(e) => handleOtpChange(i, e.target.value)}
-                          className="w-8 h-8 text-center font-bold text-sm border border-slate-300 rounded-lg text-slate-900 focus:border-[#382685] focus:outline-none bg-slate-50"
+                          className="w-9 h-10 text-center font-bold text-base border border-slate-300 rounded-xl text-slate-900 focus:border-[#382685] focus:outline-none bg-slate-50"
                         />
                       ))}
                     </div>
@@ -543,10 +543,10 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-2 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#2e1f74] hover:bg-[#251860] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       {loading ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <span>Verify &amp; Login</span>
                       )}
@@ -557,7 +557,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setLoginMode("password"); setOtpSent(false); }}
-                  className="w-full py-0.5 text-xs text-[#382685] font-bold hover:underline cursor-pointer"
+                  className="w-full py-1 text-xs text-[#382685] font-bold hover:underline cursor-pointer"
                 >
                   ← Back to Password Login
                 </button>
@@ -566,23 +566,23 @@ export default function LoginPage() {
             )}
 
             {/* Fast 1-Click Demo Login */}
-            <div className="pt-0.5 border-t border-slate-100 text-center">
+            <div className="pt-1 border-t border-slate-100 text-center">
               <button
                 type="button"
                 onClick={handleFastDemoLogin}
-                className="text-[10px] text-[#382685] font-semibold hover:underline bg-[#f1effd] px-2.5 py-1 rounded-full inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                className="text-[11px] sm:text-[10px] text-[#382685] font-semibold hover:underline bg-[#f1effd] px-3.5 py-1.5 sm:py-1 rounded-full inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
+                <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                 <span>Instant Demo as {role === "customer" ? "Patient (Suresh M.)" : "CRA (Rajesh J.)"}</span>
               </button>
             </div>
 
             {/* Register link */}
-            <div className="text-center text-[10.5px] pt-0">
+            <div className="text-center text-xs sm:text-[11px] pt-0">
               <span className="text-slate-500 font-medium">New to AVM Labs? </span>
               <Link
                 href={role === "customer" ? "/booking" : "/cra"}
-                className="font-bold text-[#e04838] hover:underline inline-flex items-center gap-0.5"
+                className="font-bold text-[#e04838] hover:underline inline-flex items-center gap-1"
               >
                 <span>Create an Account</span>
                 <ArrowRight className="h-3 w-3" />
@@ -598,7 +598,7 @@ export default function LoginPage() {
       {/* ========================================================================= */}
       {/* CLEAN SINGLE-LINE BOTTOM FOOTER                                           */}
       {/* ========================================================================= */}
-      <footer className="w-full py-1.5 text-center text-[10px] sm:text-[11px] text-slate-500 border-t border-slate-200/60 bg-white/70 backdrop-blur-xs shrink-0 z-10">
+      <footer className="w-full py-2 sm:py-2.5 text-center text-[11px] text-slate-500 border-t border-slate-200/60 bg-white/70 backdrop-blur-xs shrink-0 z-10">
         <div className="container mx-auto px-4 flex flex-row items-center justify-center gap-2 sm:gap-3">
           <span className="flex items-center gap-1 text-slate-600 font-semibold">
             <Lock className="h-3 w-3 text-[#382685]" /> Secure. Reliable. Confidential.
