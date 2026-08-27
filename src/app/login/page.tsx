@@ -18,6 +18,7 @@ import {
   FileText, 
   Shield, 
   ArrowRight,
+  ArrowLeft,
   Zap,
   FlaskConical,
   Dna,
@@ -236,13 +237,12 @@ export default function LoginPage() {
       {/* TOP HEADER HELPER                                                         */}
       {/* ========================================================================= */}
       <header className="w-full px-4 sm:px-6 md:px-12 py-3 sm:py-4 flex justify-between items-center z-20 shrink-0">
-        <Link href="/" className="inline-block lg:hidden hover:scale-102 transition-transform">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.jpg"
-            alt="AVMLabs Diagnostics"
-            className="h-12 sm:h-14 w-auto max-w-[170px] sm:max-w-[220px] object-contain mix-blend-multiply drop-shadow-xs"
-          />
+        <Link 
+          href="/" 
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs hover:shadow-xs transition-all"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Home</span>
         </Link>
 
         <div className="flex items-center gap-3 sm:gap-5 text-xs font-semibold text-slate-600">
@@ -250,8 +250,8 @@ export default function LoginPage() {
             <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             <span>Need help?</span>
           </Link>
-          <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/80 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-full border sm:border-0 border-slate-200 shadow-2xs sm:shadow-none">
-            <Headphones className="h-4 w-4 text-[#382685]" />
+          <a href="tel:18001234567" className="flex items-center gap-1.5 hover:text-[#382685] transition-colors font-bold text-slate-900 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs">
+            <Headphones className="h-3.5 w-3.5 text-[#382685]" />
             <span>1800 123 4567</span>
           </a>
         </div>
@@ -366,6 +366,18 @@ export default function LoginPage() {
           {/* RIGHT HALF: CLEAN AUTHENTICATION FORM */}
           <div className="w-full lg:w-1/2 p-6 sm:p-7 lg:p-8 flex flex-col justify-center bg-white space-y-3.5">
             
+            {/* Mobile-Only Prominently Centered Brand Logo */}
+            <div className="flex justify-center pb-1 lg:hidden">
+              <Link href="/" className="inline-block hover:scale-102 transition-transform">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo.jpg"
+                  alt="AVMLabs Diagnostics"
+                  className="h-16 sm:h-20 w-auto max-w-[210px] sm:max-w-[240px] object-contain mix-blend-multiply drop-shadow-xs"
+                />
+              </Link>
+            </div>
+
             {/* Header */}
             <div className="text-center space-y-0.5">
               <h2 className="text-xl sm:text-2xl font-black text-[#1e1b4b] tracking-tight">
