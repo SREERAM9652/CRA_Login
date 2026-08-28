@@ -11,6 +11,7 @@ import {
   Check, 
   Share2, 
   ArrowLeft, 
+  ArrowRight,
   ShieldCheck, 
   Phone, 
   Mail, 
@@ -53,6 +54,7 @@ export default function AddReferralPage() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activeMobileTab, setActiveMobileTab] = useState<"form" | "summary">("form")
 
   // Form State
   const [formData, setFormData] = useState({
@@ -263,7 +265,7 @@ export default function AddReferralPage() {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 px-3 sm:px-3.5 py-2 rounded-xl border border-purple-200/70 transition-colors shadow-2xs"
           >
             <FlaskConical className="h-3.5 w-3.5" /> 
-            <span>View 63 Test Prices</span>
+            <span>View 90 Test Prices</span>
           </Link>
           <Link
             href="/cra/dashboard/referrals"
@@ -275,38 +277,67 @@ export default function AddReferralPage() {
       </div>
 
       {!submitted ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <>
+        {/* Mobile-Only Tab Switcher: Form vs Live Earnings */}
+        <div className="lg:hidden flex rounded-2xl bg-slate-200/80 p-1 mb-3 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab("form")}
+            className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeMobileTab === "form"
+                ? "bg-white text-[#1e1b4b] shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <User className="h-3.5 w-3.5 text-[#382685]" />
+            <span>1. Customer &amp; Tests ({formData.selectedTests.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab("summary")}
+            className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeMobileTab === "summary"
+                ? "bg-[#251b5c] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <IndianRupee className="h-3.5 w-3.5 text-emerald-400" />
+            <span>2. Live Earnings (₹{totalSummary.totalC1.toLocaleString()})</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* ========================================================================= */}
           {/* LEFT COLUMN: MAIN FORM (8 COLUMNS ON LG)                                  */}
           {/* ========================================================================= */}
-          <div className="lg:col-span-7 xl:col-span-8 rounded-3xl shadow-xl shadow-indigo-950/5 border border-slate-100 bg-white overflow-hidden">
+          <div className={`lg:col-span-7 xl:col-span-8 rounded-3xl shadow-xl shadow-indigo-950/5 border border-slate-100 bg-white overflow-hidden ${activeMobileTab === "summary" ? "hidden lg:block" : "block"}`}>
             
-            {/* Header Attribution Banner */}
-            <div className="bg-gradient-to-r from-[#1e1b4b] via-[#2e1f74] to-[#382685] text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-white/15 flex items-center justify-center font-bold text-white shadow-xs border border-white/20">
-                  <Sparkles className="h-5 w-5 text-cyan-300" />
+            {/* Header Attribution Banner - Compact on Mobile */}
+            <div className="bg-gradient-to-r from-[#1e1b4b] via-[#2e1f74] to-[#382685] text-white p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-white/15 flex items-center justify-center font-bold text-white shadow-xs border border-white/20 shrink-0">
+                  <Sparkles className="h-4 sm:h-5 w-4 sm:w-5 text-cyan-300" />
                 </div>
                 <div>
-                  <div className="text-xs font-extrabold text-cyan-300 uppercase tracking-wider">
-                    Your Partner Code: {referralCode}
+                  <div className="text-[11px] sm:text-xs font-extrabold text-cyan-300 uppercase tracking-wider">
+                    Partner Code: {referralCode}
                   </div>
-                  <div className="text-[11.5px] text-blue-100 font-medium">
-                    Logged by: Rajesh J. (Direct Agent • Earn 30% on Completed Tests)
+                  <div className="text-[11px] text-blue-100 font-medium">
+                    Rajesh J. • 30% Direct Earning on Completed Tests
                   </div>
                 </div>
               </div>
-              <span className="text-[10.5px] uppercase font-extrabold tracking-wider px-3 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-xs w-fit">
+              <span className="text-[10px] sm:text-[10.5px] uppercase font-extrabold tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-emerald-400 text-slate-950 shadow-xs w-fit">
                 Verified Agent
               </span>
             </div>
 
-            <div className="p-4 sm:p-8">
-              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+            <div className="p-3.5 sm:p-6 md:p-8">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 
                 {/* Row 1: Name & Mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <User className="h-3.5 w-3.5 text-[#382685]" /> Customer Full Name *
@@ -316,7 +347,7 @@ export default function AddReferralPage() {
                       required
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
+                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
                       placeholder="e.g. Ramesh Patel"
                     />
                   </div>
@@ -330,14 +361,14 @@ export default function AddReferralPage() {
                       required
                       value={formData.mobile}
                       onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
+                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
                       placeholder="+91 98765 43210"
                     />
                   </div>
                 </div>
 
                 {/* Row 2: Email & Relationship */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <Mail className="h-3.5 w-3.5 text-slate-400" /> Email Address (Optional)
@@ -346,7 +377,7 @@ export default function AddReferralPage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
+                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
                       placeholder="name@example.com"
                     />
                   </div>
@@ -373,20 +404,20 @@ export default function AddReferralPage() {
                 {/* MULTI-TEST SELECTION SECTION                                              */}
                 {/* ========================================================================= */}
                 <div className="space-y-3 pt-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                      <FlaskConical className="h-4 w-4 text-[#382685]" />
-                      Select Diagnostic Tests & Packages *
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs font-black text-slate-900 flex items-center gap-1.5 min-w-0">
+                      <FlaskConical className="h-4 w-4 text-[#382685] shrink-0" />
+                      <span className="truncate">Select Tests &amp; Packages *</span>
                     </label>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-[#382685] text-[11px] font-black border border-purple-200">
-                        {formData.selectedTests.length} Test{formData.selectedTests.length !== 1 ? "s" : ""} Selected
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-[#382685] text-[11px] font-black border border-purple-200 shrink-0">
+                        {formData.selectedTests.length} Selected
                       </span>
                       {formData.selectedTests.length > 0 && (
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, selectedTests: [] })}
-                          className="text-[11px] text-rose-600 hover:underline font-bold cursor-pointer"
+                          className="text-[11px] text-rose-600 hover:underline font-bold cursor-pointer shrink-0"
                         >
                           Clear All
                         </button>
@@ -398,18 +429,18 @@ export default function AddReferralPage() {
                   <div className="relative" ref={testDropdownRef}>
                     <div 
                       onClick={() => setIsTestDropdownOpen(!isTestDropdownOpen)}
-                      className="w-full min-h-[48px] rounded-2xl border border-slate-200 hover:border-[#382685] bg-white p-2.5 px-3.5 flex items-center justify-between gap-2 cursor-pointer transition-all shadow-xs"
+                      className="w-full min-h-[48px] rounded-xl sm:rounded-2xl border border-slate-200 hover:border-[#382685] bg-white p-2.5 px-3.5 flex items-center justify-between gap-2.5 cursor-pointer transition-all shadow-xs"
                     >
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <Search className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span className="text-xs font-semibold text-slate-600">
+                        <span className="text-xs font-semibold text-slate-600 truncate">
                           {formData.selectedTests.length === 0 
-                            ? "Click to search and add tests (63 tests available)..."
+                            ? "Click to search and add tests (90 tests available)..."
                             : `Click to add more tests or packages...`
                           }
                         </span>
                       </div>
-                      <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isTestDropdownOpen ? "rotate-180 text-[#382685]" : ""}`} />
+                      <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${isTestDropdownOpen ? "rotate-180 text-[#382685]" : ""}`} />
                     </div>
 
                     {/* Dropdown Popover */}
@@ -720,6 +751,16 @@ export default function AddReferralPage() {
                   </Link>
                 </div>
 
+                {/* Mobile Link to View Earnings Summary */}
+                <button
+                  type="button"
+                  onClick={() => setActiveMobileTab("summary")}
+                  className="lg:hidden w-full py-3 px-4 rounded-2xl bg-purple-50 hover:bg-purple-100 text-[#382685] font-bold text-xs border border-purple-200/80 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>View Live Earnings &amp; Discount Breakdown (₹{totalSummary.totalC1.toLocaleString()})</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+
               </form>
             </div>
           </div>
@@ -727,7 +768,7 @@ export default function AddReferralPage() {
           {/* ========================================================================= */}
           {/* RIGHT COLUMN: REAL-TIME INCENTIVE CALCULATOR & ATTRIBUTION (4-5 COLS)     */}
           {/* ========================================================================= */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+          <div className={`lg:col-span-5 xl:col-span-4 space-y-5 ${activeMobileTab === "form" ? "hidden lg:block" : "block"}`}>
             
             {/* Live Pricing & Earnings Card with Indian Rupee Icon */}
             <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-6 space-y-4">
@@ -806,6 +847,22 @@ export default function AddReferralPage() {
                 <span className="text-slate-600 font-semibold">Team Bonus (10%):</span>
                 <span className="font-black text-purple-700">₹{totalSummary.totalC2.toLocaleString()}</span>
               </div>
+
+              {/* Direct Booking Trigger inside Summary Card on Mobile */}
+              <div className="lg:hidden pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const formEl = document.querySelector("form")
+                    if (formEl) formEl.requestSubmit()
+                  }}
+                  disabled={loading || formData.selectedTests.length === 0}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white font-black text-xs shadow-lg shadow-indigo-950/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span>Confirm &amp; Book {totalSummary.count} Tests (₹{totalSummary.totalRR.toLocaleString()})</span>
+                </button>
+              </div>
             </div>
 
             {/* Quick Share Attribution Box */}
@@ -872,6 +929,34 @@ export default function AddReferralPage() {
           </div>
 
         </div>
+
+        {/* Sticky Mobile Floating Order Booking Bar */}
+        {formData.selectedTests.length > 0 && (
+          <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-950/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-2 animate-in slide-in-from-bottom-2 duration-200">
+            <div className="min-w-0">
+              <div className="text-[11px] text-slate-300 truncate">
+                {totalSummary.count} Tests • <span className="font-bold text-white">₹{totalSummary.totalRR.toLocaleString()}</span>
+              </div>
+              <div className="text-[11px] font-black text-emerald-400 truncate">
+                +₹{totalSummary.totalC1.toLocaleString()} Your 30% Earning
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const formEl = document.querySelector("form")
+                if (formEl) formEl.requestSubmit()
+              }}
+              disabled={loading}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+            >
+              <span>{loading ? "Booking..." : "Book Now"}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </>
       ) : (
         /* ========================================================================= */
         /* SUCCESS STATE CARD                                                        */

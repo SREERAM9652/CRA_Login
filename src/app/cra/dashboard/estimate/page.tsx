@@ -352,24 +352,26 @@ function EstimateContent() {
         <button
           type="button"
           onClick={() => setActiveMobileTab("edit")}
-          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeMobileTab === "edit"
               ? "bg-white text-[#1e1b4b] shadow-xs"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          ✏️ Edit Bill &amp; Tests ({selectedTests.length})
+          <Edit3 className="h-3.5 w-3.5 text-[#382685]" />
+          <span>Edit Bill &amp; Tests ({selectedTests.length})</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveMobileTab("preview")}
-          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeMobileTab === "preview"
               ? "bg-[#251b5c] text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          📄 Live Bill Preview (₹{totalRR.toLocaleString()})
+          <FileText className="h-3.5 w-3.5 text-cyan-300" />
+          <span>Live Bill Preview (₹{totalRR.toLocaleString()})</span>
         </button>
       </div>
 
@@ -626,23 +628,8 @@ function EstimateContent() {
         {/* ======================================================================= */}
         {/* RIGHT COLUMN: LIVE FULL-WIDTH PRINTABLE A4 QUOTATION PREVIEW (7 COLS)   */}
         {/* ======================================================================= */}
-        <div className={`xl:col-span-7 w-full space-y-3 ${activeMobileTab === "edit" ? "hidden xl:block" : "block"}`}>
+        <div className={`xl:col-span-7 w-full ${activeMobileTab === "edit" ? "hidden xl:block" : "block"}`}>
           
-          {/* Mobile Back Button to Edit Form */}
-          <div className="xl:hidden flex items-center justify-between no-print mb-2">
-            <button
-              type="button"
-              onClick={() => setActiveMobileTab("edit")}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-[#251b5c] hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>← Back to Editing Form</span>
-            </button>
-            <span className="text-xs font-bold text-slate-500 font-mono">
-              Live Preview
-            </span>
-          </div>
-
           <div 
             id="printable-area" 
             className="bg-white w-full shadow-xl print:shadow-none flex flex-col relative overflow-hidden rounded-3xl print:rounded-none border border-slate-200/90 print:border-none"
