@@ -216,7 +216,7 @@ export default function AddReferralPage() {
 
   const referralCode = "AVM-RAJ-789"
   const testNamesSummary = selectedItems.map(i => i.name).join(", ")
-  const referralLink = `https://avmlabs.in/booking?ref=${referralCode}&client=${encodeURIComponent(formData.fullName || "Client")}`
+  const referralLink = `https://avmlabs.com/booking?ref=${referralCode}&client=${encodeURIComponent(formData.fullName || "Client")}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink)
@@ -888,7 +888,7 @@ export default function AddReferralPage() {
                 </button>
 
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Book tests (${testNamesSummary}) on AVMLabs with 20% discount: https://avmlabs.in/booking?ref=${referralCode}`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(`Book tests (${testNamesSummary}) on AVMLabs with 20% discount: https://avmlabs.com/booking?ref=${referralCode}`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="p-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-colors"

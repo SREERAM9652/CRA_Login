@@ -40,7 +40,7 @@ export default function CRADashboardLayout({
     <div className="flex min-h-screen bg-[#f8f9fd] font-sans text-slate-800 selection:bg-[#382685] selection:text-white">
       
       {/* Desktop Fixed Sidebar (Identical Clean White Theme like Customer Dashboard) */}
-      <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 z-50 shadow-xs">
+      <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 z-50 shadow-xs no-print print:hidden">
         
         {/* Logo - Prominently Enlarged and Centered */}
         <div className="h-24 flex items-center justify-center px-4 border-b border-slate-100/90 bg-white">
@@ -190,10 +190,10 @@ export default function CRADashboardLayout({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen print:ml-0 print:min-h-0">
         
         {/* Top Header Bar */}
-        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-40 px-3 sm:px-6 lg:px-8 flex items-center justify-between shadow-2xs">
+        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-40 px-3 sm:px-6 lg:px-8 flex items-center justify-between shadow-2xs no-print print:hidden">
           
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
@@ -262,7 +262,7 @@ export default function CRADashboardLayout({
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full print:p-0 print:m-0">
           {children}
         </main>
       </div>

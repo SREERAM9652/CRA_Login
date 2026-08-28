@@ -18,7 +18,7 @@ import {
 export default function NetworkTiers() {
   const [copied, setCopied] = useState(false)
   const inviteCode = "RAJESH-C1-X9A"
-  const inviteLink = `https://avmlabs.in/cra?invitedBy=${inviteCode}`
+  const inviteLink = `https://avmlabs.com/cra?invitedBy=${inviteCode}`
 
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink)

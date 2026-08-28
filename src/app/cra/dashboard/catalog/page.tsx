@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { 
   Search, 
@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   Printer,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from "lucide-react"
 import { CRA_TESTS, CRATestItem } from "@/lib/cra-tests"
 import { CustomSelect } from "@/components/ui/CustomSelect"
@@ -38,8 +39,21 @@ export default function CRACatalogPage() {
   const [copiedList, setCopiedList] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [pageSizeDropdownOpen, setPageSizeDropdownOpen] = useState(false)
+  const pageSizeRef = useRef<HTMLDivElement>(null)
 
   const referralCode = "AVM-RAJ-789"
+
+  // Click outside to close page size dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pageSizeRef.current && !pageSizeRef.current.contains(event.target as Node)) {
+        setPageSizeDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   // Unique categories and technologies
   const categories = ["All", ...Array.from(new Set(CRA_TESTS.map(t => t.category))).sort()]
@@ -84,7 +98,7 @@ export default function CRACatalogPage() {
   }
 
   const handleCopyTestLink = (testCode: string, testName: string) => {
-    const link = `https://avmlabs.in/booking?ref=${referralCode}&test=${testCode.toLowerCase()}`
+    const link = `https://avmlabs.com/booking?ref=${referralCode}&test=${testCode.toLowerCase()}`
     navigator.clipboard.writeText(link)
     setCopiedCode(testCode)
     setTimeout(() => setCopiedCode(null), 2000)
@@ -105,35 +119,140 @@ export default function CRACatalogPage() {
   const selectedCodesString = selectedTests.map(t => t.code).join(",")
 
   const handleExportCSV = () => {
-    const headers = ["#", "Code", "Test Name", "Category", "Methodology", "Sample", "MRP (INR)", "Final Price (INR)", "Your Earning 30% (INR)"]
-    const rows = selectedTests.map((t, idx) => [
-      idx + 1,
-      t.code,
-      `"${t.name}"`,
-      `"${t.category}"`,
-      t.technology,
-      t.sample,
-      t.catalogueRate,
-      t.realizedRevenue,
-      t.c1Incentive
-    ])
+    if (selectedTests.length === 0) {
+      alert("Please select at least one test to export.")
+      return
+    }
 
-    const csvContent = "data:text/csv;charset=utf-8," + [
-      `"AVMLabs Diagnostic Price List & Quotation"`,
-      "",
-      headers.join(","),
-      ...rows.map(r => r.join(",")),
-      "",
-      `"TOTAL",,"${selectedTests.length} Tests",,,,"${totalCatalogue}","${totalRR}","${totalC1}"`
-    ].join("\n")
+    const excelHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Price Catalog Quote</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                  <x:DoNotDisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+        <style>
+          body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; font-size: 10.5pt; color: #1e293b; margin: 0; padding: 0; }
+          table { border-collapse: collapse; table-layout: fixed; }
+          .header-banner { background-color: #251b5c; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; height: 38px; vertical-align: middle; white-space: nowrap; }
+          .sub-banner { background-color: #382685; color: #e0e7ff; font-size: 10pt; font-weight: bold; text-align: center; height: 22px; vertical-align: middle; white-space: nowrap; }
+          .th-head { background-color: #1e1b4b; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; border: 1px solid #0f172a; height: 28px; vertical-align: middle; white-space: nowrap; }
+          .td-num { text-align: center; border: 1px solid #e2e8f0; vertical-align: middle; white-space: nowrap; }
+          .td-code { text-align: center; font-weight: bold; color: #382685; background-color: #faf5ff; border: 1px solid #e2e8f0; vertical-align: middle; font-family: monospace; white-space: nowrap; }
+          .td-name { font-weight: bold; color: #0f172a; border: 1px solid #e2e8f0; vertical-align: middle; padding-left: 8px; }
+          .td-cat { color: #475569; border: 1px solid #e2e8f0; vertical-align: middle; padding-left: 6px; white-space: nowrap; }
+          .td-money { text-align: right; color: #64748b; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; white-space: nowrap; }
+          .td-money-final { text-align: right; color: #1e1b4b; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; background-color: #f8fafc; white-space: nowrap; }
+          .td-money-earning { text-align: right; color: #047857; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; background-color: #ecfdf5; white-space: nowrap; }
+          .total-label { text-align: right; padding-right: 12px; font-weight: bold; font-size: 10.5pt; color: #1e293b; background-color: #f8fafc; border: 1px solid #cbd5e1; white-space: nowrap; }
+          .total-val { text-align: right; padding-right: 8px; font-weight: bold; font-size: 10.5pt; border: 1px solid #cbd5e1; white-space: nowrap; }
+          .grand-label { text-align: right; padding-right: 12px; font-weight: bold; font-size: 11pt; color: #065f46; background-color: #ecfdf5; border: 1px solid #059669; white-space: nowrap; }
+          .grand-val { text-align: right; padding-right: 12px; font-weight: bold; font-size: 12pt; color: #065f46; background-color: #ecfdf5; border: 1px solid #059669; white-space: nowrap; }
+          .footer-note { font-size: 9pt; color: #64748b; font-style: italic; border: none; white-space: normal; padding-top: 4px; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <!-- Explicit Column Widths for Excel -->
+          <colgroup>
+            <col width="45" style="width:34pt">
+            <col width="90" style="width:68pt">
+            <col width="280" style="width:210pt">
+            <col width="170" style="width:128pt">
+            <col width="140" style="width:105pt">
+            <col width="110" style="width:82pt">
+            <col width="140" style="width:105pt">
+            <col width="150" style="width:112pt">
+          </colgroup>
 
-    const encodedUri = encodeURI(csvContent)
+          <!-- Header Banner -->
+          <tr>
+            <td colspan="8" class="header-banner">
+              AVMLABS CENTRAL REFERENCE DIAGNOSTICS NETWORK
+            </td>
+          </tr>
+          <tr>
+            <td colspan="8" class="sub-banner">
+              Official Diagnostic Price Catalog &amp; Quotation • Ref: ${referralCode}
+            </td>
+          </tr>
+          <tr><td colspan="8" style="height:8px;"></td></tr>
+
+          <!-- Table Header -->
+          <tr>
+            <th class="th-head">#</th>
+            <th class="th-head">Test Code</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Medical Test Name</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Category</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Technology</th>
+            <th class="th-head" style="text-align:right;padding-right:8px;">MRP (₹)</th>
+            <th class="th-head" style="text-align:right;padding-right:8px;">Customer Price (₹)</th>
+            <th class="th-head" style="text-align:right;padding-right:8px;">Your Earning 30% (₹)</th>
+          </tr>
+
+          <!-- Table Rows -->
+          ${selectedTests.map((t, idx) => {
+            const rowBg = idx % 2 === 0 ? "#ffffff" : "#f8fafc"
+            return `
+              <tr style="background-color:${rowBg};height:26px;">
+                <td class="td-num">${idx + 1}</td>
+                <td class="td-code">${t.code}</td>
+                <td class="td-name">${t.name}</td>
+                <td class="td-cat">${t.category}</td>
+                <td class="td-cat">${t.technology}</td>
+                <td class="td-money">₹ ${t.catalogueRate}</td>
+                <td class="td-money-final">₹ ${t.realizedRevenue}</td>
+                <td class="td-money-earning">+ ₹ ${t.c1Incentive}</td>
+              </tr>
+            `
+          }).join("")}
+
+          <!-- Commercial Summary Rows -->
+          <tr style="height:28px;">
+            <td colspan="5" class="total-label">TOTAL (${selectedTests.length} Selected Tests):</td>
+            <td class="total-val">₹ ${totalCatalogue.toLocaleString()}</td>
+            <td class="total-val" style="color:#1e1b4b;font-weight:bold;">₹ ${totalRR.toLocaleString()}</td>
+            <td class="total-val" style="color:#047857;font-weight:bold;">+ ₹ ${totalC1.toLocaleString()}</td>
+          </tr>
+
+          <!-- Highlighted Row -->
+          <tr style="height:32px;">
+            <td colspan="5" class="grand-label">FINAL PATIENT PAYABLE (20% DISCOUNT APPLIED):</td>
+            <td colspan="3" class="grand-val">₹ ${totalRR.toLocaleString()}</td>
+          </tr>
+
+          <tr><td colspan="8" style="height:10px;"></td></tr>
+          <tr>
+            <td colspan="8" class="footer-note">
+              * Contact Helpline: 1800 123 4567 • Email: info@avmlabs.com • Website: www.avmlabs.com
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+
+    const blob = new Blob([excelHtml], { type: "application/vnd.ms-excel;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `AVMLabs_Quote_${selectedTests.length}_Tests.csv`)
+    link.href = url
+    link.download = `AVMLabs_Quote_${selectedTests.length}_Tests.xls`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const handleCopySelectedList = () => {
@@ -257,14 +376,14 @@ export default function CRACatalogPage() {
             <CustomSelect
               options={technologies.map(tech => ({
                 value: tech,
-                label: tech === "All" ? "All Methods" : tech
+                label: tech === "All" ? "All Technologies" : tech
               }))}
               value={selectedTech}
               onChange={(val) => {
                 setSelectedTech(val)
                 setCurrentPage(1)
               }}
-              placeholder="Filter Method"
+              placeholder="Filter Technology"
             />
           </div>
 
@@ -318,7 +437,7 @@ export default function CRACatalogPage() {
       <div className="grid grid-cols-1 gap-2.5 md:hidden">
         {paginatedTests.map((test) => {
           const isCopied = copiedCode === test.code
-          const directLink = `https://avmlabs.in/booking?ref=${referralCode}&test=${test.code.toLowerCase()}`
+          const directLink = `https://avmlabs.com/booking?ref=${referralCode}&test=${test.code.toLowerCase()}`
           const isSelected = selectedTests.some(t => t.code === test.code)
 
           return (
@@ -409,7 +528,7 @@ export default function CRACatalogPage() {
               <tr>
                 <th className="px-4 py-3.5 w-12 text-center">Select</th>
                 <th className="px-4 py-3.5">Test Name &amp; Code</th>
-                <th className="px-4 py-3.5">Category &amp; Method</th>
+                <th className="px-4 py-3.5">Category &amp; Technology</th>
                 <th className="px-4 py-3.5">Sample</th>
                 <th className="px-4 py-3.5 text-right">MRP</th>
                 <th className="px-4 py-3.5 text-right">Customer Price (20% Off)</th>
@@ -422,7 +541,7 @@ export default function CRACatalogPage() {
               {paginatedTests.map((test) => {
                 const c2Incentive = Math.round(test.realizedRevenue * 0.1)
                 const isCopied = copiedCode === test.code
-                const directLink = `https://avmlabs.in/booking?ref=${referralCode}&test=${test.code.toLowerCase()}`
+                const directLink = `https://avmlabs.com/booking?ref=${referralCode}&test=${test.code.toLowerCase()}`
                 const isSelected = selectedTests.some(t => t.code === test.code)
 
                 return (
@@ -516,87 +635,138 @@ export default function CRACatalogPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Integrated Table Footer: Pagination & Page Size (Unified inside Table Card) */}
+        {filteredTests.length > 0 && (
+          <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3.5 flex items-center justify-between gap-3 text-xs">
+            
+            {/* Showing Summary & Page Size Selector */}
+            <div className="flex items-center gap-3 text-slate-500 font-medium">
+              <span>
+                Showing <strong className="text-slate-900 font-black">{startIndex + 1}</strong> to <strong className="text-slate-900 font-black">{endIndex}</strong> of <strong className="text-slate-900 font-black">{filteredTests.length}</strong> tests
+              </span>
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <span className="text-[11px] font-semibold text-slate-500">Show:</span>
+                <div className="relative" ref={pageSizeRef}>
+                  <button
+                    type="button"
+                    onClick={() => setPageSizeDropdownOpen(!pageSizeDropdownOpen)}
+                    className="bg-white border border-slate-200 hover:border-[#382685] rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <span>{itemsPerPage} / page</span>
+                    <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${pageSizeDropdownOpen ? "rotate-180 text-[#382685]" : ""}`} />
+                  </button>
+
+                  {pageSizeDropdownOpen && (
+                    <div className="absolute bottom-full mb-1.5 left-0 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-1 w-28 animate-in fade-in zoom-in-95 duration-150 ring-1 ring-slate-900/5">
+                      {[
+                        { value: 10, label: "10 / page" },
+                        { value: 20, label: "20 / page" },
+                        { value: 50, label: "50 / page" },
+                        { value: 90, label: "All (90)" },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setItemsPerPage(opt.value)
+                            setCurrentPage(1)
+                            setPageSizeDropdownOpen(false)
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-left transition-colors cursor-pointer ${
+                            itemsPerPage === opt.value
+                              ? "bg-[#251b5c] text-white"
+                              : "text-slate-700 hover:bg-slate-50 hover:text-[#382685]"
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {itemsPerPage === opt.value && <Check className="h-3 w-3 stroke-[3]" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Page Number Buttons */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <span>Prev</span>
+              </button>
+
+              <div className="flex items-center gap-1">
+                {getPageNumbers(safeCurrentPage, totalPages).map((p, idx) => {
+                  if (p === "...") {
+                    return (
+                      <span key={`ellipsis-${idx}`} className="px-2 py-1 text-slate-400 font-bold">
+                        ...
+                      </span>
+                    )
+                  }
+                  const isCurrent = p === safeCurrentPage
+                  return (
+                    <button
+                      key={`page-${p}`}
+                      type="button"
+                      onClick={() => handlePageChange(p as number)}
+                      className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-[#251b5c] text-white shadow-xs scale-105"
+                          : "bg-white hover:bg-purple-50 text-slate-700 border border-slate-200 hover:border-purple-200"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+          </div>
+        )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* PAGINATION CONTROLS BAR (EACH PAGE 10 WITH 1 2 3 ... NUMBERS)             */}
-      {/* ========================================================================= */}
+      {/* Mobile-Only Bottom Pagination Bar */}
       {filteredTests.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          
-          {/* Showing Summary & Page Size Selector */}
-          <div className="flex items-center gap-3 text-slate-500 font-medium">
-            <span>
-              Showing <strong className="text-slate-900 font-black">{startIndex + 1}</strong> to <strong className="text-slate-900 font-black">{endIndex}</strong> of <strong className="text-slate-900 font-black">{filteredTests.length}</strong> tests
-            </span>
-            <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-200">
-              <span className="text-[11px]">Show:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value))
-                  setCurrentPage(1)
-                }}
-                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#382685] cursor-pointer"
-              >
-                <option value={10}>10 / page</option>
-                <option value={20}>20 / page</option>
-                <option value={50}>50 / page</option>
-                <option value={90}>All (90)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Page Number Buttons */}
+        <div className="md:hidden bg-white rounded-2xl border border-slate-100 p-3.5 shadow-2xs flex items-center justify-between text-xs">
+          <span className="text-slate-500 font-bold text-[11px]">
+            Page {safeCurrentPage} of {totalPages} ({filteredTests.length} tests)
+          </span>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => handlePageChange(safeCurrentPage - 1)}
               disabled={safeCurrentPage === 1}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs disabled:opacity-40"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Prev</span>
+              Prev
             </button>
-
-            <div className="flex items-center gap-1">
-              {getPageNumbers(safeCurrentPage, totalPages).map((p, idx) => {
-                if (p === "...") {
-                  return (
-                    <span key={`ellipsis-${idx}`} className="px-2 py-1 text-slate-400 font-bold">
-                      ...
-                    </span>
-                  )
-                }
-                const isCurrent = p === safeCurrentPage
-                return (
-                  <button
-                    key={`page-${p}`}
-                    type="button"
-                    onClick={() => handlePageChange(p as number)}
-                    className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isCurrent
-                        ? "bg-[#251b5c] text-white shadow-xs scale-105"
-                        : "bg-white hover:bg-purple-50 text-slate-700 border border-slate-200 hover:border-purple-200"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              })}
-            </div>
-
             <button
               type="button"
               onClick={() => handlePageChange(safeCurrentPage + 1)}
               disabled={safeCurrentPage === totalPages}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs disabled:opacity-40"
             >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="h-3.5 w-3.5" />
+              Next
             </button>
           </div>
-
         </div>
       )}
 

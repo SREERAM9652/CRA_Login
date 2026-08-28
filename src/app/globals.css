@@ -129,3 +129,19 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
 }
+
+@media print {
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  header, aside, nav, footer, .no-print, [role="banner"], [role="navigation"] {
+    display: none !important;
+  }
+}

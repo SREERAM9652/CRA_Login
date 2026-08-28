@@ -566,7 +566,7 @@ export default function LoginPage() {
             )}
 
             {/* Fast 1-Click Demo Login */}
-            <div className="pt-0.5 border-t border-slate-100 text-center">
+            <div className="pt-1.5 border-t border-slate-100 text-center pb-1">
               <button
                 type="button"
                 onClick={handleFastDemoLogin}
@@ -575,18 +575,6 @@ export default function LoginPage() {
                 <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                 <span>Instant Demo as {role === "customer" ? "Patient (Suresh M.)" : "CRA (Rajesh J.)"}</span>
               </button>
-            </div>
-
-            {/* Register link */}
-            <div className="text-center text-xs sm:text-[11px] pt-0 pb-0.5">
-              <span className="text-slate-500 font-medium">New to AVM Labs? </span>
-              <Link
-                href={role === "customer" ? "/booking" : "/cra"}
-                className="font-bold text-[#e04838] hover:underline inline-flex items-center gap-1"
-              >
-                <span>Create an Account</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
             </div>
 
           </div>

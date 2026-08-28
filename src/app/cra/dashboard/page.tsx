@@ -30,7 +30,7 @@ import { MOCK_CRA_REFERRALS, MOCK_MONTHLY_PERFORMANCE } from "@/lib/mock-data"
 export default function CRADashboardOverview() {
   const [copied, setCopied] = useState(false)
   const referralCode = "AVM-RAJ-789"
-  const referralLink = `https://avmlabs.in/booking?ref=${referralCode}`
+  const referralLink = `https://avmlabs.com/booking?ref=${referralCode}`
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink)

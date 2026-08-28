@@ -70,7 +70,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-cyan-400 shrink-0" />
-                <span className="text-xs">care@avmlabs.in</span>
+                <span className="text-xs">info@avmlabs.com</span>
               </li>
             </ul>
           </div>

@@ -136,44 +136,230 @@ function EstimateContent() {
   const netCompanyShare = totalRR - totalC1 - totalC2
   const selectedCodesString = selectedTests.map(t => t.code).join(",")
 
-  // Export to CSV / Excel
+  // Export to Formatted Excel (.xls)
   const handleExportCSV = () => {
-    const headers = isCustomerCopy 
-      ? ["#", "Test Code", "Test Name", "Technology", "Sample", "MRP (INR)", "Discount 20% (INR)", "Final Price (INR)"]
-      : ["#", "Test Code", "Test Name", "Technology", "Sample", "MRP (INR)", "Customer Price (INR)", "Direct Earning 30% (INR)", "Team Bonus 10% (INR)"]
+    if (selectedTests.length === 0) {
+      alert("Please select at least one test to export.")
+      return
+    }
 
-    const rows = selectedTests.map((t, idx) => {
-      const disc = Math.round(t.catalogueRate * 0.2)
-      const rr = t.catalogueRate - disc
-      const c1 = Math.round(rr * 0.3)
-      const c2 = Math.round(rr * 0.1)
+    const colCount = isCustomerCopy ? 8 : 9
 
-      return isCustomerCopy
-        ? [idx + 1, t.code, `"${t.name}"`, t.technology, t.sample, t.catalogueRate, disc, rr]
-        : [idx + 1, t.code, `"${t.name}"`, t.technology, t.sample, t.catalogueRate, rr, c1, c2]
-    })
+    const excelHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>AVMLabs Quotation</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                  <x:DoNotDisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+        <style>
+          body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; font-size: 10.5pt; color: #1e293b; margin: 0; padding: 0; }
+          table { border-collapse: collapse; table-layout: fixed; }
+          .header-banner { background-color: #251b5c; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; height: 38px; vertical-align: middle; white-space: nowrap; }
+          .sub-banner { background-color: #382685; color: #e0e7ff; font-size: 10pt; font-weight: bold; text-align: center; height: 22px; vertical-align: middle; white-space: nowrap; }
+          .meta-title { background-color: #f1f5f9; color: #334155; font-weight: bold; font-size: 9.5pt; border: 1px solid #cbd5e1; padding: 4px 8px; white-space: nowrap; }
+          .meta-val { background-color: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; padding: 4px 8px; white-space: nowrap; }
+          .th-head { background-color: #1e1b4b; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; border: 1px solid #0f172a; height: 28px; vertical-align: middle; white-space: nowrap; }
+          .td-num { text-align: center; border: 1px solid #e2e8f0; vertical-align: middle; white-space: nowrap; }
+          .td-code { text-align: center; font-weight: bold; color: #382685; background-color: #faf5ff; border: 1px solid #e2e8f0; vertical-align: middle; font-family: monospace; white-space: nowrap; }
+          .td-name { font-weight: bold; color: #0f172a; border: 1px solid #e2e8f0; vertical-align: middle; padding-left: 8px; }
+          .td-cat { color: #475569; border: 1px solid #e2e8f0; vertical-align: middle; padding-left: 6px; white-space: nowrap; }
+          .td-money { text-align: right; color: #64748b; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; white-space: nowrap; }
+          .td-money-disc { text-align: right; color: #059669; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; white-space: nowrap; }
+          .td-money-final { text-align: right; color: #1e1b4b; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; background-color: #f8fafc; white-space: nowrap; }
+          .td-money-earning { text-align: right; color: #047857; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; background-color: #ecfdf5; white-space: nowrap; }
+          .td-money-bonus { text-align: right; color: #6b21a8; font-weight: bold; border: 1px solid #e2e8f0; vertical-align: middle; padding-right: 8px; background-color: #faf5ff; white-space: nowrap; }
+          .total-label { text-align: right; padding-right: 12px; font-weight: bold; font-size: 10.5pt; color: #1e293b; background-color: #f8fafc; border: 1px solid #cbd5e1; white-space: nowrap; }
+          .total-val { text-align: right; padding-right: 8px; font-weight: bold; font-size: 10.5pt; border: 1px solid #cbd5e1; white-space: nowrap; }
+          .grand-label { text-align: right; padding-right: 12px; font-weight: bold; font-size: 11pt; color: #065f46; background-color: #ecfdf5; border: 1px solid #059669; white-space: nowrap; }
+          .grand-val { text-align: right; padding-right: 12px; font-weight: bold; font-size: 12pt; color: #065f46; background-color: #ecfdf5; border: 1px solid #059669; white-space: nowrap; }
+          .footer-note { font-size: 9pt; color: #64748b; font-style: italic; border: none; white-space: normal; padding-top: 4px; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <!-- Explicit Column Widths for Excel -->
+          <colgroup>
+            <col width="45" style="width:34pt">
+            <col width="90" style="width:68pt">
+            <col width="280" style="width:210pt">
+            <col width="170" style="width:128pt">
+            <col width="130" style="width:98pt">
+            <col width="110" style="width:82pt">
+            ${
+              isCustomerCopy
+                ? `<col width="140" style="width:105pt"><col width="140" style="width:105pt">`
+                : `<col width="140" style="width:105pt"><col width="150" style="width:112pt"><col width="130" style="width:98pt">`
+            }
+          </colgroup>
 
-    const summaryRow = isCustomerCopy
-      ? ["TOTAL", "", `${selectedTests.length} Tests`, "", "", totalCatalogue, totalDiscount, totalRR]
-      : ["TOTAL", "", `${selectedTests.length} Tests`, "", "", totalCatalogue, totalRR, totalC1, totalC2]
+          <!-- Header Banner -->
+          <tr>
+            <td colspan="${colCount}" class="header-banner">
+              AVMLABS CENTRAL REFERENCE DIAGNOSTICS NETWORK
+            </td>
+          </tr>
+          <tr>
+            <td colspan="${colCount}" class="sub-banner">
+              ${branding.clinicName || "Prestige Tech Cloud, Bengaluru - 562110 • Helpline: +91 80 4912 8800"}
+            </td>
+          </tr>
+          <tr><td colspan="${colCount}" style="height:8px;"></td></tr>
 
-    const csvContent = "data:text/csv;charset=utf-8," + [
-      `"AVMLabs Diagnostic Quotation & Price Estimate - ${patientDetails.name}"`,
-      `"Date: ${patientDetails.date}"`,
-      "",
-      headers.join(","),
-      ...rows.map(r => r.join(",")),
-      "",
-      summaryRow.join(",")
-    ].join("\n")
+          <!-- Metadata Section (Clean 2-Column Pairs: A+B, C+D, E+F, G+H) -->
+          <tr>
+            <td colspan="2" class="meta-title">Patient Name:</td>
+            <td colspan="2" class="meta-val" style="font-weight:bold;">${patientDetails.name}</td>
+            <td colspan="2" class="meta-title">Quotation Type:</td>
+            <td colspan="${colCount - 6}" class="meta-val" style="font-weight:bold;color:#382685;">${isCustomerCopy ? "Patient Quotation (20% Off)" : "Partner Commercial Estimate"}</td>
+          </tr>
+          <tr>
+            <td colspan="2" class="meta-title">Phone Number:</td>
+            <td colspan="2" class="meta-val">${patientDetails.phone}</td>
+            <td colspan="2" class="meta-title">Date:</td>
+            <td colspan="${colCount - 6}" class="meta-val">${patientDetails.date}</td>
+          </tr>
+          <tr>
+            <td colspan="2" class="meta-title">Email Address:</td>
+            <td colspan="2" class="meta-val">${patientDetails.email}</td>
+            <td colspan="2" class="meta-title">Sample Collection:</td>
+            <td colspan="${colCount - 6}" class="meta-val" style="color:#059669;font-weight:bold;">Free Home Sample Pickup (100% Barcoded Safety)</td>
+          </tr>
+          <tr><td colspan="${colCount}" style="height:8px;"></td></tr>
 
-    const encodedUri = encodeURI(csvContent)
+          <!-- Table Header Row -->
+          <tr>
+            <th class="th-head">#</th>
+            <th class="th-head">Test Code</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Medical Test Name</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Technology</th>
+            <th class="th-head" style="text-align:left;padding-left:8px;">Sample Type</th>
+            <th class="th-head" style="text-align:right;padding-right:8px;">MRP (₹)</th>
+            ${
+              isCustomerCopy
+                ? `<th class="th-head" style="text-align:right;padding-right:8px;">Discount 20% (₹)</th>
+                   <th class="th-head" style="text-align:right;padding-right:8px;">Final Price (₹)</th>`
+                : `<th class="th-head" style="text-align:right;padding-right:8px;">Customer Price (₹)</th>
+                   <th class="th-head" style="text-align:right;padding-right:8px;">Your Earning 30% (₹)</th>
+                   <th class="th-head" style="text-align:right;padding-right:8px;">Team Bonus 10% (₹)</th>`
+            }
+          </tr>
+
+          <!-- Table Data Rows -->
+          ${selectedTests.map((t, idx) => {
+            const disc = Math.round(t.catalogueRate * 0.2)
+            const rr = t.catalogueRate - disc
+            const c1 = Math.round(rr * 0.3)
+            const c2 = Math.round(rr * 0.1)
+            const rowBg = idx % 2 === 0 ? "#ffffff" : "#f8fafc"
+
+            return `
+              <tr style="background-color:${rowBg};height:26px;">
+                <td class="td-num">${idx + 1}</td>
+                <td class="td-code">${t.code}</td>
+                <td class="td-name">${t.name}</td>
+                <td class="td-cat">${t.technology}</td>
+                <td class="td-cat">${t.sample}</td>
+                <td class="td-money">₹ ${t.catalogueRate}</td>
+                ${
+                  isCustomerCopy
+                    ? `<td class="td-money-disc">- ₹ ${disc}</td>
+                       <td class="td-money-final">₹ ${rr}</td>`
+                    : `<td class="td-money-final">₹ ${rr}</td>
+                       <td class="td-money-earning">+ ₹ ${c1}</td>
+                       <td class="td-money-bonus">+ ₹ ${c2}</td>`
+                }
+              </tr>
+            `
+          }).join("")}
+
+          <!-- Commercial Summary Rows -->
+          <tr style="height:28px;">
+            <td colspan="5" class="total-label">TOTAL MRP (${selectedTests.length} Items):</td>
+            <td class="total-val">₹ ${totalCatalogue.toLocaleString()}</td>
+            ${
+              isCustomerCopy
+                ? `<td class="total-val" style="color:#059669;">- ₹ ${totalDiscount.toLocaleString()}</td>
+                   <td class="total-val" style="color:#1e1b4b;font-weight:bold;">₹ ${totalRR.toLocaleString()}</td>`
+                : `<td class="total-val">₹ ${totalRR.toLocaleString()}</td>
+                   <td class="total-val" style="color:#047857;">+ ₹ ${totalC1.toLocaleString()}</td>
+                   <td class="total-val" style="color:#6b21a8;">+ ₹ ${totalC2.toLocaleString()}</td>`
+            }
+          </tr>
+
+          <!-- Highlighted Final Amount Row -->
+          <tr style="height:32px;">
+            <td colspan="5" class="grand-label">FINAL AMOUNT PAYABLE (20% OFF + FREE HOME PICKUP):</td>
+            <td colspan="${colCount - 5}" class="grand-val">₹ ${totalRR.toLocaleString()}</td>
+          </tr>
+
+          ${
+            !isCustomerCopy
+              ? `
+              <tr><td colspan="${colCount}" style="height:8px;"></td></tr>
+              <tr style="height:26px;">
+                <td colspan="${colCount}" style="background-color:#382685;color:#ffffff;font-weight:bold;text-align:center;font-size:10pt;letter-spacing:1px;white-space:nowrap;border:1px solid #251b5c;">
+                  PARTNER COMMISSION BREAKDOWN
+                </td>
+              </tr>
+              <tr style="height:26px;">
+                <td colspan="5" class="total-label">Realized Revenue (RR):</td>
+                <td colspan="${colCount - 5}" class="total-val" style="color:#1e293b;font-weight:bold;text-align:right;padding-right:12px;">₹ ${totalRR.toLocaleString()}</td>
+              </tr>
+              <tr style="height:26px;background-color:#ecfdf5;">
+                <td colspan="5" class="total-label" style="color:#047857;background-color:#ecfdf5;">Direct Earning (30%):</td>
+                <td colspan="${colCount - 5}" class="total-val" style="color:#047857;font-size:11pt;font-weight:bold;background-color:#ecfdf5;text-align:right;padding-right:12px;">+ ₹ ${totalC1.toLocaleString()}</td>
+              </tr>
+              <tr style="height:26px;background-color:#faf5ff;">
+                <td colspan="5" class="total-label" style="color:#6b21a8;background-color:#faf5ff;">Team Bonus (10%):</td>
+                <td colspan="${colCount - 5}" class="total-val" style="color:#6b21a8;font-size:11pt;font-weight:bold;background-color:#faf5ff;text-align:right;padding-right:12px;">+ ₹ ${totalC2.toLocaleString()}</td>
+              </tr>
+              <tr style="height:28px;background-color:#ffffff;">
+                <td colspan="5" class="total-label" style="color:#1e1b4b;font-weight:bold;background-color:#ffffff;border:2px solid #cbd5e1;">Net Lab Share:</td>
+                <td colspan="${colCount - 5}" class="total-val" style="color:#1e1b4b;font-weight:bold;font-size:11.5pt;background-color:#ffffff;border:2px solid #cbd5e1;text-align:right;padding-right:12px;">₹ ${netCompanyShare.toLocaleString()}</td>
+              </tr>
+              `
+              : ""
+          }
+
+          <tr><td colspan="${colCount}" style="height:10px;"></td></tr>
+          <!-- Footer Notes -->
+          <tr>
+            <td colspan="${colCount}" class="footer-note">
+              * Important Note: This is an official estimated price quote from AVMLabs Central Reference Diagnostics Network. All tests include free home sample pickup with 100% barcoded safety protocols. Rates in INR (₹). Fasting instructions apply where applicable.
+            </td>
+          </tr>
+          <tr>
+            <td colspan="${colCount}" class="footer-note">
+              * Contact Helpline: 1800 123 4567 • Email: info@avmlabs.com • Website: www.avmlabs.com
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+
+    const blob = new Blob([excelHtml], { type: "application/vnd.ms-excel;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `AVMLabs_Estimate_${patientDetails.name.replace(/\s+/g, "_")}.csv`)
+    link.href = url
+    link.download = `AVMLabs_Quotation_${patientDetails.name.replace(/\s+/g, "_")}.xls`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   // Copy WhatsApp Quotation
@@ -261,11 +447,45 @@ function EstimateContent() {
       
       {/* Print Specific CSS Rules */}
       <style>{`
-        @page { size: A4; margin: 0; }
         @media print {
-          body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .no-print { display: none !important; }
-          .print-break-avoid { page-break-inside: avoid; break-inside: avoid; }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+          html, body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * {
+            visibility: hidden;
+          }
+          #printable-area, #printable-area * {
+            visibility: visible !important;
+          }
+          #printable-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            min-height: 100vh !important;
+            background: white !important;
+          }
+          .print-break-avoid {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
         }
       `}</style>
 
@@ -628,16 +848,16 @@ function EstimateContent() {
         {/* ======================================================================= */}
         {/* RIGHT COLUMN: LIVE FULL-WIDTH PRINTABLE A4 QUOTATION PREVIEW (7 COLS)   */}
         {/* ======================================================================= */}
-        <div className={`xl:col-span-7 w-full ${activeMobileTab === "edit" ? "hidden xl:block" : "block"}`}>
+        <div className={`xl:col-span-7 w-full print:block ${activeMobileTab === "edit" ? "hidden xl:block" : "block"}`}>
           
           <div 
             id="printable-area" 
-            className="bg-white w-full shadow-xl print:shadow-none flex flex-col relative overflow-hidden rounded-3xl print:rounded-none border border-slate-200/90 print:border-none"
+            className="bg-white w-full shadow-xl print:shadow-none flex flex-col justify-between relative overflow-hidden rounded-3xl print:rounded-none border border-slate-200/90 print:border-none min-h-[940px] sm:min-h-[1020px]"
           >
             {/* Top Gradient Header Bar */}
-            <div className="h-3 w-full bg-gradient-to-r from-[#251b5c] via-[#382685] to-cyan-600" />
+            <div className="h-3 w-full bg-gradient-to-r from-[#251b5c] via-[#382685] to-cyan-600 shrink-0" />
 
-            <div className="p-6 sm:p-8 flex-1 flex flex-col space-y-5">
+            <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between space-y-4">
               
               {/* Header Letterhead */}
               <div className="flex justify-between items-start border-b border-slate-200 pb-4">
@@ -755,7 +975,7 @@ function EstimateContent() {
                         <th className="px-3 py-2 w-8 text-center">#</th>
                         <th className="px-3 py-2">Test Name</th>
                         <th className="px-3 py-2 text-center">Code</th>
-                        <th className="px-3 py-2">Sample / Method</th>
+                        <th className="px-3 py-2">Sample / Technology</th>
                         <th className="px-3 py-2 text-right">MRP (₹)</th>
                         <th className="px-3 py-2 text-right">Price (20% Off)</th>
                       </tr>
@@ -879,8 +1099,8 @@ function EstimateContent() {
             {/* Print Bottom Contact Bar */}
             <div className="bg-[#1e1b4b] px-6 py-2.5 flex justify-between items-center text-[9.5px] text-blue-200 font-medium mt-auto">
               <div className="flex items-center gap-3.5">
-                <span>✉️ info@avmlabs.in</span>
-                <span>🌐 www.avmlabs.in</span>
+                <span>✉️ info@avmlabs.com</span>
+                <span>🌐 www.avmlabs.com</span>
                 <span>📞 1800 123 4567</span>
               </div>
               <div className="font-semibold text-blue-100 flex items-center gap-1.5">
