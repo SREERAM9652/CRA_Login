@@ -15,7 +15,7 @@ export function Navbar() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-              <Shield className="h-3 w-3" /> NABL & ICMR Certified Reference Lab
+              <Shield className="h-3 w-3" /> NABL Accredited Reference Lab
             </span>
             <span className="text-slate-600">•</span>
             <span className="text-slate-300 font-medium">Free Home Sample Collection in 60 Mins</span>

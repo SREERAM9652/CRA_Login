@@ -219,7 +219,7 @@ function BookingWizardContent() {
             {/* Header */}
             <div className="text-center max-w-2xl mx-auto space-y-1.5 mb-6">
               <span className="px-3 py-1 rounded-full bg-purple-50 text-[#382685] text-xs font-extrabold border border-purple-200/80 inline-flex items-center gap-1.5 shadow-xs">
-                <Award className="h-3.5 w-3.5" /> NABL & ICMR Accredited Tests
+                <Award className="h-3.5 w-3.5" /> NABL Accredited Diagnostic Tests
               </span>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[#1e1b4b]">
                 Select Diagnostic Tests & Packages

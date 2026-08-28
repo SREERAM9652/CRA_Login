@@ -11,7 +11,11 @@ export const metadata: Metadata = {
   title: "AVMLabs | Clinical Reference Laboratory & Diagnostic Services",
   description: "Book tests, health checkup packages, and access digital reports online with AVMLabs India. Certified NABL laboratory with home sample collection.",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" }
+    ],
     shortcut: "/favicon.png",
     apple: "/favicon.png",
   },

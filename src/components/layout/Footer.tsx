@@ -22,7 +22,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold bg-emerald-950/60 border border-emerald-800/50 p-2.5 rounded-xl max-w-sm">
               <Shield className="h-4 w-4 shrink-0" />
-              <span>NABL & ICMR Accredited Reference Pathology Laboratory</span>
+              <span>NABL Accredited Reference Pathology Laboratory</span>
             </div>
           </div>
 

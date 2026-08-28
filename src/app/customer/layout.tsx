@@ -201,7 +201,7 @@ export default function CustomerLayout({
                 My Health Dashboard
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                <Award className="h-3 w-3" /> NABL & ICMR Verified
+                <Award className="h-3 w-3" /> NABL Accredited
               </span>
             </div>
           </div>

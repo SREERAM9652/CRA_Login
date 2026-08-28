@@ -45,6 +45,7 @@ function EstimateContent() {
   const [testSearchQuery, setTestSearchQuery] = useState("")
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activeMobileTab, setActiveMobileTab] = useState<"edit" | "preview">("edit")
 
   // Custom Clinic Branding
   const [branding, setBranding] = useState({
@@ -271,24 +272,24 @@ function EstimateContent() {
       {/* ========================================================================= */}
       {/* PAGE HEADER & TOP ACTION TOOLBAR (SINGLE CLEAN ROW)                      */}
       {/* ========================================================================= */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 no-print">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 no-print">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-[#382685] text-xs font-bold uppercase tracking-wider mb-1.5 border border-purple-200/80">
             <Sparkles className="h-3.5 w-3.5 text-[#382685]" /> Quotation &amp; Bill Estimator
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1e1b4b]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-[#1e1b4b]">
             Quotation &amp; Price Estimator
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-0.5">
             Add tests, preview the patient bill in real time, and download Excel, PDF, or print.
           </p>
         </div>
 
-        {/* Global Action Buttons - All in a Single Clean Horizontal Row */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 shrink-0">
+        {/* Global Action Buttons - Responsive Wrap on Mobile, Clean Single Row on Desktop */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 shrink-0">
           
           {/* Customer Copy / Partner View Switch */}
-          <label className="flex items-center gap-2 cursor-pointer select-none bg-white h-9 px-3 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors shrink-0">
+          <label className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none bg-white h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors shrink-0">
             <div className="relative">
               <input
                 type="checkbox"
@@ -299,14 +300,14 @@ function EstimateContent() {
               <div className={`block w-7 h-4 rounded-full transition-colors ${isCustomerCopy ? "bg-emerald-500" : "bg-slate-300"}`} />
               <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${isCustomerCopy ? "translate-x-3" : ""}`} />
             </div>
-            <span className="text-xs font-bold text-slate-700 whitespace-nowrap">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-700 whitespace-nowrap">
               {isCustomerCopy ? "Customer Copy" : "Partner View"}
             </span>
           </label>
 
           <button
             onClick={handleCopyQuote}
-            className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
+            className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs shrink-0"
             title="Copy Quote for WhatsApp"
           >
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-slate-600" />}
@@ -315,7 +316,7 @@ function EstimateContent() {
 
           <button
             onClick={handleExportCSV}
-            className="h-9 px-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
+            className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs shrink-0"
             title="Export Excel (CSV)"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
@@ -325,7 +326,7 @@ function EstimateContent() {
           <button
             onClick={handleSharePDF}
             disabled={isGeneratingPDF}
-            className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0 whitespace-nowrap"
+            className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
             title="Download / Share PDF"
           >
             {isGeneratingPDF ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Share2 className="h-3.5 w-3.5" />}
@@ -334,7 +335,7 @@ function EstimateContent() {
 
           <button
             onClick={() => window.print()}
-            className="h-9 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
+            className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0"
             title="Print Document"
           >
             <Printer className="h-3.5 w-3.5" />
@@ -345,6 +346,34 @@ function EstimateContent() {
       </div>
 
       {/* ========================================================================= */}
+      {/* MOBILE-ONLY TAB SWITCHER: FORM EDIT VS LIVE PREVIEW                        */}
+      {/* ========================================================================= */}
+      <div className="xl:hidden flex rounded-2xl bg-slate-200/80 p-1 no-print shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab("edit")}
+          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+            activeMobileTab === "edit"
+              ? "bg-white text-[#1e1b4b] shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          ✏️ Edit Bill &amp; Tests ({selectedTests.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab("preview")}
+          className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+            activeMobileTab === "preview"
+              ? "bg-[#251b5c] text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          📄 Live Bill Preview (₹{totalRR.toLocaleString()})
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
       {/* 2-COLUMN BALANCED WORKSPACE GRID (NO EMPTY GAPS)                           */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
@@ -352,10 +381,10 @@ function EstimateContent() {
         {/* ======================================================================= */}
         {/* LEFT COLUMN: INTERACTIVE CONTROLS & TEST PICKER (5 COLS ON XL)          */}
         {/* ======================================================================= */}
-        <div className="xl:col-span-5 space-y-5 no-print">
+        <div className={`xl:col-span-5 space-y-5 no-print ${activeMobileTab === "preview" ? "hidden xl:block" : "block"}`}>
           
           {/* Card 1: Custom Clinic / Doctor Branding */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs space-y-3">
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-xl bg-purple-50 flex items-center justify-center text-[#382685]">
@@ -377,14 +406,14 @@ function EstimateContent() {
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-              <div className="font-bold text-slate-800 truncate">
+              <div className="font-bold text-slate-800 break-words">
                 {branding.clinicName || "AVMLabs Central Reference Laboratory (Default)"}
               </div>
               {branding.doctorName && (
                 <div className="text-[11px] text-[#382685] font-bold mt-0.5">{branding.doctorName}</div>
               )}
-              <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                {branding.address || "Prestige Tech Cloud, Bengaluru"} • {branding.phone || "+91 80 4912 8800"}
+              <div className="text-[11px] text-slate-500 break-words mt-0.5">
+                {branding.address || "Prestige Tech Cloud, Bengaluru"} {branding.phone ? `• ${branding.phone}` : "• +91 80 4912 8800"}
               </div>
             </div>
           </div>
@@ -572,13 +601,24 @@ function EstimateContent() {
               </div>
             </div>
 
-            <Link
-              href={`/cra/dashboard/add-lead?tests=${selectedCodesString}`}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <span>Book Order for Patient</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveMobileTab("preview")}
+                className="xl:hidden w-full py-2.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs rounded-xl border border-white/20 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              >
+                <Eye className="h-4 w-4 text-cyan-300" />
+                <span>View Live Printable Bill</span>
+              </button>
+
+              <Link
+                href={`/cra/dashboard/add-lead?tests=${selectedCodesString}`}
+                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Book Order for Patient</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
 
         </div>
@@ -586,8 +626,23 @@ function EstimateContent() {
         {/* ======================================================================= */}
         {/* RIGHT COLUMN: LIVE FULL-WIDTH PRINTABLE A4 QUOTATION PREVIEW (7 COLS)   */}
         {/* ======================================================================= */}
-        <div className="xl:col-span-7 w-full">
+        <div className={`xl:col-span-7 w-full space-y-3 ${activeMobileTab === "edit" ? "hidden xl:block" : "block"}`}>
           
+          {/* Mobile Back Button to Edit Form */}
+          <div className="xl:hidden flex items-center justify-between no-print mb-2">
+            <button
+              type="button"
+              onClick={() => setActiveMobileTab("edit")}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-[#251b5c] hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>← Back to Editing Form</span>
+            </button>
+            <span className="text-xs font-bold text-slate-500 font-mono">
+              Live Preview
+            </span>
+          </div>
+
           <div 
             id="printable-area" 
             className="bg-white w-full shadow-xl print:shadow-none flex flex-col relative overflow-hidden rounded-3xl print:rounded-none border border-slate-200/90 print:border-none"
@@ -836,12 +891,14 @@ function EstimateContent() {
 
             {/* Print Bottom Contact Bar */}
             <div className="bg-[#1e1b4b] px-6 py-2.5 flex justify-between items-center text-[9.5px] text-blue-200 font-medium mt-auto">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3.5">
                 <span>✉️ info@avmlabs.in</span>
                 <span>🌐 www.avmlabs.in</span>
+                <span>📞 1800 123 4567</span>
               </div>
-              <div className="font-bold text-white">
-                NABL &amp; ICMR Certified
+              <div className="font-semibold text-blue-100 flex items-center gap-1.5">
+                <ShieldCheck className="h-3 w-3 text-cyan-300" />
+                <span>Accurate &amp; Confidential Diagnostics</span>
               </div>
             </div>
 
