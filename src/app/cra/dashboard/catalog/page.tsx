@@ -29,8 +29,10 @@ import {
 } from "lucide-react"
 import { CRA_TESTS, CRATestItem } from "@/lib/cra-tests"
 import { CustomSelect } from "@/components/ui/CustomSelect"
+import { useWorkflowStore } from "@/lib/workflow-store"
 
 export default function CRACatalogPage() {
+  const { currentUser } = useWorkflowStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [selectedTech, setSelectedTech] = useState("All")
@@ -42,7 +44,7 @@ export default function CRACatalogPage() {
   const [pageSizeDropdownOpen, setPageSizeDropdownOpen] = useState(false)
   const pageSizeRef = useRef<HTMLDivElement>(null)
 
-  const referralCode = "AVM-RAJ-789"
+  const referralCode = currentUser.code || "AVM-SREERAM-C1"
 
   // Click outside to close page size dropdown
   useEffect(() => {

@@ -1,76 +1,148 @@
-import { Network, ArrowDownCircle, Coins } from "lucide-react"
+import { Network, ArrowRight, Coins, Users, UserCheck, CheckCircle2, Sparkles } from "lucide-react"
 
 export function TierStructure() {
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-white font-sans">
       <div className="container mx-auto px-4 md:px-6">
+        
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-4">The Tier Structure: C1 and C2</h2>
-          <p className="text-lg text-slate-600">
-            Maximize your earnings by building a network. Introduce new sub-agencies and earn passive incentives.
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-[#382685] text-xs font-black uppercase tracking-wider mb-3 border border-purple-200">
+            <Sparkles className="h-3.5 w-3.5" /> Simple 2-Level Referral Model
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-4">
+            Transparent DSA Referral Workflow
+          </h2>
+          <p className="text-base sm:text-lg text-slate-600 font-medium">
+            A straightforward referral benefit structure with zero multi-level complexity. Strict 2-level benefit ceiling.
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 max-w-5xl mx-auto">
-          {/* C1 Tier */}
-          <div className="flex-1 w-full bg-blue-50 border-2 border-primary rounded-3xl p-8 relative overflow-hidden shadow-lg">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Network className="w-32 h-32 text-primary" />
-            </div>
-            <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-primary text-white text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
-                Primary Tier
+        {/* 3 Connected Roles Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          
+          {/* Direct Referrer Role */}
+          <div className="bg-purple-50/70 border-2 border-[#382685] rounded-3xl p-7 relative overflow-hidden shadow-lg flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <span className="inline-block px-3 py-1 bg-[#382685] text-white text-[11px] font-black rounded-full uppercase tracking-wider">
+                Direct Referrer
               </span>
-              <h3 className="text-4xl font-black text-slate-900 mb-2">C1</h3>
-              <p className="text-xl font-semibold text-primary mb-6">Primary CRA</p>
               
-              <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
-                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <Coins className="h-6 w-6 text-green-600" />
+              <div>
+                <h3 className="text-3xl font-black text-slate-900">Direct Partner</h3>
+                <p className="text-sm font-bold text-[#382685] mt-1">Refers B2C Customers</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-purple-200/80 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-600 font-bold">Direct Incentive:</span>
+                  <span className="text-lg font-black text-emerald-800">30% of RR</span>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">30%</div>
-                  <div className="text-sm text-slate-500 font-medium">of Realised Revenue (RR)</div>
+                <div className="flex items-center justify-between border-t border-slate-100 pt-1.5">
+                  <span className="text-xs text-slate-600 font-bold">Calculation Base:</span>
+                  <span className="text-xs font-bold text-slate-500">Realised Revenue</span>
                 </div>
               </div>
-              
-              <p className="text-slate-600">
-                As a C1 CRA, you directly refer clients to AVMLabs and earn a substantial 30% incentive on the realized revenue of every test booked.
-              </p>
+
+              <ul className="text-xs text-slate-600 space-y-2 font-medium">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Submits or books tests directly for customers &amp; earns 30%.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Shares instant online payment link for customer checkout.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 text-xs font-bold text-[#382685] border-t border-purple-200">
+              Example: Earn ₹240 cash on ₹800 realized revenue
             </div>
           </div>
 
-          <ArrowDownCircle className="hidden lg:block w-12 h-12 text-slate-300 -rotate-90 shrink-0" />
-          <ArrowDownCircle className="lg:hidden w-12 h-12 text-slate-300 shrink-0" />
-
-          {/* C2 Tier */}
-          <div className="flex-1 w-full bg-slate-50 border-2 border-slate-200 rounded-3xl p-8 relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Network className="w-32 h-32 text-slate-900" />
-            </div>
-            <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-slate-200 text-slate-700 text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
-                Secondary Tier
+          {/* Second-Level Introduced Partner Role */}
+          <div className="bg-cyan-50/70 border-2 border-cyan-700 rounded-3xl p-7 relative overflow-hidden shadow-md flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <span className="inline-block px-3 py-1 bg-cyan-800 text-white text-[11px] font-black rounded-full uppercase tracking-wider">
+                Second-Level Benefit
               </span>
-              <h3 className="text-4xl font-black text-slate-900 mb-2">C2</h3>
-              <p className="text-xl font-semibold text-slate-600 mb-6">Sub-Agency CRA</p>
               
-              <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
-                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <Coins className="h-6 w-6 text-primary" />
+              <div>
+                <h3 className="text-3xl font-black text-slate-900">Introduced Partner</h3>
+                <p className="text-sm font-bold text-cyan-900 mt-1">Introduced Associate</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-cyan-200/80 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-600 font-bold">Partner Direct Share:</span>
+                  <span className="text-lg font-black text-emerald-800">30% of RR</span>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">10%</div>
-                  <div className="text-sm text-slate-500 font-medium">of their Realised Revenue</div>
+                <div className="flex items-center justify-between border-t border-slate-100 pt-1.5">
+                  <span className="text-xs text-slate-600 font-bold">Original Referrer:</span>
+                  <span className="text-base font-black text-amber-700">10% Override</span>
                 </div>
               </div>
-              
-              <p className="text-slate-600">
-                A C2 is a CRA introduced by a C1. While the C2 earns their direct incentives, you (the C1) earn a 10% passive incentive on all revenue they generate.
-              </p>
+
+              <ul className="text-xs text-slate-600 space-y-2 font-medium">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Partner earns full 30% direct commission on customer orders.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Referral chain strictly stops after 2 levels (0% beyond).</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 text-xs font-bold text-cyan-900 border-t border-cyan-200">
+              Example: Partner gets ₹240, Referrer gets ₹80
             </div>
           </div>
+
+          {/* Customer Role */}
+          <div className="bg-emerald-50/70 border-2 border-emerald-600 rounded-3xl p-7 relative overflow-hidden shadow-md flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <span className="inline-block px-3 py-1 bg-emerald-700 text-white text-[11px] font-black rounded-full uppercase tracking-wider">
+                End Customer
+              </span>
+              
+              <div>
+                <h3 className="text-3xl font-black text-slate-900">Patient / Client</h3>
+                <p className="text-sm font-bold text-emerald-900 mt-1">Diagnostic Beneficiary</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-emerald-200/80 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-600 font-bold">Referral Discount:</span>
+                  <span className="text-lg font-black text-emerald-800">Flat 20% Off</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-slate-100 pt-1.5">
+                  <span className="text-xs text-slate-600 font-bold">Sample Collection:</span>
+                  <span className="text-xs font-bold text-slate-700">Home in 60 Mins (+₹200)</span>
+                </div>
+              </div>
+
+              <ul className="text-xs text-slate-600 space-y-2 font-medium">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Pays discounted price (₹1,000 profile for only ₹800).</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Certified digital report sent directly via WhatsApp &amp; Email.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 text-xs font-bold text-emerald-800 border-t border-emerald-200">
+              Customer saves ₹200 on every booking
+            </div>
+          </div>
+
         </div>
+
       </div>
     </section>
   )

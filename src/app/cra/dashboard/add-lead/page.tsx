@@ -1,1069 +1,761 @@
 "use client"
 
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { 
-  UserPlus, 
-  ChevronRight, 
-  Sparkles, 
-  CheckCircle2, 
-  Copy, 
-  Check, 
-  Share2, 
-  ArrowLeft, 
-  ArrowRight,
-  ShieldCheck, 
-  Phone, 
-  Mail, 
-  User, 
-  HeartHandshake,
-  AlertCircle,
-  TrendingUp,
-  IndianRupee,
-  Clock,
-  FlaskConical,
-  Award,
-  HelpCircle,
-  Plus,
-  Trash2,
-  Search,
-  ChevronDown,
-  X,
-  Package,
-  Layers
-} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useWorkflowStore } from "@/lib/workflow-store"
 import { HEALTH_PACKAGES } from "@/lib/mock-data"
 import { CRA_TESTS } from "@/lib/cra-tests"
-import { CustomSelect } from "@/components/ui/CustomSelect"
+import { 
+  Sparkles, 
+  Check, 
+  Copy, 
+  Share2, 
+  ArrowLeft, 
+  ArrowRight, 
+  Clock, 
+  User, 
+  Phone, 
+  MapPin, 
+  Package, 
+  Coins, 
+  CheckCircle2, 
+  ChevronDown, 
+  Search, 
+  FlaskConical,
+  Users2,
+  X,
+  Plus,
+  Trash2
+} from "lucide-react"
 
-export interface SelectedTestItem {
+export interface CombinedTestItem {
   id: string
+  type: "package" | "test"
   code: string
   name: string
   category: string
-  sample: string
   mrp: number
   discount: number
-  rr: number
-  c1: number
-  c2: number
-  isPackage: boolean
+  realizedRevenue: number
+  parameterCount: string
+  directIncentive: number
+  teamOverride: number
 }
 
 export default function AddReferralPage() {
+  const router = useRouter()
+  const { currentUser, createCustomerBooking } = useWorkflowStore()
+  const isC1 = currentUser.role === "c1"
+
+  // Unified items list: 12 Curated Packages + 90+ Clinical Tests
+  const allAvailableItems = useMemo<CombinedTestItem[]>(() => {
+    const packages: CombinedTestItem[] = HEALTH_PACKAGES.map((pkg, idx) => {
+      const discount = Math.round(pkg.mrp * 0.20)
+      const rr = pkg.mrp - discount
+      return {
+        id: pkg.id,
+        type: "package",
+        code: `PKG-${idx + 1 < 10 ? "0" : ""}${idx + 1}`,
+        name: pkg.name,
+        category: "Curated Wellness Profiles",
+        mrp: pkg.mrp,
+        discount: discount,
+        realizedRevenue: rr,
+        parameterCount: `${pkg.parameterCount} Tests`,
+        directIncentive: Math.round(rr * 0.30),
+        teamOverride: Math.round(rr * 0.10)
+      }
+    })
+
+    const tests: CombinedTestItem[] = CRA_TESTS.map((test) => {
+      const discount = Math.round(test.catalogueRate * 0.20)
+      const rr = test.catalogueRate - discount
+      return {
+        id: `test-${test.code}`,
+        type: "test",
+        code: test.code,
+        name: test.name,
+        category: test.category || "Diagnostic Tests",
+        mrp: test.catalogueRate,
+        discount: discount,
+        realizedRevenue: rr,
+        parameterCount: `${test.sample || "Blood"} • ${test.technology || "Lab Test"}`,
+        directIncentive: Math.round(rr * 0.30),
+        teamOverride: Math.round(rr * 0.10)
+      }
+    })
+
+    return [...packages, ...tests]
+  }, [])
+
+  const [fullName, setFullName] = useState("")
+  const [mobile, setMobile] = useState("")
+  const [city, setCity] = useState("Pune")
+  
+  // MULTIPLE TEST SELECTION STATE (Defaults to popular tests matching mockup)
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([
+    "test-H6",
+    "test-CUA"
+  ])
+  
+  const [notes, setNotes] = useState("")
   const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [activeMobileTab, setActiveMobileTab] = useState<"form" | "summary">("form")
 
-  // Form State
-  const [formData, setFormData] = useState({
-    fullName: "",
-    mobile: "",
-    email: "",
-    relationship: "Corporate Contact",
-    selectedTests: ["H6", "CUA"] as string[], // Multi-test array
-    collectionType: "Home Collection",
-    notes: ""
-  })
+  // Custom Dropdown State
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [activeTab, setActiveTab] = useState<"all" | "packages" | "tests">("all")
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Dropdown open state for test search
-  const [isTestDropdownOpen, setIsTestDropdownOpen] = useState(false)
-  const [testSearchQuery, setTestSearchQuery] = useState("")
-  const testDropdownRef = useRef<HTMLDivElement>(null)
-
-  // Close dropdown on click outside
+  // Close dropdown on outside click
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (testDropdownRef.current && !testDropdownRef.current.contains(event.target as Node)) {
-        setIsTestDropdownOpen(false)
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const [generatedRefId, setGeneratedRefId] = useState("")
-
-  // Calculate itemized details for all selected tests
-  const selectedItems = useMemo(() => {
-    return formData.selectedTests.map(id => {
-      // Check if it's a health package
-      const pkg = HEALTH_PACKAGES.find(p => p.id === id)
-      if (pkg) {
-        const mrp = pkg.mrp
-        const discount = mrp - pkg.price
-        const rr = pkg.price
-        const c1 = Math.round(rr * 0.3)
-        const c2 = Math.round(rr * 0.1)
-        return {
-          id: pkg.id,
-          code: "PKG",
-          name: pkg.name,
-          category: "Full Body Package",
-          sample: "Blood & Urine",
-          mrp,
-          discount,
-          rr,
-          c1,
-          c2,
-          isPackage: true
-        }
+  // Multi-Selection Helper Functions
+  const handleToggleItem = (itemId: string) => {
+    if (selectedItemIds.includes(itemId)) {
+      if (selectedItemIds.length > 1) {
+        setSelectedItemIds(selectedItemIds.filter(id => id !== itemId))
       }
-
-      // Check if it's an individual CRA test
-      const test = CRA_TESTS.find(t => t.code === id)
-      if (test) {
-        return {
-          id: test.code,
-          code: test.code,
-          name: test.name,
-          category: test.category,
-          sample: test.sample,
-          mrp: test.catalogueRate,
-          discount: test.discount,
-          rr: test.realizedRevenue,
-          c1: test.c1Incentive,
-          c2: Math.round(test.realizedRevenue * 0.1),
-          isPackage: false
-        }
-      }
-
-      return null
-    }).filter(Boolean) as SelectedTestItem[]
-  }, [formData.selectedTests])
-
-  // Total summary calculation
-  const totalSummary = useMemo(() => {
-    const totalMrp = selectedItems.reduce((sum, item) => sum + item.mrp, 0)
-    const totalDiscount = selectedItems.reduce((sum, item) => sum + item.discount, 0)
-    const totalRR = selectedItems.reduce((sum, item) => sum + item.rr, 0)
-    const totalC1 = selectedItems.reduce((sum, item) => sum + item.c1, 0)
-    const totalC2 = selectedItems.reduce((sum, item) => sum + item.c2, 0)
-    const uniqueSamples = Array.from(new Set(selectedItems.map(item => item.sample).filter(Boolean)))
-    return {
-      totalMrp,
-      totalDiscount,
-      totalRR,
-      totalC1,
-      totalC2,
-      uniqueSamples,
-      count: selectedItems.length
+    } else {
+      setSelectedItemIds([...selectedItemIds, itemId])
     }
-  }, [selectedItems])
-
-  // Toggle test selection
-  const handleToggleTest = (testId: string) => {
-    setFormData(prev => {
-      const exists = prev.selectedTests.includes(testId)
-      if (exists) {
-        return { ...prev, selectedTests: prev.selectedTests.filter(id => id !== testId) }
-      } else {
-        return { ...prev, selectedTests: [...prev.selectedTests, testId] }
-      }
-    })
   }
 
-  // Remove test by id
-  const handleRemoveTest = (testId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedTests: prev.selectedTests.filter(id => id !== testId)
-    }))
+  const handleRemoveItem = (itemId: string) => {
+    if (selectedItemIds.length > 1) {
+      setSelectedItemIds(selectedItemIds.filter(id => id !== itemId))
+    }
   }
 
-  // Quick add popular tests
-  const popularTests = [
-    { code: "CUA", name: "Complete Urine Analysis", price: 240, c1: 72 },
-    { code: "H6", name: "Hemogram - 6 Part (H6)", price: 240, c1: 72 },
-    { code: "HBA", name: "HbA1c (Diabetes)", price: 280, c1: 84 },
-    { code: "TSH", name: "Thyroid (TSH)", price: 160, c1: 48 },
-    { code: "VITDC", name: "Vitamin D Total", price: 640, c1: 192 },
-    { code: "pkg-master", name: "Master Health Checkup", price: 2499, c1: 750, isPackage: true },
-  ]
+  // Selected Items & Combined Financials
+  const selectedItems = allAvailableItems.filter(item => selectedItemIds.includes(item.id))
+  const totalMrp = selectedItems.reduce((sum, item) => sum + item.mrp, 0)
+  const totalCustomerDiscount = selectedItems.reduce((sum, item) => sum + item.discount, 0)
+  const totalRealizedRevenue = selectedItems.reduce((sum, item) => sum + item.realizedRevenue, 0)
+  const totalDirectIncentive = Math.round(totalRealizedRevenue * 0.30)
+  const totalTeamOverride = Math.round(totalRealizedRevenue * 0.10)
 
-  // Filter available tests for search dropdown
-  const filteredCRA = CRA_TESTS.filter(t => 
-    t.name.toLowerCase().includes(testSearchQuery.toLowerCase()) ||
-    t.code.toLowerCase().includes(testSearchQuery.toLowerCase()) ||
-    t.category.toLowerCase().includes(testSearchQuery.toLowerCase())
-  )
-
-  const filteredPackages = HEALTH_PACKAGES.filter(p => 
-    p.name.toLowerCase().includes(testSearchQuery.toLowerCase())
-  )
+  // Filter packages & tests by tab and search
+  const filteredItems = allAvailableItems.filter(item => {
+    if (activeTab === "packages" && item.type !== "package") return false
+    if (activeTab === "tests" && item.type !== "test") return false
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      item.name.toLowerCase().includes(q) ||
+      item.code.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q)
+    )
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.fullName || !formData.mobile) {
-      alert("Please enter customer name and valid mobile number.")
-      return
-    }
+    if (!fullName || !mobile || selectedItems.length === 0) return
 
-    if (formData.selectedTests.length === 0) {
-      alert("Please select at least one test or health package to book.")
-      return
-    }
+    const primaryItem = selectedItems[0]
+    const compositeName = selectedItems.length === 1 
+      ? primaryItem.name 
+      : `${primaryItem.name} + ${selectedItems.length - 1} more test${selectedItems.length > 2 ? 's' : ''}`
 
-    setLoading(true)
-    setTimeout(() => {
-      const newId = `REF-${Math.floor(1000 + Math.random() * 9000)}`
-      setGeneratedRefId(newId)
-      setLoading(false)
-      setSubmitted(true)
-    }, 600)
+    createCustomerBooking({
+      customerName: fullName,
+      mobile: mobile,
+      email: `${fullName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
+      profileId: primaryItem.id,
+      profileName: compositeName,
+      cataloguePrice: totalMrp,
+      discount: totalCustomerDiscount,
+      realizedRevenue: totalRealizedRevenue,
+      homeCollectionFee: 0,
+      totalPayable: totalRealizedRevenue
+    })
+
+    setSubmitted(true)
   }
 
-  const referralCode = "AVM-RAJ-789"
-  const testNamesSummary = selectedItems.map(i => i.name).join(", ")
-  const referralLink = `https://avmlabs.com/booking?ref=${referralCode}&client=${encodeURIComponent(formData.fullName || "Client")}`
+  const referralLink = typeof window !== "undefined"
+    ? `${window.location.origin}/booking?ref=${currentUser.code}&items=${selectedItemIds.join(",")}`
+    : `https://avmlabs.com/booking?ref=${currentUser.code}`
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = () => {
+    if (typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(referralLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
-    <div className="w-full space-y-6 font-sans">
+    <div className="w-full font-sans space-y-6 pb-12">
       
-      {/* Top Breadcrumb & Actions Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-4">
+      {/* Top Breadcrumb & Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          {/* Desktop Multi-Level Breadcrumb */}
-          <nav className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-400 mb-1.5">
-            <Link href="/cra/dashboard" className="hover:text-[#382685] transition-colors">
-              Dashboard
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/cra/dashboard/referrals" className="hover:text-[#382685] transition-colors">
-              Customer Bookings
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-[#251b5c]">Book for a Customer</span>
-          </nav>
-
-          {/* Mobile Clean Back Navigation */}
-          <div className="sm:hidden mb-1.5">
-            <Link href="/cra/dashboard/referrals" className="inline-flex items-center gap-1 text-xs font-bold text-[#382685] hover:underline">
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to Customer Bookings</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-1">
+            <Link href="/cra/dashboard" className="hover:text-indigo-900 flex items-center gap-1">
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
             </Link>
           </div>
-
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-[#1e1b4b]">
-            Book Tests for a Customer
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+            Refer a Customer
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-0.5">
-            Select one or multiple tests to book. You earn 30% commission directly into your account once samples are collected.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            Log a new B2C client prospect • Select single or multiple tests • Follow-up within 24 hours
           </p>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 pt-1 sm:pt-0">
+        <div className="flex items-center gap-2">
           <Link
             href="/cra/dashboard/catalog"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 px-3 sm:px-3.5 py-2 rounded-xl border border-purple-200/70 transition-colors shadow-2xs"
+            className="h-10 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-colors"
           >
-            <FlaskConical className="h-3.5 w-3.5" /> 
-            <span>View 90 Test Prices</span>
-          </Link>
-          <Link
-            href="/cra/dashboard/referrals"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#382685] transition-colors shrink-0 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Bookings
+            <Package className="h-4 w-4 text-[#382685]" />
+            <span>Wellness Catalogue ({allAvailableItems.length} Tests)</span>
           </Link>
         </div>
       </div>
 
-      {!submitted ? (
-        <>
-        {/* Mobile-Only Tab Switcher: Form vs Live Earnings */}
-        <div className="lg:hidden flex rounded-2xl bg-slate-200/80 p-1 mb-3 shadow-2xs">
-          <button
-            type="button"
-            onClick={() => setActiveMobileTab("form")}
-            className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeMobileTab === "form"
-                ? "bg-white text-[#1e1b4b] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <User className="h-3.5 w-3.5 text-[#382685]" />
-            <span>1. Customer &amp; Tests ({formData.selectedTests.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveMobileTab("summary")}
-            className={`flex-1 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeMobileTab === "summary"
-                ? "bg-[#251b5c] text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <IndianRupee className="h-3.5 w-3.5 text-emerald-400" />
-            <span>2. Live Earnings (₹{totalSummary.totalC1.toLocaleString()})</span>
-          </button>
-        </div>
+      {submitted ? (
+        /* Success State */
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 max-w-2xl mx-auto text-center shadow-sm">
+          <div className="h-16 w-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto shadow-2xs">
+            <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
-          {/* ========================================================================= */}
-          {/* LEFT COLUMN: MAIN FORM (8 COLUMNS ON LG)                                  */}
-          {/* ========================================================================= */}
-          <div className={`lg:col-span-7 xl:col-span-8 rounded-3xl shadow-xl shadow-indigo-950/5 border border-slate-100 bg-white overflow-hidden ${activeMobileTab === "summary" ? "hidden lg:block" : "block"}`}>
-            
-            {/* Header Attribution Banner - Compact on Mobile */}
-            <div className="bg-gradient-to-r from-[#1e1b4b] via-[#2e1f74] to-[#382685] text-white p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-white/15 flex items-center justify-center font-bold text-white shadow-xs border border-white/20 shrink-0">
-                  <Sparkles className="h-4 sm:h-5 w-4 sm:w-5 text-cyan-300" />
-                </div>
-                <div>
-                  <div className="text-[11px] sm:text-xs font-extrabold text-cyan-300 uppercase tracking-wider">
-                    Partner Code: {referralCode}
-                  </div>
-                  <div className="text-[11px] text-blue-100 font-medium">
-                    Rajesh J. • 30% Direct Earning on Completed Tests
-                  </div>
-                </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+              Referral Submitted Successfully!
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-md mx-auto">
+              Our central medical operations team will contact <strong>{fullName}</strong> ({mobile}) within 24 hours to schedule their sample collection for {selectedItems.length} test{selectedItems.length > 1 ? 's' : ''}.
+            </p>
+          </div>
+
+          {/* Incentive Summary Card */}
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Tests Selected ({selectedItems.length})</div>
+              <div className="font-bold text-slate-900 truncate mt-0.5">
+                {selectedItems.map(i => i.name).join(", ")}
               </div>
-              <span className="text-[10px] sm:text-[10.5px] uppercase font-extrabold tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-emerald-400 text-slate-950 shadow-xs w-fit">
-                Verified Agent
-              </span>
             </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Patient Pays (20% Off)</div>
+              <div className="font-mono font-black text-emerald-700 mt-0.5">₹{totalRealizedRevenue.toLocaleString("en-IN")}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Your 30% Incentive</div>
+              <div className="font-mono font-black text-[#2F5FDE] mt-0.5">+₹{totalDirectIncentive.toLocaleString("en-IN")}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Team 10% Override</div>
+              <div className="font-mono font-black text-purple-700 mt-0.5">+₹{totalTeamOverride.toLocaleString("en-IN")}</div>
+            </div>
+          </div>
 
-            <div className="p-3.5 sm:p-6 md:p-8">
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                
-                {/* Row 1: Name & Mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 text-[#382685]" /> Customer Full Name *
-                    </label>
-                    <input 
-                      type="text"
-                      required
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
-                      placeholder="e.g. Ramesh Patel"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Phone className="h-3.5 w-3.5 text-emerald-600" /> Mobile Number *
-                    </label>
-                    <input 
-                      type="tel"
-                      required
-                      value={formData.mobile}
-                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
-                </div>
-
-                {/* Row 2: Email & Relationship */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5 text-slate-400" /> Email Address (Optional)
-                    </label>
-                    <input 
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
-                      placeholder="name@example.com"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <HeartHandshake className="h-3.5 w-3.5 text-[#e04838]" /> Relationship / Category *
-                    </label>
-                    <CustomSelect
-                      value={formData.relationship}
-                      onChange={(val) => setFormData({ ...formData, relationship: val })}
-                      options={[
-                        { value: "Family", label: "Family Member", sublabel: "Direct relative" },
-                        { value: "Friend", label: "Friend / Acquaintance", sublabel: "Social connection" },
-                        { value: "Corporate Contact", label: "Corporate Colleague / Executive", sublabel: "Office & professional" },
-                        { value: "Neighbor", label: "Neighbor / Residential Society", sublabel: "Local community" },
-                        { value: "Client", label: "Direct Customer Client", sublabel: "Walk-in or external" },
-                      ]}
-                    />
-                  </div>
-                </div>
-
-                {/* ========================================================================= */}
-                {/* MULTI-TEST SELECTION SECTION                                              */}
-                {/* ========================================================================= */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-xs font-black text-slate-900 flex items-center gap-1.5 min-w-0">
-                      <FlaskConical className="h-4 w-4 text-[#382685] shrink-0" />
-                      <span className="truncate">Select Tests &amp; Packages *</span>
-                    </label>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-[#382685] text-[11px] font-black border border-purple-200 shrink-0">
-                        {formData.selectedTests.length} Selected
-                      </span>
-                      {formData.selectedTests.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, selectedTests: [] })}
-                          className="text-[11px] text-rose-600 hover:underline font-bold cursor-pointer shrink-0"
-                        >
-                          Clear All
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Multi-Select Search Dropdown Trigger */}
-                  <div className="relative" ref={testDropdownRef}>
-                    <div 
-                      onClick={() => setIsTestDropdownOpen(!isTestDropdownOpen)}
-                      className="w-full min-h-[48px] rounded-xl sm:rounded-2xl border border-slate-200 hover:border-[#382685] bg-white p-2.5 px-3.5 flex items-center justify-between gap-2.5 cursor-pointer transition-all shadow-xs"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <Search className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span className="text-xs font-semibold text-slate-600 truncate">
-                          {formData.selectedTests.length === 0 
-                            ? "Click to search and add tests (90 tests available)..."
-                            : `Click to add more tests or packages...`
-                          }
-                        </span>
-                      </div>
-                      <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${isTestDropdownOpen ? "rotate-180 text-[#382685]" : ""}`} />
-                    </div>
-
-                    {/* Dropdown Popover */}
-                    {isTestDropdownOpen && (
-                      <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-3xl bg-white border border-slate-200/90 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                        
-                        {/* Search Input */}
-                        <div className="p-3.5 border-b border-slate-100 bg-slate-50/70">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                            <input
-                              type="text"
-                              autoFocus
-                              value={testSearchQuery}
-                              onChange={(e) => setTestSearchQuery(e.target.value)}
-                              placeholder="Search 63 tests by code (e.g. HBA, TSH, VITDC) or name..."
-                              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] text-slate-900"
-                            />
-                            {testSearchQuery && (
-                              <button 
-                                onClick={() => setTestSearchQuery("")}
-                                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* List of Options */}
-                        <div className="max-h-72 overflow-y-auto p-2 space-y-3">
-                          
-                          {/* Packages Group */}
-                          {filteredPackages.length > 0 && (
-                            <div>
-                              <div className="px-3 py-1 text-[10.5px] font-black uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
-                                <Package className="h-3.5 w-3.5 text-[#382685]" />
-                                Health Checkup Packages
-                              </div>
-                              <div className="space-y-1 mt-1">
-                                {filteredPackages.map(pkg => {
-                                  const isSelected = formData.selectedTests.includes(pkg.id)
-                                  return (
-                                    <div
-                                      key={pkg.id}
-                                      onClick={() => handleToggleTest(pkg.id)}
-                                      className={`p-2.5 rounded-xl text-xs flex items-center justify-between gap-3 cursor-pointer transition-colors ${
-                                        isSelected 
-                                          ? "bg-[#382685]/10 border border-[#382685]/30 text-slate-900 font-bold"
-                                          : "hover:bg-slate-50 text-slate-700"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-2.5 truncate">
-                                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${
-                                          isSelected ? "bg-[#382685] border-[#382685] text-white" : "border-slate-300 bg-white"
-                                        }`}>
-                                          {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                                        </div>
-                                        <div className="truncate">
-                                          <div className="font-bold text-slate-900 truncate">{pkg.name}</div>
-                                          <div className="text-[10.5px] text-slate-400">{pkg.parameterCount} Parameters</div>
-                                        </div>
-                                      </div>
-                                      <div className="text-right shrink-0">
-                                        <div className="font-black text-slate-900">₹{pkg.price}</div>
-                                        <div className="text-[10px] text-emerald-700 font-bold">+₹{Math.round(pkg.price * 0.3)} Earning</div>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Individual Tests Group */}
-                          {filteredCRA.length > 0 && (
-                            <div>
-                              <div className="px-3 py-1 text-[10.5px] font-black uppercase tracking-wider text-[#382685] flex items-center gap-1.5">
-                                <FlaskConical className="h-3.5 w-3.5" />
-                                Individual Pathology Tests (63 Tests)
-                              </div>
-                              <div className="space-y-1 mt-1">
-                                {filteredCRA.map(test => {
-                                  const isSelected = formData.selectedTests.includes(test.code)
-                                  return (
-                                    <div
-                                      key={test.code}
-                                      onClick={() => handleToggleTest(test.code)}
-                                      className={`p-2.5 rounded-xl text-xs flex items-center justify-between gap-3 cursor-pointer transition-colors ${
-                                        isSelected 
-                                          ? "bg-[#382685]/10 border border-[#382685]/30 text-slate-900 font-bold"
-                                          : "hover:bg-slate-50 text-slate-700"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-2.5 truncate">
-                                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${
-                                          isSelected ? "bg-[#382685] border-[#382685] text-white" : "border-slate-300 bg-white"
-                                        }`}>
-                                          {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                                        </div>
-                                        <span className="font-mono text-[10px] font-black px-1.5 py-0.5 rounded bg-purple-50 text-[#382685] border border-purple-100 shrink-0">
-                                          {test.code}
-                                        </span>
-                                        <div className="truncate">
-                                          <div className="font-bold text-slate-900 truncate">{test.name}</div>
-                                          <div className="text-[10.5px] text-slate-400">{test.category} • {test.sample}</div>
-                                        </div>
-                                      </div>
-                                      <div className="text-right shrink-0">
-                                        <div className="font-black text-slate-900">₹{test.realizedRevenue}</div>
-                                        <div className="text-[10px] text-emerald-700 font-bold">+₹{test.c1Incentive} Earning</div>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {filteredCRA.length === 0 && filteredPackages.length === 0 && (
-                            <div className="text-center py-6 text-xs text-slate-400">
-                              No tests found matching &quot;{testSearchQuery}&quot;
-                            </div>
-                          )}
-
-                        </div>
-
-                        {/* Dropdown Footer */}
-                        <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <span className="font-bold text-slate-600">
-                            {formData.selectedTests.length} tests selected
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setIsTestDropdownOpen(false)}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#251b5c] text-white font-bold text-xs hover:bg-[#382685] transition-colors cursor-pointer"
-                          >
-                            Done Selecting
-                          </button>
-                        </div>
-
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Fast 1-Click Popular Tests Chips */}
-                  <div className="space-y-1.5 pt-1">
-                    <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3 text-amber-500" />
-                      <span>Quick Add Popular Tests:</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {popularTests.map(pt => {
-                        const isSelected = formData.selectedTests.includes(pt.code)
-                        return (
-                          <button
-                            key={pt.code}
-                            type="button"
-                            onClick={() => handleToggleTest(pt.code)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
-                              isSelected
-                                ? "bg-[#251b5c] text-white border-[#251b5c] shadow-xs"
-                                : "bg-slate-50/80 hover:bg-purple-50 text-slate-700 border-slate-200 hover:border-purple-200"
-                            }`}
-                          >
-                            {isSelected ? <Check className="h-3 w-3 text-cyan-300" /> : <Plus className="h-3 w-3 text-slate-400" />}
-                            <span>{pt.name}</span>
-                            <span className={isSelected ? "text-cyan-300 font-mono" : "text-[#382685] font-mono"}>
-                              (₹{pt.price})
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Selected Tests Cards (Basket) */}
-                  <div className="space-y-2 pt-2">
-                    <div className="text-xs font-bold text-slate-700">
-                      Tests Added to This Booking ({selectedItems.length}):
-                    </div>
-
-                    {selectedItems.length > 0 ? (
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                        {selectedItems.map((item, index) => (
-                          <div 
-                            key={item.id} 
-                            className="p-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-3 truncate">
-                              <span className="w-5 h-5 rounded-full bg-purple-100 text-[#382685] font-black text-[10px] flex items-center justify-center shrink-0">
-                                {index + 1}
-                              </span>
-                              <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-50 text-[#382685] border border-purple-100 shrink-0">
-                                {item.code}
-                              </span>
-                              <div className="truncate">
-                                <div className="font-bold text-slate-900 text-xs truncate">
-                                  {item.name}
-                                </div>
-                                <div className="text-[10.5px] text-slate-400">
-                                  {item.category} • Sample: <strong className="text-slate-600">{item.sample}</strong>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 shrink-0">
-                              <div className="text-right">
-                                <div className="flex items-center gap-1.5 justify-end">
-                                  <span className="text-[11px] line-through text-slate-400">₹{item.mrp}</span>
-                                  <span className="font-black text-slate-900 text-xs sm:text-sm">₹{item.rr}</span>
-                                </div>
-                                <div className="text-[10.5px] text-emerald-700 font-extrabold">
-                                  +₹{item.c1} Earning
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveTest(item.id)}
-                                title="Remove test"
-                                className="h-7 w-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-6 rounded-2xl border-2 border-dashed border-slate-200 text-center space-y-1.5">
-                        <FlaskConical className="h-6 w-6 text-slate-300 mx-auto" />
-                        <div className="text-xs font-bold text-slate-600">No tests selected yet</div>
-                        <p className="text-[11px] text-slate-400">
-                          Click the search bar above or choose from the quick-add chips to add tests.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Row 4: Collection Preference */}
-                <div className="space-y-1.5 pt-2">
-                  <label className="text-xs font-bold text-slate-800">
-                    Sample Collection Preference
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {["Home Collection", "Visit Lab Center"].map((method) => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, collectionType: method })}
-                        className={`p-3.5 rounded-2xl border text-xs font-bold text-left transition-all cursor-pointer ${
-                          formData.collectionType === method
-                            ? "border-[#382685] bg-[#f6f4fe] text-[#251b5c] ring-1 ring-[#382685]"
-                            : "border-slate-200 hover:bg-slate-50 text-slate-700 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{method}</span>
-                          {formData.collectionType === method && (
-                            <span className="h-2 w-2 rounded-full bg-[#382685]" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Row 5: Notes */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">
-                    Special Instructions / Best Time to Call (Optional)
-                  </label>
-                  <textarea 
-                    rows={2}
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] transition-all text-slate-900 bg-slate-50/50 placeholder:text-slate-400"
-                    placeholder="e.g. Call after 5 PM, customer has high blood sugar history, wants home collection on Saturday morning."
+          {/* Quick Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitted(false)
+                setFullName("")
+                setMobile("")
+                setNotes("")
+                setSelectedItemIds([allAvailableItems[0].id])
+              }}
+              className="h-11 px-5 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
+            >
+              + Refer Another Customer
+            </button>
+            <Link
+              href="/cra/dashboard/referrals"
+              className="h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <span>View My Leads &amp; Status</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      ) : (
+        /* The SARC-Simple 1-Screen Referral Form */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column: Form (7 cols) */}
+          <form onSubmit={handleSubmit} className="lg:col-span-7 bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 space-y-5 shadow-2xs">
+            
+            <div className="space-y-4">
+              
+              {/* Field 1: Customer Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Customer Full Name <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <User className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Anita Rao"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50/70 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
                   />
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading || formData.selectedTests.length === 0}
-                    className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white font-black text-xs sm:text-sm shadow-xl shadow-indigo-950/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Booking Tests...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <UserPlus className="h-4.5 w-4.5" />
-                        <span>Book {totalSummary.count} Test{totalSummary.count !== 1 ? "s" : ""} for Customer</span>
-                      </>
-                    )}
-                  </button>
-                  
-                  <Link
-                    href="/cra/dashboard/referrals"
-                    className="py-4 px-6 rounded-2xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs sm:text-sm text-center transition-colors"
-                  >
-                    Cancel
-                  </Link>
-                </div>
-
-                {/* Mobile Link to View Earnings Summary */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMobileTab("summary")}
-                  className="lg:hidden w-full py-3 px-4 rounded-2xl bg-purple-50 hover:bg-purple-100 text-[#382685] font-bold text-xs border border-purple-200/80 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <span>View Live Earnings &amp; Discount Breakdown (₹{totalSummary.totalC1.toLocaleString()})</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-
-              </form>
-            </div>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* RIGHT COLUMN: REAL-TIME INCENTIVE CALCULATOR & ATTRIBUTION (4-5 COLS)     */}
-          {/* ========================================================================= */}
-          <div className={`lg:col-span-5 xl:col-span-4 space-y-5 ${activeMobileTab === "form" ? "hidden lg:block" : "block"}`}>
-            
-            {/* Live Pricing & Earnings Card with Indian Rupee Icon */}
-            <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-9 w-9 rounded-2xl bg-purple-50 text-[#382685] flex items-center justify-center font-bold border border-purple-100">
-                    <IndianRupee className="h-4.5 w-4.5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-slate-900">Live Earnings Calculator</h3>
-                    <p className="text-[10.5px] text-slate-400 font-medium">Combined for all selected tests</p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-extrabold border border-emerald-200">
-                  {totalSummary.count} Selected
-                </span>
               </div>
 
-              {/* Selected Tests Mini Summary */}
-              <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/70 space-y-1.5">
-                <div className="text-[10.5px] text-slate-500 font-bold uppercase tracking-wider flex justify-between">
-                  <span>Selected Tests ({totalSummary.count})</span>
-                  {totalSummary.uniqueSamples.length > 0 && (
-                    <span className="text-purple-700 font-bold">Samples: {totalSummary.uniqueSamples.join(", ")}</span>
+              {/* Field 2: Mobile Number */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Mobile Number <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Phone className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    required
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50/70 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
+                  />
+                </div>
+              </div>
+
+              {/* Field 3: City */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  City <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <MapPin className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Pune, Mumbai, Hyderabad, Bengaluru"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50/70 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
+                  />
+                </div>
+              </div>
+
+              {/* Field 4: EXACT MULTI-TEST SELECTION COMPONENT MATCHING USER DESIGN */}
+              <div className="space-y-3 pt-1" ref={dropdownRef}>
+                
+                {/* 1. Header with Badge & Clear All */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FlaskConical className="h-4.5 w-4.5 text-[#382685]" />
+                    <label className="text-xs sm:text-sm font-black text-slate-900">
+                      Select Tests &amp; Packages <span className="text-rose-500">*</span>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-100 text-[#382685] border border-purple-200">
+                      {selectedItems.length} Selected
+                    </span>
+                    {selectedItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedItemIds([allAvailableItems[0].id])}
+                        className="text-rose-600 hover:text-rose-700 font-bold text-xs hover:underline cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Search / Click to Add Input Bar */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`w-full h-12 px-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer shadow-2xs ${
+                      isDropdownOpen 
+                        ? "bg-white border-[#382685] ring-2 ring-[#382685]/10" 
+                        : "bg-white border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 text-slate-500 text-xs sm:text-sm font-medium">
+                      <Search className="h-4 w-4 text-slate-400 shrink-0" />
+                      <span className="truncate">Click to add more tests or packages...</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform shrink-0 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Multi-Select Dropdown Search Menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-2 z-40 bg-white rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[380px] flex flex-col">
+                      
+                      {/* Search & Tabs Toolbar inside Dropdown */}
+                      <div className="p-3 border-b border-slate-100 bg-slate-50/80 space-y-2.5 shrink-0">
+                        {/* Search Bar */}
+                        <div className="relative">
+                          <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search from 102+ clinical tests & packages..."
+                            className="w-full h-9 pl-9 pr-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#382685] font-medium"
+                            autoFocus
+                          />
+                        </div>
+
+                        {/* Filter Tabs */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("all")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              activeTab === "all" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            All ({allAvailableItems.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("packages")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              activeTab === "packages" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            Profiles (12)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("tests")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              activeTab === "tests" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            Clinical Tests (90+)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Scrollable Item Options List */}
+                      <div className="overflow-y-auto p-2 space-y-1 divide-y divide-slate-50 flex-1">
+                        {filteredItems.map((item) => {
+                          const isSelected = selectedItemIds.includes(item.id)
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => handleToggleItem(item.id)}
+                              className={`p-2.5 rounded-xl flex items-center justify-between gap-3 transition-colors cursor-pointer ${
+                                isSelected 
+                                  ? "bg-purple-50/90 border border-purple-200 text-purple-950 font-bold" 
+                                  : "hover:bg-slate-50 text-slate-700"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                                  isSelected ? "bg-[#382685] border-[#382685] text-white" : "border-slate-300 bg-white"
+                                }`}>
+                                  {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                                </div>
+
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold truncate">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 flex items-center gap-1.5 font-mono">
+                                    <span>{item.code}</span>
+                                    <span>•</span>
+                                    <span>{item.parameterCount}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="text-right shrink-0">
+                                <div className="flex items-center justify-end gap-1">
+                                  <span className="font-mono font-black text-xs text-slate-900">₹{item.realizedRevenue}</span>
+                                  <span className="text-[9.5px] line-through text-slate-400 font-mono">₹{item.mrp}</span>
+                                </div>
+                                <div className="text-[10px] font-bold text-emerald-700">
+                                  +₹{item.directIncentive} (30%)
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+
+                        {filteredItems.length === 0 && (
+                          <div className="p-4 text-center text-xs text-slate-400">
+                            No profiles or tests found matching &quot;{searchQuery}&quot;
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bottom Action inside Dropdown */}
+                      <div className="p-2.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs shrink-0">
+                        <span className="font-bold text-slate-700 text-[11px]">
+                          {selectedItems.length} test{selectedItems.length > 1 ? "s" : ""} selected (₹{totalRealizedRevenue.toLocaleString("en-IN")} RR)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="px-3.5 py-1.5 rounded-xl bg-[#251b5c] text-white text-[11px] font-bold hover:bg-[#1e1b4b] cursor-pointer shadow-xs"
+                        >
+                          Done Selecting ✓
+                        </button>
+                      </div>
+
+                    </div>
                   )}
                 </div>
-                
-                {selectedItems.length > 0 ? (
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {selectedItems.map(item => (
-                      <div key={item.id} className="flex justify-between text-xs font-semibold text-slate-800">
-                        <span className="truncate max-w-[170px]">{item.name}</span>
-                        <span className="font-bold text-slate-900">₹{item.rr}</span>
+
+                {/* 3. Quick Add Popular Tests Section */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-1 text-xs font-bold text-slate-700">
+                    <span className="text-amber-500">✨</span>
+                    <span>Quick Add Popular Tests:</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      { id: "test-CUA", label: "Complete Urine Analysis", price: 240 },
+                      { id: "test-H6", label: "Hemogram - 6 Part (H6)", price: 240 },
+                      { id: "test-HBA1C", label: "HbA1c (Diabetes)", price: 280 },
+                      { id: "test-TSH", label: "Thyroid (TSH)", price: 160 },
+                      { id: "test-VITD", label: "Vitamin D Total", price: 640 },
+                      { id: "pkg-master", label: "Master Health Checkup", price: 2499 }
+                    ].map((test) => {
+                      const isSelected = selectedItemIds.includes(test.id)
+                      return (
+                        <button
+                          key={test.id}
+                          type="button"
+                          onClick={() => handleToggleItem(test.id)}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            isSelected
+                              ? "bg-[#1e1b4b] text-white shadow-xs"
+                              : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span>{isSelected ? "✓" : "+"}</span>
+                          <span>{test.label} (₹{test.price})</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 4. Tests Added to This Booking List (Matching User Design) */}
+                <div className="space-y-2 pt-2">
+                  <div className="text-xs sm:text-sm font-bold text-slate-900">
+                    Tests Added to This Booking ({selectedItems.length}):
+                  </div>
+
+                  <div className="space-y-2">
+                    {selectedItems.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Index circle */}
+                          <div className="h-6 w-6 rounded-full bg-purple-50 text-[#382685] font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                            {index + 1}
+                          </div>
+
+                          {/* Code Badge */}
+                          <span className="px-2 py-0.5 rounded-md bg-purple-50 text-[#382685] font-mono font-bold text-[10px] border border-purple-200 shrink-0">
+                            {item.code}
+                          </span>
+
+                          {/* Test Name & Category */}
+                          <div className="min-w-0">
+                            <div className="font-black text-xs sm:text-sm text-slate-900 uppercase truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                              {item.category} • Sample: {item.parameterCount.includes("Blood") ? "Blood" : item.parameterCount.includes("Urine") ? "Urine" : "EDTA"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Price, Earning & Remove Button */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <span className="text-xs line-through text-slate-400 font-mono">₹{item.mrp}</span>
+                              <span className="font-mono font-black text-sm text-slate-900">₹{item.realizedRevenue}</span>
+                            </div>
+                            <div className="text-xs font-bold text-emerald-600 mt-0.5">
+                              +₹{item.directIncentive} Earning
+                            </div>
+                          </div>
+
+                          {selectedItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Remove test"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-xs text-slate-400 italic">No tests selected yet</div>
-                )}
+                </div>
+
               </div>
 
-              {/* Price Breakdown Matrix */}
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600 font-medium">
-                  <span>Total Lab Price (MRP)</span>
-                  <span className="line-through text-slate-400 font-semibold">₹{totalSummary.totalMrp.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-emerald-700 font-bold">
-                  <span>Customer Discount (20% Off)</span>
-                  <span>- ₹{totalSummary.totalDiscount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-slate-900 font-black pt-2 border-t border-slate-100">
-                  <span>Final Total Customer Price</span>
-                  <span className="text-base">₹{totalSummary.totalRR.toLocaleString()}</span>
-                </div>
+              {/* Field 5: Note (Optional) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Note (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Anything the medical ops team should know (e.g. preferred morning collection time)..."
+                  className="w-full p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
+                />
               </div>
 
-              {/* Highlighting 30% Direct Earnings */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50/70 border border-purple-200/80 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black text-[#251b5c] uppercase tracking-wider">
-                    Your Total 30% Direct Earning
-                  </span>
-                  <Award className="h-4 w-4 text-[#382685]" />
-                </div>
-                <div className="text-3xl font-black text-[#251b5c]">
-                  ₹{totalSummary.totalC1.toLocaleString()}
-                </div>
-                <p className="text-[10.5px] text-slate-500 font-medium">
-                  Credited to your payout wallet instantly after samples are collected.
+            </div>
+
+            {/* Banner: What happens next (<24h follow-up) */}
+            <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-start gap-3 text-xs text-blue-900 font-medium">
+              <Clock className="h-5 w-5 text-[#2F5FDE] shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-slate-900">What happens next</div>
+                <p className="text-slate-600 text-[11.5px] mt-0.5">
+                  Our central team follows up within <strong>24 hours</strong> to coordinate home sample collection and keeps you updated in real time.
                 </p>
-              </div>
-
-              {/* Team Bonus */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex justify-between items-center text-xs">
-                <span className="text-slate-600 font-semibold">Team Bonus (10%):</span>
-                <span className="font-black text-purple-700">₹{totalSummary.totalC2.toLocaleString()}</span>
-              </div>
-
-              {/* Direct Booking Trigger inside Summary Card on Mobile */}
-              <div className="lg:hidden pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const formEl = document.querySelector("form")
-                    if (formEl) formEl.requestSubmit()
-                  }}
-                  disabled={loading || formData.selectedTests.length === 0}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white font-black text-xs shadow-lg shadow-indigo-950/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span>Confirm &amp; Book {totalSummary.count} Tests (₹{totalSummary.totalRR.toLocaleString()})</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Share Attribution Box */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#1e1b4b] to-[#251b5c] text-white p-6 shadow-md space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="text-[10px] uppercase font-extrabold tracking-wider text-cyan-300">
-                  Instant Customer Booking Link
-                </div>
-                <Sparkles className="h-4 w-4 text-cyan-300" />
-              </div>
-              <p className="text-xs text-blue-100/90 font-medium leading-relaxed">
-                Prefer to let the customer self-book? Share your direct link with 20% discount applied:
-              </p>
-              
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-white text-[#251b5c] hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#382685]" />}
-                  <span>{copied ? "Copied Link!" : "Copy Booking Link"}</span>
-                </button>
-
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Book tests (${testNamesSummary}) on AVMLabs with 20% discount: https://avmlabs.com/booking?ref=${referralCode}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-colors"
-                  title="Share WhatsApp"
-                >
-                  <Share2 className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-
-            {/* What Happens Next Lifecycle */}
-            <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 space-y-3">
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-                What Happens Next?
-              </h4>
-              <div className="space-y-2.5 text-xs text-slate-600 font-medium">
-                <div className="flex gap-2.5">
-                  <span className="h-5 w-5 rounded-full bg-purple-50 text-[#382685] font-black text-[10px] flex items-center justify-center shrink-0">
-                    1
-                  </span>
-                  <span>Our medical support calls customer within 15 minutes to confirm date & time.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <span className="h-5 w-5 rounded-full bg-purple-50 text-[#382685] font-black text-[10px] flex items-center justify-center shrink-0">
-                    2
-                  </span>
-                  <span>Certified phlebotomist collects sample from their home.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <span className="h-5 w-5 rounded-full bg-emerald-50 text-emerald-700 font-black text-[10px] flex items-center justify-center shrink-0">
-                    3
-                  </span>
-                  <span>30% commission automatically credits to your balance for payout.</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Sticky Mobile Floating Order Booking Bar */}
-        {formData.selectedTests.length > 0 && (
-          <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-950/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-2 animate-in slide-in-from-bottom-2 duration-200">
-            <div className="min-w-0">
-              <div className="text-[11px] text-slate-300 truncate">
-                {totalSummary.count} Tests • <span className="font-bold text-white">₹{totalSummary.totalRR.toLocaleString()}</span>
-              </div>
-              <div className="text-[11px] font-black text-emerald-400 truncate">
-                +₹{totalSummary.totalC1.toLocaleString()} Your 30% Earning
               </div>
             </div>
 
             <button
-              type="button"
-              onClick={() => {
-                const formEl = document.querySelector("form")
-                if (formEl) formEl.requestSubmit()
-              }}
-              disabled={loading}
-              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+              type="submit"
+              className="w-full h-12 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
-              <span>{loading ? "Booking..." : "Book Now"}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>Submit Referral Lead ({selectedItems.length} Test{selectedItems.length > 1 ? "s" : ""})</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
-          </div>
-        )}
-      </>
-      ) : (
-        /* ========================================================================= */
-        /* SUCCESS STATE CARD                                                        */
-        /* ========================================================================= */
-        <div className="rounded-3xl shadow-xl border border-emerald-200 bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 sm:p-8 text-center space-y-2">
-            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto mb-3 text-emerald-600 shadow-lg">
-              <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Customer Booking Successfully Registered!
-            </h2>
-            <p className="text-xs sm:text-sm text-emerald-100 max-w-md mx-auto font-medium">
-              Order reference code <strong className="text-white underline">{generatedRefId}</strong> has been created for <strong className="text-white">{formData.fullName}</strong>.
-            </p>
-          </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200/80 space-y-3">
-              <div className="text-xs font-black text-slate-600 uppercase tracking-wider">
-                Direct Customer Booking Link (With Your Code Pre-Applied)
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={referralLink}
-                  className="flex-1 px-3.5 py-2 text-xs font-mono bg-white border border-slate-300 rounded-xl text-slate-700 font-bold"
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="h-10 px-4 rounded-xl bg-[#251b5c] text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#382685] transition-colors shrink-0 cursor-pointer"
-                >
-                  {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                  <span>{copied ? "Copied!" : "Copy Link"}</span>
-                </button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Hi ${formData.fullName}, your AVMLabs booking for (${testNamesSummary}) is registered with 20% discount: ${referralLink}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="h-10 px-4 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-700 transition-colors shrink-0"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span>WhatsApp Link</span>
-                </a>
-              </div>
-            </div>
+          </form>
 
-            {/* Booked Tests Summary */}
-            <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-2">
-              <div className="text-xs font-bold text-[#382685] uppercase tracking-wider">
-                Booked Tests ({selectedItems.length}):
+          {/* Right Column: Live Realised Revenue & Incentive Card (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            
+            {/* Commercial Breakdown Card */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Coins className="h-4.5 w-4.5 text-[#382685]" />
+                  <span className="font-bold text-sm text-slate-900">Incentive Breakdown</span>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-purple-100 text-[#382685] border border-purple-200">
+                  {selectedItems.length} Test{selectedItems.length > 1 ? "s" : ""}
+                </span>
               </div>
-              <div className="space-y-1.5">
-                {selectedItems.map(item => (
-                  <div key={item.id} className="flex justify-between text-xs font-bold text-slate-800">
-                    <span>{item.name} ({item.code})</span>
-                    <span className="text-[#251b5c]">₹{item.rr} (You earn ₹{item.c1})</span>
+
+              {/* Itemized Tests List */}
+              <div className="space-y-2 border-b border-slate-100 pb-3">
+                <div className="text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Selected Tests &amp; Profiles:
+                </div>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between text-xs text-slate-700">
+                      <span className="truncate max-w-[180px] font-medium">{item.name}</span>
+                      <span className="font-mono font-bold text-slate-900 shrink-0">₹{item.realizedRevenue}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between text-slate-500">
+                  <span>Total Catalogue MRP:</span>
+                  <span className="font-mono text-slate-700">₹{totalMrp.toLocaleString("en-IN")}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-emerald-700 font-medium">
+                  <span>Customer 20% Discount:</span>
+                  <span className="font-mono">- ₹{totalCustomerDiscount.toLocaleString("en-IN")}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-slate-900 font-bold">
+                  <span>Customer Final Price:</span>
+                  <span className="font-mono font-black text-sm text-slate-900">₹{totalRealizedRevenue.toLocaleString("en-IN")}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-slate-600 font-medium">
+                  <span>Realised Revenue (RR):</span>
+                  <span className="font-mono font-bold text-slate-800">₹{totalRealizedRevenue.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+
+              {/* Direct Incentive & Team Override Highlight */}
+              <div className="space-y-2.5">
+                {/* 30% Direct */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50/70 border border-blue-200/80 rounded-2xl p-4 text-center space-y-1">
+                  <div className="text-[10.5px] font-bold uppercase tracking-wider text-blue-900">
+                    Your Direct Cash Incentive (30%)
                   </div>
-                ))}
+                  <div className="font-mono text-3xl font-black text-[#2F5FDE]">
+                    ₹{totalDirectIncentive.toLocaleString("en-IN")}
+                  </div>
+                  <div className="text-[11px] text-slate-600 font-medium">
+                    Calculated on ₹{totalRealizedRevenue.toLocaleString("en-IN")} Realised Revenue
+                  </div>
+                </div>
+
+                {/* 10% Team Override with Exact Amount */}
+                <div className="bg-gradient-to-br from-purple-50 to-amber-50/50 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-8 w-8 rounded-xl bg-purple-100 text-[#382685] flex items-center justify-center font-bold shrink-0">
+                      <Users2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-purple-950">Team Override (10%)</div>
+                      <div className="text-[10.5px] text-slate-500">If referred by your Secondary C2</div>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 font-mono font-black text-base text-purple-900">
+                    +₹{totalTeamOverride.toLocaleString("en-IN")}
+                  </div>
+                </div>
               </div>
+
+              {/* Referral Partner Details */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Referring Partner</span>
+                  <span className="font-bold text-slate-900">{currentUser.name}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Referral Code</span>
+                  <span className="font-mono font-bold text-[#382685]">{currentUser.code}</span>
+                </div>
+              </div>
+
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="text-slate-500">Customer</div>
-                <div className="font-bold text-slate-900">{formData.fullName}</div>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="text-slate-500">Total Customer Price</div>
-                <div className="font-bold text-slate-900">₹{totalSummary.totalRR.toLocaleString()}</div>
-              </div>
-              <div className="p-3.5 bg-purple-50 rounded-2xl border border-purple-200/80">
-                <div className="text-[#382685] font-semibold">Your Total Earning</div>
-                <div className="font-black text-[#251b5c] text-sm">₹{totalSummary.totalC1.toLocaleString()} (30%)</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({
-                    fullName: "",
-                    mobile: "",
-                    email: "",
-                    relationship: "Corporate Contact",
-                    selectedTests: ["H6", "CUA"],
-                    collectionType: "Home Collection",
-                    notes: ""
-                  })
-                  setSubmitted(false)
-                }}
-                className="flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-[#251b5c] to-[#382685] text-white font-bold text-xs sm:text-sm hover:opacity-95 transition-all shadow-md text-center cursor-pointer"
-              >
-                + Book Another Customer
-              </button>
-              
-              <Link
-                href="/cra/dashboard/referrals"
-                className="py-3 px-6 rounded-2xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs sm:text-sm text-center transition-colors"
-              >
-                View in Customer Bookings
-              </Link>
-            </div>
           </div>
+
         </div>
       )}
 

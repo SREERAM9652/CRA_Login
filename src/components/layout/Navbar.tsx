@@ -78,18 +78,18 @@ export function Navbar() {
         <div className="flex items-center gap-2.5 sm:gap-3">
           <Link
             href="/login"
-            className="gap-2 hidden sm:inline-flex h-10 px-4 text-xs font-bold items-center justify-center whitespace-nowrap rounded-2xl transition-colors border border-slate-200 hover:bg-slate-50 text-slate-800 shadow-xs"
+            className="gap-1.5 hidden sm:inline-flex h-10 px-4 text-xs font-black items-center justify-center whitespace-nowrap rounded-2xl transition-all border border-indigo-900/40 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-950 shadow-xs"
           >
-            <User className="h-3.5 w-3.5 text-[#382685]" />
-            <span>Login / Portal</span>
+            <User className="h-3.5 w-3.5 text-indigo-900" />
+            <span>C1 / C2 Partner Login</span>
           </Link>
           
           <Link
-            href="/booking"
-            className="h-10 px-5 text-xs sm:text-sm font-black inline-flex items-center justify-center whitespace-nowrap rounded-2xl transition-all bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white shadow-md shadow-indigo-950/15"
+            href="/cra/dashboard/book-customer"
+            className="h-10 px-5 text-xs sm:text-sm font-black inline-flex items-center justify-center whitespace-nowrap rounded-2xl transition-all bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white shadow-md shadow-indigo-950/15 hover:scale-102"
           >
-            <span>Book a Test</span>
-            <ChevronRight className="h-4 w-4 ml-0.5" />
+            <Sparkles className="h-3.5 w-3.5 text-cyan-300 mr-1.5" />
+            <span>CRA Flow Demo</span>
           </Link>
 
           {/* Mobile menu hamburger button */}

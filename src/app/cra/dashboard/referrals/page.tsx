@@ -2,478 +2,821 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useWorkflowStore } from "@/lib/workflow-store"
 import { 
   Search, 
-  Filter, 
-  Download, 
-  UserPlus, 
-  Users, 
-  CheckCircle2, 
-  Clock, 
-  X, 
+  Plus, 
   Phone, 
-  Mail, 
+  MapPin, 
   Calendar, 
-  IndianRupee, 
-  Send, 
-  Sparkles, 
-  ChevronRight,
-  ArrowUpDown,
+  Coins, 
+  Sparkles,
+  FileText,
+  User,
+  FlaskConical,
   Check,
-  AlertCircle
+  X,
+  MessageCircle,
+  Clock,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
-import { Badge } from "@/components/ui/Badge"
-import { MOCK_CRA_REFERRALS, CRAReferralRecord } from "@/lib/mock-data"
-import { CustomSelect } from "@/components/ui/CustomSelect"
 
-export default function ReferralManagementPage() {
+export interface CustomerLeadRecord {
+  id: string
+  avatar: string
+  name: string
+  mobile: string
+  city: string
+  packageName: string
+  parameters: number
+  realizedRevenue: number
+  directIncentive: number
+  teamBonus: number
+  owner: "me" | "c2"
+  c2PartnerName?: string
+  status: "New" | "Contacted" | "Client Onboarded" | "Test Scheduled" | "Report Delivered"
+  statusSubtext: string
+  date: string
+}
+
+const INITIAL_LEADS: CustomerLeadRecord[] = [
+  {
+    id: "LEAD-101",
+    avatar: "AR",
+    name: "Anita Rao",
+    mobile: "+91 98765 43210",
+    city: "Pune",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "28 Aug 2026, 10:30 AM"
+  },
+  {
+    id: "LEAD-102",
+    avatar: "SI",
+    name: "Suresh Iyer",
+    mobile: "+91 98450 11223",
+    city: "Mumbai",
+    packageName: "Executive Heart & Cardiac Risk Profile",
+    parameters: 58,
+    realizedRevenue: 1600,
+    directIncentive: 480,
+    teamBonus: 160,
+    owner: "me",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled for tomorrow 7:30 AM",
+    date: "28 Aug 2026, 09:15 AM"
+  },
+  {
+    id: "LEAD-103",
+    avatar: "MK",
+    name: "Meena K.",
+    mobile: "+91 98220 55441",
+    city: "Bengaluru",
+    packageName: "Women Advanced Wellness Profile",
+    parameters: 54,
+    realizedRevenue: 1200,
+    directIncentive: 360,
+    teamBonus: 120,
+    owner: "c2",
+    c2PartnerName: "SAI MAHENDRA",
+    status: "Report Delivered",
+    statusSubtext: "Converted • via SAI MAHENDRA (C2)",
+    date: "27 Aug 2026, 04:15 PM"
+  },
+  {
+    id: "LEAD-104",
+    avatar: "FA",
+    name: "Farhan Ali",
+    mobile: "+91 98110 77889",
+    city: "Hyderabad",
+    packageName: "Comprehensive Master Health Checkup",
+    parameters: 68,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "New",
+    statusSubtext: "New lead submitted • via SUDHEER REDDY (C2)",
+    date: "27 Aug 2026, 02:30 PM"
+  },
+  {
+    id: "LEAD-105",
+    avatar: "DP",
+    name: "Divya Pillai",
+    mobile: "+91 98330 22334",
+    city: "Chennai",
+    packageName: "Diabetic Comprehensive Management",
+    parameters: 48,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via SUDHEER REDDY (C2)",
+    date: "26 Aug 2026, 11:00 AM"
+  },
+  {
+    id: "LEAD-106",
+    avatar: "KJ",
+    name: "Karan Joshi",
+    mobile: "+91 98990 44556",
+    city: "Pune",
+    packageName: "Senior Citizen Comprehensive Care",
+    parameters: 64,
+    realizedRevenue: 1440,
+    directIncentive: 432,
+    teamBonus: 144,
+    owner: "c2",
+    c2PartnerName: "SAI MAHENDRA",
+    status: "Client Onboarded",
+    statusSubtext: "Converted • via SAI MAHENDRA (C2)",
+    date: "25 Aug 2026, 05:00 PM"
+  },
+  {
+    id: "LEAD-107",
+    avatar: "VS",
+    name: "Vikram Singhania",
+    mobile: "+91 98770 66778",
+    city: "Bengaluru",
+    packageName: "Executive Heart & Cardiac Risk",
+    parameters: 58,
+    realizedRevenue: 1600,
+    directIncentive: 480,
+    teamBonus: 160,
+    owner: "me",
+    status: "Contacted",
+    statusSubtext: "Call completed • Awaiting time slot confirmation",
+    date: "24 Aug 2026, 03:45 PM"
+  },
+  {
+    id: "LEAD-108",
+    avatar: "SS",
+    name: "Sneha Sen",
+    mobile: "+91 98440 88990",
+    city: "Kolkata",
+    packageName: "Thyroid & Hormone Complete Profile",
+    parameters: 36,
+    realizedRevenue: 720,
+    directIncentive: 216,
+    teamBonus: 72,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled for Friday morning",
+    date: "23 Aug 2026, 10:15 AM"
+  },
+  {
+    id: "LEAD-109",
+    avatar: "AG",
+    name: "Amit Gupta",
+    mobile: "+91 98660 11445",
+    city: "Pune",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "22 Aug 2026, 01:20 PM"
+  },
+  {
+    id: "LEAD-110",
+    avatar: "PB",
+    name: "Pooja Bannerjee",
+    mobile: "+91 98230 44112",
+    city: "Kolkata",
+    packageName: "Liver & Gastrointestinal Vitality",
+    parameters: 42,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "c2",
+    c2PartnerName: "SAI MAHENDRA",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via SAI MAHENDRA (C2)",
+    date: "20 Aug 2026, 02:45 PM"
+  },
+  {
+    id: "LEAD-111",
+    avatar: "MD",
+    name: "Manish Deshmukh",
+    mobile: "+91 98900 33774",
+    city: "Mumbai",
+    packageName: "Executive Heart & Cardiac Risk",
+    parameters: 58,
+    realizedRevenue: 1600,
+    directIncentive: 480,
+    teamBonus: 160,
+    owner: "me",
+    status: "Client Onboarded",
+    statusSubtext: "Profile confirmed • Home collection requested",
+    date: "19 Aug 2026, 04:30 PM"
+  },
+  {
+    id: "LEAD-112",
+    avatar: "RM",
+    name: "Rahul Mehta",
+    mobile: "+91 98210 99443",
+    city: "Pune",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "18 Aug 2026, 11:20 AM"
+  },
+  {
+    id: "LEAD-113",
+    avatar: "NK",
+    name: "Nandini Kulkarni",
+    mobile: "+91 98450 77112",
+    city: "Bengaluru",
+    packageName: "Women Advanced Wellness Profile",
+    parameters: 54,
+    realizedRevenue: 1200,
+    directIncentive: 360,
+    teamBonus: 120,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Test Scheduled",
+    statusSubtext: "Home collection booked for Sunday",
+    date: "17 Aug 2026, 09:00 AM"
+  },
+  {
+    id: "LEAD-114",
+    avatar: "TS",
+    name: "Tarun Sharma",
+    mobile: "+91 98110 33221",
+    city: "Hyderabad",
+    packageName: "Diabetic Comprehensive Management",
+    parameters: 48,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "16 Aug 2026, 03:15 PM"
+  },
+  {
+    id: "LEAD-115",
+    avatar: "SB",
+    name: "Sunita Bhatt",
+    mobile: "+91 98330 66554",
+    city: "Mumbai",
+    packageName: "Senior Citizen Comprehensive Care",
+    parameters: 64,
+    realizedRevenue: 1440,
+    directIncentive: 432,
+    teamBonus: 144,
+    owner: "c2",
+    c2PartnerName: "SAI MAHENDRA",
+    status: "Client Onboarded",
+    statusSubtext: "Onboarded via SAI MAHENDRA (C2)",
+    date: "15 Aug 2026, 01:45 PM"
+  }
+]
+
+const STAGE_FILTERS = [
+  { id: "All", label: "All Stages" },
+  { id: "New", label: "New Lead" },
+  { id: "Contacted", label: "Contacted" },
+  { id: "Client Onboarded", label: "Onboarded" },
+  { id: "Test Scheduled", label: "Scheduled" },
+  { id: "Report Delivered", label: "Delivered" }
+]
+
+export default function MyCustomersLeadsPage() {
+  const { currentUser } = useWorkflowStore()
+  const isC1 = currentUser.role === "c1"
+
+  const [activeOwnerTab, setActiveOwnerTab] = useState<"all" | "me" | "c2">("all")
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("All")
-  const [tierFilter, setTierFilter] = useState("All")
-  const [selectedReferral, setSelectedReferral] = useState<CRAReferralRecord | null>(null)
-  const [reminderSent, setReminderSent] = useState(false)
-  const [exportToast, setExportToast] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<CustomerLeadRecord | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
-  // Filtered referrals
-  const filteredReferrals = MOCK_CRA_REFERRALS.filter((ref) => {
-    const matchesSearch = 
-      ref.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ref.mobile.includes(searchQuery) ||
-      ref.packageOrdered.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter leads based on tab, status, and search query
+  const filteredLeads = INITIAL_LEADS.filter((lead) => {
+    // Owner tab filter
+    if (activeOwnerTab === "me" && lead.owner !== "me") return false
+    if (activeOwnerTab === "c2" && lead.owner !== "c2") return false
 
-    const matchesStatus = statusFilter === "All" || ref.status === statusFilter
-    const matchesTier = tierFilter === "All" || ref.tier === tierFilter
+    // Status filter
+    if (selectedStatusFilter !== "All" && lead.status !== selectedStatusFilter) return false
 
-    return matchesSearch && matchesStatus && matchesTier
+    // Search query filter
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase()
+      const matches = 
+        lead.name.toLowerCase().includes(q) ||
+        lead.mobile.includes(q) ||
+        lead.city.toLowerCase().includes(q) ||
+        lead.packageName.toLowerCase().includes(q) ||
+        (lead.c2PartnerName && lead.c2PartnerName.toLowerCase().includes(q))
+      if (!matches) return false
+    }
+
+    return true
   })
 
-  // Summary Metrics
-  const totalCount = MOCK_CRA_REFERRALS.length
-  const activeCount = MOCK_CRA_REFERRALS.filter(r => ["Contacted", "Slot Booked", "Sample Collected"].includes(r.status)).length
-  const completedCount = MOCK_CRA_REFERRALS.filter(r => r.status === "Completed").length
-  const pendingCount = MOCK_CRA_REFERRALS.filter(r => r.status === "Lead Submitted").length
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / itemsPerPage))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredLeads.length)
+  const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
-  const handleExportCSV = () => {
-    setExportToast(true)
-    setTimeout(() => setExportToast(false), 3000)
+  // Counts for tabs
+  const totalCount = INITIAL_LEADS.length
+  const meCount = INITIAL_LEADS.filter(l => l.owner === "me").length
+  const c2Count = INITIAL_LEADS.filter(l => l.owner === "c2").length
+
+  const handleTabChange = (tab: "all" | "me" | "c2") => {
+    setActiveOwnerTab(tab)
+    setCurrentPage(1)
   }
 
-  const handleSendReminder = () => {
-    setReminderSent(true)
-    setTimeout(() => setReminderSent(false), 3000)
+  const handleStatusChange = (status: string) => {
+    setSelectedStatusFilter(status)
+    setCurrentPage(1)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full font-sans space-y-4 pb-12">
       
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3.5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1e1b4b]">
-            My Customer Bookings
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+            My Customers &amp; Leads
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            Track all your customer orders, sample collections, and your earnings.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            {isC1 
+              ? `${totalCount} total referrals across you (${meCount}) and your team (${c2Count})`
+              : "Track all diagnostic referrals submitted by you directly"
+            }
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            className="h-11 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
-          >
-            <Download className="h-4 w-4" />
-            <span>Download CSV</span>
-          </button>
-          
+        <div className="flex items-center gap-2">
           <Link
             href="/cra/dashboard/add-lead"
-            className="h-11 px-5 rounded-2xl bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white text-xs sm:text-sm font-black inline-flex items-center gap-2 shadow-lg shadow-indigo-950/15 transition-all"
+            className="h-10 px-4 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer w-full sm:w-auto justify-center"
           >
-            <UserPlus className="h-4 w-4" />
-            <span>+ Book for a Customer</span>
+            <Plus className="h-4 w-4" />
+            <span>Refer a Customer</span>
           </Link>
         </div>
       </div>
 
-      {/* Export Toast Feedback */}
-      {exportToast && (
-        <div className="p-3 bg-slate-900 text-white text-xs font-bold rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-2">
-          <span>Customer bookings statement exported successfully (AVMLabs_Customer_Bookings.csv)</span>
-          <button onClick={() => setExportToast(false)} className="text-slate-400 hover:text-white cursor-pointer">
-            <X className="h-4 w-4" />
+      {/* Filter Tabs & Stage Chips Toolbar */}
+      <div className="space-y-3 pt-1">
+        
+        {/* Row 1: Owner Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100/90 p-1 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => handleTabChange("all")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeOwnerTab === "all"
+                ? "bg-[#251b5c] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            All ({totalCount})
           </button>
-        </div>
-      )}
 
-      {/* 4 Summary Status Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Bookings</div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900">{totalCount}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Direct & team orders</div>
-        </div>
-        <div className="bg-white p-5 rounded-3xl border border-blue-100 bg-blue-50/30 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">In-Progress</div>
-          <div className="text-2xl sm:text-3xl font-black text-blue-900">{activeCount}</div>
-          <div className="text-[11px] text-blue-600 mt-1">Booked / Sample processing</div>
-        </div>
-        <div className="bg-white p-5 rounded-3xl border border-emerald-100 bg-emerald-50/30 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">Completed & Paid</div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-800">{completedCount}</div>
-          <div className="text-[11px] text-emerald-600 mt-1">Earnings credited</div>
-        </div>
-        <div className="bg-white p-5 rounded-3xl border border-amber-100 bg-amber-50/30 shadow-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">Pending Follow-up</div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-800">{pendingCount}</div>
-          <div className="text-[11px] text-amber-600 mt-1">Team calling customer</div>
-        </div>
-      </div>
+          <button
+            type="button"
+            onClick={() => handleTabChange("me")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeOwnerTab === "me"
+                ? "bg-[#251b5c] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Referred by Me ({meCount})
+          </button>
 
-      {/* Search & Filter Bar */}
-      <div className="rounded-3xl border border-slate-100 shadow-sm bg-white p-5 space-y-4">
-        <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
-          
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search patient name, mobile number, or diagnostic test..."
-              className="w-full h-11 pl-10 pr-4 text-xs sm:text-sm rounded-2xl bg-slate-50/70 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#382685]/30 focus:border-[#382685] text-slate-900 placeholder:text-slate-400"
-            />
-          </div>
-
-          {/* Filter Dropdowns */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="w-full sm:w-44">
-              <CustomSelect
-                value={statusFilter}
-                onChange={(val) => setStatusFilter(val)}
-                options={[
-                  { value: "All", label: "All Statuses" },
-                  { value: "Lead Submitted", label: "Lead Submitted" },
-                  { value: "Contacted", label: "Contacted" },
-                  { value: "Slot Booked", label: "Slot Booked" },
-                  { value: "Sample Collected", label: "Sample Collected" },
-                  { value: "Completed", label: "Completed" },
-                  { value: "Cancelled", label: "Cancelled" },
-                ]}
-              />
-            </div>
-
-            <div className="w-full sm:w-48">
-              <CustomSelect
-                value={tierFilter}
-                onChange={(val) => setTierFilter(val)}
-                align="right"
-                options={[
-                  { value: "All", label: "All Tiers" },
-                  { value: "C1 Direct", label: "C1 Direct (30%)", sublabel: "Direct Attribution" },
-                  { value: "C2 Sub-Agency", label: "C2 Sub-Agency (10%)", sublabel: "Network Override" },
-                ]}
-              />
-            </div>
-          </div>
-
-        </div>
-
-        {/* Mobile Bookings Card List (Visible on mobile screens < 768px) */}
-        <div className="grid grid-cols-1 gap-3 md:hidden">
-          {filteredReferrals.length > 0 ? (
-            filteredReferrals.map((ref) => (
-              <div key={ref.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/70 space-y-3 shadow-2xs">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="font-black text-slate-900 text-sm">{ref.customerName}</div>
-                    <div className="text-[11px] text-slate-500 font-mono mt-0.5">{ref.mobile} • {ref.relationship}</div>
-                  </div>
-                  <Badge
-                    variant={
-                      ref.status === "Completed"
-                        ? "success"
-                        : ref.status === "Slot Booked"
-                        ? "default"
-                        : ref.status === "Sample Collected"
-                        ? "accent"
-                        : "warning"
-                    }
-                  >
-                    {ref.status}
-                  </Badge>
-                </div>
-
-                <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                  <div className="text-xs font-bold text-slate-800">{ref.packageOrdered}</div>
-                  <div className="text-[10.5px] text-slate-400 flex items-center justify-between">
-                    <span>Ordered: {ref.referredDate}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-purple-50 text-[#382685] font-extrabold text-[9.5px] border border-purple-100">{ref.tier}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
-                  <div>
-                    <div className="text-[10.5px] text-slate-400">Customer Paid</div>
-                    <div className="font-bold text-slate-800">{ref.realizedRevenue > 0 ? `₹${ref.realizedRevenue.toLocaleString()}` : "—"}</div>
-                  </div>
-
-                  <div>
-                    <div className="text-[10.5px] text-slate-400">Your Earning (30%)</div>
-                    <div className="font-black text-[#251b5c]">
-                      {ref.incentiveAmount > 0 ? `₹${Math.round(ref.incentiveAmount).toLocaleString()}` : "Pending"}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedReferral(ref)}
-                    className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-[#251b5c] hover:text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
-                  >
-                    Details
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
-              No referrals found matching your query.
-            </div>
+          {isC1 && (
+            <button
+              type="button"
+              onClick={() => handleTabChange("c2")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeOwnerTab === "c2"
+                  ? "bg-[#251b5c] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Secondary CRAs ({c2Count})
+            </button>
           )}
         </div>
 
-        {/* Referrals Table (Visible on tablet & desktop >= 768px) */}
-        <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-100">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-100">
+        {/* Row 2: Stage Chips Filter (Wrapped nicely, no horizontal scroll clipping) */}
+        <div className="flex flex-wrap items-center gap-1.5 py-0.5">
+          {STAGE_FILTERS.map((stage) => {
+            const isSelected = selectedStatusFilter === stage.id
+            return (
+              <button
+                key={stage.id}
+                type="button"
+                onClick={() => handleStatusChange(stage.id)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap border ${
+                  isSelected
+                    ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {stage.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Row 3: Search Input */}
+        <div className="relative w-full">
+          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setCurrentPage(1)
+            }}
+            placeholder="Search customer, phone, city, or package..."
+            className="w-full h-11 pl-10 pr-4 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#382685] shadow-2xs"
+          />
+        </div>
+
+      </div>
+
+      {/* Data Presentation: Desktop Structured Table vs Mobile Dedicated Box Containers */}
+      <div className="space-y-3">
+        
+        {/* Desktop Structured Table */}
+        <div className="hidden lg:block bg-white border border-slate-200/90 rounded-3xl shadow-2xs overflow-hidden">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#f8f9fc] border-b border-slate-200/80 text-slate-400 font-extrabold uppercase tracking-wider text-[10.5px]">
               <tr>
-                <th className="px-4 py-3.5 min-w-[200px]">Customer Details</th>
-                <th className="px-4 py-3.5">Order Date</th>
-                <th className="px-4 py-3.5 min-w-[200px]">Package / Test Ordered</th>
-                <th className="px-4 py-3.5">Order Type</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5">Customer Paid</th>
-                <th className="px-4 py-3.5">Your Earning</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
+                <th className="py-3.5 px-5">Customer &amp; Location</th>
+                <th className="py-3.5 px-4">Interested Wellness Profile</th>
+                <th className="py-3.5 px-4">Referral Source</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-right">Realised Revenue</th>
+                <th className="py-3.5 px-5 text-right">Your Earning</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReferrals.length > 0 ? (
-                filteredReferrals.map((ref) => (
-                  <tr key={ref.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <div className="font-bold text-slate-900 text-xs sm:text-sm">{ref.customerName}</div>
-                      <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
-                        <span className="font-semibold text-slate-700">{ref.mobile}</span>
-                        <span>•</span>
-                        <span className="text-slate-500 font-sans font-medium">{ref.relationship}</span>
+              {paginatedLeads.map((lead) => {
+                const isDirect = lead.owner === "me"
+                const isDelivered = lead.status === "Report Delivered"
+                const isScheduled = lead.status === "Test Scheduled"
+                const isNew = lead.status === "New"
+                const isOnboarded = lead.status === "Client Onboarded"
+
+                return (
+                  <tr 
+                    key={lead.id} 
+                    onClick={() => setSelectedLead(lead)}
+                    className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                  >
+                    {/* Customer & Location */}
+                    <td className="py-3.5 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-xs text-slate-700 shrink-0 group-hover:border-purple-300 transition-colors">
+                          {lead.avatar}
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <span>{lead.name}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                            <span>{lead.mobile}</span>
+                            <span>•</span>
+                            <span className="font-mono text-slate-400">{lead.city}</span>
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-slate-600 font-medium whitespace-nowrap">
-                      {ref.referredDate}
+
+                    {/* Wellness Profile */}
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-slate-800 text-xs truncate max-w-[220px]">
+                        {lead.packageName}
+                      </div>
+                      <div className="text-[10.5px] text-slate-400 mt-0.5">
+                        {lead.parameters} Test Parameters • {lead.date}
+                      </div>
                     </td>
-                    <td className="px-4 py-3.5 font-medium text-slate-800">
-                      <div className="truncate font-bold text-slate-900">{ref.packageOrdered}</div>
-                      <div className="text-[10.5px] text-slate-400 font-medium">{ref.orderCount} Order(s) logged</div>
-                    </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className="px-2.5 py-1 rounded-full bg-purple-50 text-[#382685] font-extrabold text-[10.5px] border border-purple-100">
-                        {ref.tier}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <Badge
-                        variant={
-                          ref.status === "Completed"
-                            ? "success"
-                            : ref.status === "Slot Booked"
-                            ? "default"
-                            : ref.status === "Sample Collected"
-                            ? "accent"
-                            : "warning"
-                        }
-                      >
-                        {ref.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3.5 font-bold text-slate-800">
-                      {ref.realizedRevenue > 0 ? `₹${ref.realizedRevenue.toLocaleString()}` : "—"}
-                    </td>
-                    <td className="px-4 py-3.5 font-extrabold text-primary text-sm">
-                      {ref.incentiveAmount > 0 ? (
-                        <span>₹{Math.round(ref.incentiveAmount).toLocaleString()}</span>
+
+                    {/* Referral Source */}
+                    <td className="py-3.5 px-4">
+                      {isDirect ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.8 rounded-md bg-blue-50 text-[#2F5FDE] font-mono text-[10.5px] font-bold border border-blue-200/60">
+                          Direct
+                        </span>
                       ) : (
-                        <span className="text-slate-400 font-medium text-xs">Pending</span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.8 rounded-md bg-slate-100 text-slate-700 font-mono text-[10.5px] font-bold border border-slate-200">
+                          via {lead.c2PartnerName} (C2)
+                        </span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedReferral(ref)}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
-                      >
-                        View Details
-                      </button>
+
+                    {/* Status */}
+                    <td className="py-3.5 px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border ${
+                        isDelivered 
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                          : isScheduled
+                          ? "bg-amber-50 text-amber-800 border-amber-200"
+                          : isNew
+                          ? "bg-slate-100 text-slate-700 border-slate-200"
+                          : isOnboarded
+                          ? "bg-purple-50 text-purple-800 border-purple-200"
+                          : "bg-blue-50 text-[#2F5FDE] border-blue-200"
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${
+                          isDelivered ? "bg-emerald-600" : isScheduled ? "bg-amber-500" : isNew ? "bg-slate-400" : "bg-[#2F5FDE]"
+                        }`} />
+                        <span>{lead.status}</span>
+                      </span>
+                    </td>
+
+                    {/* Realised Revenue */}
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="font-mono font-black text-sm text-slate-900">
+                        ₹{lead.realizedRevenue}
+                      </div>
+                      <div className="text-[10px] text-slate-400">RR Realized</div>
+                    </td>
+
+                    {/* Your Earning */}
+                    <td className="py-3.5 px-5 text-right">
+                      <div className="font-mono font-black text-sm text-emerald-700">
+                        +₹{isDirect ? lead.directIncentive : lead.teamBonus}
+                      </div>
+                      <div className="text-[10px] font-bold text-emerald-600">
+                        {isDirect ? "30% Direct" : "10% Override"}
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
-                    No referrals found matching your query.
-                  </td>
-                </tr>
-              )}
+                )
+              })}
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Dedicated Responsive Box Containers (Cards) */}
+        <div className="lg:hidden space-y-3">
+          {paginatedLeads.map((lead) => {
+            const isDirect = lead.owner === "me"
+            const isDelivered = lead.status === "Report Delivered"
+            const isScheduled = lead.status === "Test Scheduled"
+            const isNew = lead.status === "New"
+            const isOnboarded = lead.status === "Client Onboarded"
+
+            return (
+              <div 
+                key={lead.id} 
+                onClick={() => setSelectedLead(lead)}
+                className="bg-white border border-slate-200 rounded-3xl p-4 shadow-2xs space-y-3 hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                {/* Header Row: Avatar, Name, Package & Earnings */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-10 w-10 rounded-2xl bg-[#251b5c] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 shadow-xs">
+                      {lead.avatar}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black text-sm text-slate-900 truncate">
+                        {lead.name}
+                      </div>
+                      <div className="text-[11.5px] text-slate-500 font-medium truncate mt-0.5">
+                        {lead.packageName}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-black text-base text-emerald-700">
+                      +₹{isDirect ? lead.directIncentive : lead.teamBonus}
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200/70 inline-block mt-0.5">
+                      {isDirect ? "30% Direct" : "10% Override"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Inner Financial & Location Metrics Grid */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-2xl text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Order Revenue (RR)</span>
+                    <p className="font-mono font-black text-slate-800 text-sm mt-0.5">₹{lead.realizedRevenue}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Source</span>
+                    <p className="font-bold text-slate-700 text-xs mt-0.5 truncate">
+                      {isDirect ? "Direct" : `via ${lead.c2PartnerName}`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer Row: Status Pill on Left, Location & Date on Right */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100/80 text-xs">
+                  <span className={`px-2.5 py-0.8 rounded-lg text-[10.5px] font-bold border inline-flex items-center gap-1 ${
+                    isDelivered 
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : isScheduled
+                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                      : isNew
+                      ? "bg-slate-100 text-slate-700 border-slate-200"
+                      : isOnboarded
+                      ? "bg-purple-50 text-purple-800 border-purple-200"
+                      : "bg-blue-50 text-[#2F5FDE] border-blue-200"
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${
+                      isDelivered ? "bg-emerald-600" : isScheduled ? "bg-amber-500" : isNew ? "bg-slate-400" : "bg-[#2F5FDE]"
+                    }`} />
+                    <span>{lead.status}</span>
+                  </span>
+
+                  <div className="text-slate-400 font-medium text-[11px] truncate text-right">
+                    <span>{lead.city}</span>
+                    <span className="mx-1">•</span>
+                    <span>{lead.date.split(",")[0]}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Empty State */}
+        {filteredLeads.length === 0 && (
+          <div className="p-10 bg-white border border-slate-200 rounded-3xl text-center space-y-2">
+            <User className="h-8 w-8 text-slate-300 mx-auto" />
+            <p className="text-xs font-bold text-slate-500">No customer referrals found matching your filter</p>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveOwnerTab("all")
+                setSelectedStatusFilter("All")
+                setSearchQuery("")
+                setCurrentPage(1)
+              }}
+              className="text-xs font-bold text-[#2F5FDE] hover:underline cursor-pointer"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
+        {/* Standard 10-per-page Pagination Footer */}
+        {filteredLeads.length > 0 && (
+          <div className="p-4 bg-white border border-slate-200/90 rounded-3xl shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="text-slate-500 font-medium">
+              Showing <span className="font-bold text-slate-800">{startIndex + 1}</span> to <span className="font-bold text-slate-800">{endIndex}</span> of <span className="font-bold text-slate-800">{filteredLeads.length}</span> referrals
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={safeCurrentPage === 1}
+                  className="h-8 px-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-bold inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <span>Prev</span>
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 rounded-lg font-bold transition-all cursor-pointer ${
+                      safeCurrentPage === page
+                        ? "bg-[#251b5c] text-white shadow-xs"
+                        : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={safeCurrentPage === totalPages}
+                  className="h-8 px-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-bold inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
-      {/* Customer Detail Drawer / Modal */}
-      {selectedReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col overflow-y-auto animate-in slide-in-from-right duration-300">
+      {/* Slide-Over Detail Modal / Drawer */}
+      {selectedLead && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl animate-in zoom-in-95 duration-150 border border-slate-200">
             
-            {/* Drawer Header */}
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
-              <div>
-                <div className="text-xs font-bold text-cyan-300 uppercase tracking-wider">
-                  Referral ID: {selectedReferral.id}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#251b5c] text-white flex items-center justify-center font-mono font-bold text-xs">
+                  {selectedLead.avatar}
                 </div>
-                <h3 className="text-xl font-bold text-white mt-0.5">
-                  {selectedReferral.customerName}
-                </h3>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">{selectedLead.name}</h3>
+                  <p className="text-xs text-slate-500">{selectedLead.mobile} • {selectedLead.city}</p>
+                </div>
               </div>
               <button
-                onClick={() => setSelectedReferral(null)}
-                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                type="button"
+                onClick={() => setSelectedLead(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Drawer Body */}
-            <div className="p-6 space-y-6 flex-1 text-xs">
-              
-              {/* Contact Card */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <div className="font-bold text-slate-800 text-sm">Customer Contact Details</div>
-                <div className="grid grid-cols-2 gap-2 text-slate-600">
-                  <div>
-                    <span className="text-slate-400 block">Phone:</span>
-                    <span className="font-bold text-slate-900">{selectedReferral.mobile}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block">Email:</span>
-                    <span className="font-medium">{selectedReferral.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block">Relationship:</span>
-                    <span className="font-medium text-slate-800">{selectedReferral.relationship}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block">Attribution Tier:</span>
-                    <span className="font-bold text-primary">{selectedReferral.tier}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Financial & Incentive Breakdown */}
-              <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
-                <div className="font-bold text-slate-900 text-sm flex items-center justify-between">
-                  <span>Incentive & Revenue Breakdown</span>
-                  <Badge variant={selectedReferral.tier === "C1 Direct" ? "default" : "purple"}>
-                    {selectedReferral.tier === "C1 Direct" ? "30% Direct C1" : "10% C2 Override"}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2 pt-1 border-t border-blue-100">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Referred Package:</span>
-                    <span className="font-semibold text-slate-900">{selectedReferral.packageOrdered}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Realized Revenue (RR):</span>
-                    <span className="font-bold text-slate-900">₹{selectedReferral.realizedRevenue.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm pt-2 border-t border-blue-200">
-                    <span className="font-bold text-slate-800">Your Calculated Incentive:</span>
-                    <span className="font-black text-primary text-base">
-                      ₹{Math.round(selectedReferral.incentiveAmount).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Referral Lifecycle Timeline */}
+            {/* Financial Details */}
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl text-xs">
               <div>
-                <div className="font-bold text-slate-800 text-sm mb-3">Referral Status Timeline</div>
-                <div className="space-y-4 pl-2 border-l-2 border-slate-200">
-                  {selectedReferral.timeline.map((step, idx) => (
-                    <div key={idx} className="relative pl-5">
-                      {/* Timeline dot */}
-                      <div
-                        className={`absolute -left-[19px] top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                          step.done ? "bg-emerald-500 ring-2 ring-emerald-200" : "bg-slate-300"
-                        }`}
-                      />
-                      <div className="font-bold text-slate-900 text-xs">{step.title}</div>
-                      <div className="text-[10px] text-slate-400 mb-0.5">{step.timestamp}</div>
-                      <p className="text-slate-600 leading-relaxed">{step.description}</p>
-                    </div>
-                  ))}
-                </div>
+                <span className="text-slate-400 font-bold uppercase text-[10px]">Realised Revenue</span>
+                <p className="font-mono font-black text-slate-900 text-base mt-0.5">₹{selectedLead.realizedRevenue}</p>
               </div>
-
-              {/* Quarterly Re-testing Reminder Widget */}
-              {selectedReferral.quarterlyRetestDue && (
-                <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 space-y-2">
-                  <div className="font-bold text-purple-900 text-xs flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-purple-600" />
-                    <span>Quarterly Wellness Retest Due: {selectedReferral.quarterlyRetestDue}</span>
-                  </div>
-                  <p className="text-[11px] text-purple-700 leading-relaxed">
-                    Remind this client for their regular quarterly blood glucose / thyroid follow-up to maintain continuous health tracking and earn recurring 30% incentives.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleSendReminder}
-                    className="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                  >
-                    {reminderSent ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-                    <span>{reminderSent ? "Reminder Sent via WhatsApp!" : "Send Retest WhatsApp Reminder"}</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Notes */}
-              {selectedReferral.notes && (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-600">
-                  <span className="font-bold text-slate-700 block mb-1">CRA Notes:</span>
-                  {selectedReferral.notes}
-                </div>
-              )}
-
+              <div>
+                <span className="text-slate-400 font-bold uppercase text-[10px]">Your Incentive</span>
+                <p className="font-mono font-black text-emerald-700 text-base mt-0.5">
+                  +₹{selectedLead.owner === "me" ? selectedLead.directIncentive : selectedLead.teamBonus}
+                </p>
+              </div>
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex gap-3">
+            {/* Profile & Status */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Wellness Package</span>
+                <span className="font-bold text-slate-900">{selectedLead.packageName}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Referral Source</span>
+                <span className="font-bold text-slate-900">
+                  {selectedLead.owner === "me" ? "Direct Referral" : `via ${selectedLead.c2PartnerName} (C2)`}
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Current Status</span>
+                <span className="font-bold text-[#251b5c]">{selectedLead.status}</span>
+              </div>
+              <div className="flex justify-between py-1.5">
+                <span className="text-slate-500">Date Logged</span>
+                <span className="font-mono text-slate-700">{selectedLead.date}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
               <a
-                href={`tel:${selectedReferral.mobile}`}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors"
+                href={`tel:${selectedLead.mobile}`}
+                className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
               >
-                <Phone className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Call Customer</span>
+                <Phone className="h-4 w-4" />
+                <span>Call Client</span>
               </a>
-              <button
-                onClick={() => setSelectedReferral(null)}
-                className="py-2.5 px-6 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+              <a
+                href={`https://wa.me/${selectedLead.mobile.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
               >
-                Close
-              </button>
+                <MessageCircle className="h-4 w-4" />
+                <span>WhatsApp</span>
+              </a>
             </div>
 
           </div>
