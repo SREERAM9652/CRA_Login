@@ -222,61 +222,39 @@ export default function CRADashboardOverview() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-3xl divide-y divide-slate-100 shadow-2xs overflow-hidden">
-          
-          {/* Row 1: Anita Rao */}
-          <div className="p-4 sm:p-5 flex items-center justify-between gap-3.5 hover:bg-slate-50/60 transition-colors">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-xs text-slate-700 shrink-0">
-                AR
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-sm text-slate-900 truncate">Anita Rao</div>
-                <div className="text-xs text-slate-500 truncate">Full Body Wellness Panel • Report Delivered</div>
-              </div>
-            </div>
+          {wallet.transactions.slice(0, 4).map((txn) => {
+            const isDirect = txn.type === "Direct 30% Incentive"
+            const initials = txn.customerName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() || "CU"
+            
+            return (
+              <div key={txn.id} className="p-3.5 sm:p-4 flex items-center justify-between gap-3.5 hover:bg-slate-50/60 transition-colors">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className={`h-10 w-10 rounded-full border flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
+                    isDirect 
+                      ? "bg-slate-100 border-slate-200 text-slate-700" 
+                      : "bg-purple-100 border-purple-200 text-[#382685]"
+                  }`}>
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm text-slate-900 truncate">{txn.customerName}</div>
+                    <div className="text-xs text-slate-500 truncate">
+                      {isDirect ? "Direct Referral • Diagnostic Test" : `via Secondary Team (${txn.customerName.includes("(") ? txn.customerName.split("(")[1].replace(")", "") : "Team Partner"})`}
+                    </div>
+                  </div>
+                </div>
 
-            <div className="text-right shrink-0">
-              <div className="font-mono font-black text-sm text-emerald-700">+₹240</div>
-              <div className="text-[10.5px] font-bold text-emerald-600">30% Direct (RR ₹800)</div>
-            </div>
-          </div>
-
-          {/* Row 2: Meena K. via Sai Mahendra */}
-          <div className="p-4 sm:p-5 flex items-center justify-between gap-3.5 hover:bg-slate-50/60 transition-colors">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="h-10 w-10 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center font-mono font-bold text-xs text-[#382685] shrink-0">
-                MK
+                <div className="text-right shrink-0">
+                  <div className={`font-mono font-black text-sm ${isDirect ? "text-emerald-700" : "text-purple-700"}`}>
+                    +₹{txn.incentiveAmount}
+                  </div>
+                  <div className={`text-[10.5px] font-bold ${isDirect ? "text-emerald-600" : "text-purple-700"}`}>
+                    {isDirect ? `30% Direct (RR ₹${txn.realizedRevenue})` : `10% Team Bonus (RR ₹${txn.realizedRevenue})`}
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="font-bold text-sm text-slate-900 truncate">Meena K.</div>
-                <div className="text-xs text-slate-500 truncate">Executive Heart Profile • via SAI MAHENDRA (C2)</div>
-              </div>
-            </div>
-
-            <div className="text-right shrink-0">
-              <div className="font-mono font-black text-sm text-purple-700">+₹160</div>
-              <div className="text-[10.5px] font-bold text-purple-700">10% Team Bonus (RR ₹1,600)</div>
-            </div>
-          </div>
-
-          {/* Row 3: Sunil Sharma via Sudheer Reddy */}
-          <div className="p-4 sm:p-5 flex items-center justify-between gap-3.5 hover:bg-slate-50/60 transition-colors">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="h-10 w-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center font-mono font-bold text-xs text-blue-800 shrink-0">
-                SS
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-sm text-slate-900 truncate">Sunil Sharma</div>
-                <div className="text-xs text-slate-500 truncate">Comprehensive Master Health • via SUDHEER REDDY (C2)</div>
-              </div>
-            </div>
-
-            <div className="text-right shrink-0">
-              <div className="font-mono font-black text-sm text-emerald-700">+₹80</div>
-              <div className="text-[10.5px] font-bold text-emerald-600">10% Second-Level (RR ₹800)</div>
-            </div>
-          </div>
-
+            )
+          })}
         </div>
       </div>
 

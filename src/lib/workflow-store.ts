@@ -483,7 +483,8 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     status: "Credited to Wallet"
   },
 
-  // 4. THURAKA SREERAM Transactions (30% Direct + 10% Override from Sudheer & Mahendra)
+  // 4. THURAKA SREERAM Transactions (7 Direct 30% + 5 Team 10% Overrides = 12 Transactions)
+  // Direct Referrals (7)
   {
     id: "TXN-SREERAM-01",
     userId: "C1-SREERAM",
@@ -495,7 +496,7 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.30,
     incentiveAmount: 240,
     type: "Direct 30% Incentive",
-    date: "5 mins ago",
+    date: "28 Aug 2026, 10:30 AM",
     status: "Credited to Wallet"
   },
   {
@@ -509,11 +510,82 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.30,
     incentiveAmount: 480,
     type: "Direct 30% Incentive",
-    date: "1 hour ago",
+    date: "28 Aug 2026, 09:15 AM",
     status: "Credited to Wallet"
   },
   {
     id: "TXN-SREERAM-03",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8827",
+    orderNumber: "AVM-8827",
+    customerName: "Vikram Singhania",
+    realizedRevenue: 1600,
+    incentiveRate: 0.30,
+    incentiveAmount: 480,
+    type: "Direct 30% Incentive",
+    date: "24 Aug 2026, 04:00 PM",
+    status: "Credited to Wallet"
+  },
+  {
+    id: "TXN-SREERAM-04",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8828",
+    orderNumber: "AVM-8828",
+    customerName: "Amit Gupta",
+    realizedRevenue: 800,
+    incentiveRate: 0.30,
+    incentiveAmount: 240,
+    type: "Direct 30% Incentive",
+    date: "22 Aug 2026, 01:20 PM",
+    status: "Credited to Wallet"
+  },
+  {
+    id: "TXN-SREERAM-05",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8829",
+    orderNumber: "AVM-8829",
+    customerName: "Manish Deshmukh",
+    realizedRevenue: 1600,
+    incentiveRate: 0.30,
+    incentiveAmount: 480,
+    type: "Direct 30% Incentive",
+    date: "19 Aug 2026, 02:45 PM",
+    status: "Credited to Wallet"
+  },
+  {
+    id: "TXN-SREERAM-06",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8830",
+    orderNumber: "AVM-8830",
+    customerName: "Rahul Mehta",
+    realizedRevenue: 800,
+    incentiveRate: 0.30,
+    incentiveAmount: 240,
+    type: "Direct 30% Incentive",
+    date: "18 Aug 2026, 11:20 AM",
+    status: "Credited to Wallet"
+  },
+  {
+    id: "TXN-SREERAM-07",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8831",
+    orderNumber: "AVM-8831",
+    customerName: "Tarun Sharma",
+    realizedRevenue: 960,
+    incentiveRate: 0.30,
+    incentiveAmount: 288,
+    type: "Direct 30% Incentive",
+    date: "16 Aug 2026, 03:15 PM",
+    status: "Credited to Wallet"
+  },
+  // 10% Overrides from SUDHEER REDDY (3)
+  {
+    id: "TXN-SREERAM-08",
     userId: "C1-SREERAM",
     userRole: "c1",
     orderId: "ORD-8821",
@@ -523,11 +595,11 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.10,
     incentiveAmount: 80,
     type: "Second-Level Referral Bonus (10%)",
-    date: "Just now",
+    date: "28 Aug 2026, 11:30 AM",
     status: "Credited to Wallet"
   },
   {
-    id: "TXN-SREERAM-04",
+    id: "TXN-SREERAM-09",
     userId: "C1-SREERAM",
     userRole: "c1",
     orderId: "ORD-8822",
@@ -537,11 +609,26 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.10,
     incentiveAmount: 80,
     type: "Second-Level Referral Bonus (10%)",
-    date: "28 mins ago",
+    date: "27 Aug 2026, 02:30 PM",
     status: "Credited to Wallet"
   },
   {
-    id: "TXN-SREERAM-05",
+    id: "TXN-SREERAM-10",
+    userId: "C1-SREERAM",
+    userRole: "c1",
+    orderId: "ORD-8823",
+    orderNumber: "AVM-8823",
+    customerName: "Sneha Sen (via Sudheer Reddy)",
+    realizedRevenue: 720,
+    incentiveRate: 0.10,
+    incentiveAmount: 72,
+    type: "Second-Level Referral Bonus (10%)",
+    date: "23 Aug 2026, 10:15 AM",
+    status: "Credited to Wallet"
+  },
+  // 10% Overrides from SAI MAHENDRA (2)
+  {
+    id: "TXN-SREERAM-11",
     userId: "C1-SREERAM",
     userRole: "c1",
     orderId: "ORD-8819",
@@ -551,11 +638,11 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.10,
     incentiveAmount: 160,
     type: "Second-Level Referral Bonus (10%)",
-    date: "20 mins ago",
+    date: "27 Aug 2026, 04:15 PM",
     status: "Credited to Wallet"
   },
   {
-    id: "TXN-SREERAM-06",
+    id: "TXN-SREERAM-12",
     userId: "C1-SREERAM",
     userRole: "c1",
     orderId: "ORD-8824",
@@ -565,7 +652,7 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
     incentiveRate: 0.10,
     incentiveAmount: 144,
     type: "Second-Level Referral Bonus (10%)",
-    date: "2 hours ago",
+    date: "25 Aug 2026, 05:00 PM",
     status: "Credited to Wallet"
   }
 ]
@@ -608,7 +695,7 @@ interface WorkflowState {
   liveEvents: LiveActivityEvent[]
 }
 
-const STORAGE_KEY = "avm_workflow_state_v3"
+const STORAGE_KEY = "avm_workflow_state_v6"
 
 function loadState(): WorkflowState {
   if (typeof window === "undefined") {

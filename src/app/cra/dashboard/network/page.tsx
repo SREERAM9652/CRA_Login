@@ -38,7 +38,7 @@ export interface C2TeamMember {
   status: "Active" | "Pending KYC"
 }
 
-const INITIAL_C2_MEMBERS: C2TeamMember[] = [
+const SREERAM_C2_MEMBERS: C2TeamMember[] = [
   {
     id: "C2-01",
     avatar: "SR",
@@ -46,9 +46,9 @@ const INITIAL_C2_MEMBERS: C2TeamMember[] = [
     mobile: "+91 98860 54321",
     city: "Bengaluru",
     joinedDate: "Mar 2025",
-    customersCount: 7,
-    totalRR: 9600,
-    overrideIncentive: 960,
+    customersCount: 3,
+    totalRR: 2320,
+    overrideIncentive: 232,
     status: "Active"
   },
   {
@@ -58,11 +58,14 @@ const INITIAL_C2_MEMBERS: C2TeamMember[] = [
     mobile: "+91 97400 98765",
     city: "Pune",
     joinedDate: "May 2025",
-    customersCount: 6,
-    totalRR: 7800,
-    overrideIncentive: 780,
+    customersCount: 2,
+    totalRR: 3040,
+    overrideIncentive: 304,
     status: "Active"
-  },
+  }
+]
+
+const MAHENDRA_C2_MEMBERS: C2TeamMember[] = [
   {
     id: "C2-03",
     avatar: "VV",
@@ -70,120 +73,24 @@ const INITIAL_C2_MEMBERS: C2TeamMember[] = [
     mobile: "+91 98220 77112",
     city: "Vijayawada",
     joinedDate: "Jun 2025",
-    customersCount: 4,
-    totalRR: 4800,
-    overrideIncentive: 480,
-    status: "Active"
-  },
-  {
-    id: "C2-04",
-    avatar: "AK",
-    name: "Anand Kulkarni",
-    mobile: "+91 98330 11229",
-    city: "Pune",
-    joinedDate: "Aug 2025",
-    customersCount: 5,
-    totalRR: 6400,
-    overrideIncentive: 640,
-    status: "Active"
-  },
-  {
-    id: "C2-05",
-    avatar: "MB",
-    name: "Meera Bannerjee",
-    mobile: "+91 98210 44558",
-    city: "Kolkata",
-    joinedDate: "Sep 2025",
-    customersCount: 3,
-    totalRR: 3800,
-    overrideIncentive: 380,
-    status: "Active"
-  },
-  {
-    id: "C2-06",
-    avatar: "VK",
-    name: "Vijay Kapoor",
-    mobile: "+91 98190 77665",
-    city: "Mumbai",
-    joinedDate: "Oct 2025",
-    customersCount: 6,
-    totalRR: 7800,
-    overrideIncentive: 780,
-    status: "Active"
-  },
-  {
-    id: "C2-07",
-    avatar: "SM",
-    name: "Sunita Menon",
-    mobile: "+91 98450 33221",
-    city: "Chennai",
-    joinedDate: "Nov 2025",
     customersCount: 2,
-    totalRR: 2400,
-    overrideIncentive: 240,
-    status: "Active"
-  },
-  {
-    id: "C2-08",
-    avatar: "DK",
-    name: "Deepak Kumar",
-    mobile: "+91 98660 55443",
-    city: "Hyderabad",
-    joinedDate: "Dec 2025",
-    customersCount: 4,
-    totalRR: 4800,
-    overrideIncentive: 480,
-    status: "Active"
-  },
-  {
-    id: "C2-09",
-    avatar: "RP",
-    name: "Ritu Patel",
-    mobile: "+91 98770 88992",
-    city: "Pune",
-    joinedDate: "Jan 2026",
-    customersCount: 3,
-    totalRR: 3600,
-    overrideIncentive: 360,
-    status: "Active"
-  },
-  {
-    id: "C2-10",
-    avatar: "AS",
-    name: "Alok Singh",
-    mobile: "+91 98330 99001",
-    city: "Mumbai",
-    joinedDate: "Feb 2026",
-    customersCount: 1,
-    totalRR: 1200,
-    overrideIncentive: 120,
-    status: "Active"
-  },
-  {
-    id: "C2-11",
-    avatar: "TG",
-    name: "Tanvi Gupta",
-    mobile: "+91 98110 55667",
-    city: "Bengaluru",
-    joinedDate: "Feb 2026",
-    customersCount: 2,
-    totalRR: 2800,
-    overrideIncentive: 280,
+    totalRR: 1760,
+    overrideIncentive: 176,
     status: "Active"
   }
 ]
 
 const TEAM_FILTERS = [
   { id: "all", label: "All Partners" },
-  { id: "top", label: "Top Referrers (>3 Tests)" },
+  { id: "top", label: "Top Referrers (>1 Test)" },
   { id: "pune", label: "Pune" },
   { id: "bengaluru", label: "Bengaluru" },
-  { id: "mumbai", label: "Mumbai" },
-  { id: "hyderabad", label: "Hyderabad" }
+  { id: "vijayawada", label: "Vijayawada" }
 ]
 
 export default function MyTeamPage() {
   const { currentUser } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
@@ -194,48 +101,17 @@ export default function MyTeamPage() {
   // New C2 Form State
   const [newC2, setNewC2] = useState({ name: "", mobile: "", city: "Pune" })
   
-  const initialMembersForUser = currentUser.role === "c1"
-    ? INITIAL_C2_MEMBERS
-    : currentUser.id === "C2-MAHENDRA"
-    ? [
-        {
-          id: "C2-03",
-          avatar: "VV",
-          name: "VISHNU VARDHAN",
-          mobile: "+91 98220 77112",
-          city: "Vijayawada",
-          joinedDate: "Jun 2025",
-          customersCount: 4,
-          totalRR: 4800,
-          overrideIncentive: 480,
-          status: "Active" as const
-        }
-      ]
-    : []
-
-  const [c2List, setC2List] = useState<C2TeamMember[]>(initialMembersForUser)
+  const [c2List, setC2List] = useState<C2TeamMember[]>(SREERAM_C2_MEMBERS)
   const [addSuccessToast, setAddSuccessToast] = useState(false)
 
-  // Sync with user switch
+  // Sync with user switch after mount
   useEffect(() => {
+    setMounted(true)
     setC2List(
       currentUser.role === "c1"
-        ? INITIAL_C2_MEMBERS
+        ? SREERAM_C2_MEMBERS
         : currentUser.id === "C2-MAHENDRA"
-        ? [
-            {
-              id: "C2-03",
-              avatar: "VV",
-              name: "VISHNU VARDHAN",
-              mobile: "+91 98220 77112",
-              city: "Vijayawada",
-              joinedDate: "Jun 2025",
-              customersCount: 4,
-              totalRR: 4800,
-              overrideIncentive: 480,
-              status: "Active" as const
-            }
-          ]
+        ? MAHENDRA_C2_MEMBERS
         : []
     )
   }, [currentUser])
@@ -267,9 +143,10 @@ export default function MyTeamPage() {
   // Filtered list
   const filteredC2s = c2List.filter(c => {
     // Filter chips
-    if (selectedFilter === "top" && c.customersCount <= 3) return false
+    if (selectedFilter === "top" && c.customersCount < 2) return false
     if (selectedFilter === "pune" && !c.city.toLowerCase().includes("pune")) return false
     if (selectedFilter === "bengaluru" && !c.city.toLowerCase().includes("bengaluru")) return false
+    if (selectedFilter === "vijayawada" && !c.city.toLowerCase().includes("vijayawada")) return false
     if (selectedFilter === "mumbai" && !c.city.toLowerCase().includes("mumbai")) return false
     if (selectedFilter === "hyderabad" && !c.city.toLowerCase().includes("hyderabad")) return false
 
@@ -302,7 +179,7 @@ export default function MyTeamPage() {
   }
 
   return (
-    <div className="w-full font-sans space-y-4 pb-12">
+    <div className="w-full font-sans space-y-4 pb-12" suppressHydrationWarning>
       
       {/* Toast Notification */}
       {addSuccessToast && (
@@ -338,22 +215,22 @@ export default function MyTeamPage() {
       </div>
 
       {/* 3 Summary Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-2xs space-y-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" suppressHydrationWarning>
+        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-2xs space-y-1" suppressHydrationWarning>
           <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Secondary Partners</div>
-          <div className="font-mono text-3xl font-black text-slate-900">{c2List.length}</div>
-          <p className="text-[10.5px] text-slate-500 font-medium">{totalCustomersReferred} total tests referred</p>
+          <div className="font-mono text-3xl font-black text-slate-900" suppressHydrationWarning>{c2List.length}</div>
+          <p className="text-[10.5px] text-slate-500 font-medium" suppressHydrationWarning>{totalCustomersReferred} total tests referred</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-2xs space-y-1">
+        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-2xs space-y-1" suppressHydrationWarning>
           <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Team Test Revenue (RR)</div>
-          <div className="font-mono text-3xl font-black text-slate-900">₹{totalC2Revenue.toLocaleString("en-IN")}</div>
+          <div className="font-mono text-3xl font-black text-slate-900" suppressHydrationWarning>₹{totalC2Revenue.toLocaleString("en-IN")}</div>
           <p className="text-[10.5px] text-slate-500 font-medium">Realized revenue generated by team</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50/70 rounded-3xl p-5 border border-purple-200/80 shadow-2xs space-y-1">
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50/70 rounded-3xl p-5 border border-purple-200/80 shadow-2xs space-y-1" suppressHydrationWarning>
           <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#382685]">Your 10% Team Bonus</div>
-          <div className="font-mono text-3xl font-black text-[#382685]">₹{totalOverrideEarned.toLocaleString("en-IN")}</div>
+          <div className="font-mono text-3xl font-black text-[#382685]" suppressHydrationWarning>₹{totalOverrideEarned.toLocaleString("en-IN")}</div>
           <p className="text-[10.5px] text-purple-700 font-bold">10% override on all team bookings</p>
         </div>
       </div>

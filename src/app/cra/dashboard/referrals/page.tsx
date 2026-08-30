@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useWorkflowStore } from "@/lib/workflow-store"
 import { 
@@ -42,6 +42,7 @@ export interface CustomerLeadRecord {
 }
 
 const INITIAL_LEADS: CustomerLeadRecord[] = [
+  // 7 Direct Referrals by Thuraka Sreeram
   {
     id: "LEAD-101",
     avatar: "AR",
@@ -76,74 +77,6 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
   },
   {
     id: "LEAD-103",
-    avatar: "MK",
-    name: "Meena K.",
-    mobile: "+91 98220 55441",
-    city: "Bengaluru",
-    packageName: "Women Advanced Wellness Profile",
-    parameters: 54,
-    realizedRevenue: 1200,
-    directIncentive: 360,
-    teamBonus: 120,
-    owner: "c2",
-    c2PartnerName: "SAI MAHENDRA",
-    status: "Report Delivered",
-    statusSubtext: "Converted • via SAI MAHENDRA (C2)",
-    date: "27 Aug 2026, 04:15 PM"
-  },
-  {
-    id: "LEAD-104",
-    avatar: "FA",
-    name: "Farhan Ali",
-    mobile: "+91 98110 77889",
-    city: "Hyderabad",
-    packageName: "Comprehensive Master Health Checkup",
-    parameters: 68,
-    realizedRevenue: 800,
-    directIncentive: 240,
-    teamBonus: 80,
-    owner: "c2",
-    c2PartnerName: "SUDHEER REDDY",
-    status: "New",
-    statusSubtext: "New lead submitted • via SUDHEER REDDY (C2)",
-    date: "27 Aug 2026, 02:30 PM"
-  },
-  {
-    id: "LEAD-105",
-    avatar: "DP",
-    name: "Divya Pillai",
-    mobile: "+91 98330 22334",
-    city: "Chennai",
-    packageName: "Diabetic Comprehensive Management",
-    parameters: 48,
-    realizedRevenue: 960,
-    directIncentive: 288,
-    teamBonus: 96,
-    owner: "c2",
-    c2PartnerName: "SUDHEER REDDY",
-    status: "Report Delivered",
-    statusSubtext: "Report delivered • via SUDHEER REDDY (C2)",
-    date: "26 Aug 2026, 11:00 AM"
-  },
-  {
-    id: "LEAD-106",
-    avatar: "KJ",
-    name: "Karan Joshi",
-    mobile: "+91 98990 44556",
-    city: "Pune",
-    packageName: "Senior Citizen Comprehensive Care",
-    parameters: 64,
-    realizedRevenue: 1440,
-    directIncentive: 432,
-    teamBonus: 144,
-    owner: "c2",
-    c2PartnerName: "SAI MAHENDRA",
-    status: "Client Onboarded",
-    statusSubtext: "Converted • via SAI MAHENDRA (C2)",
-    date: "25 Aug 2026, 05:00 PM"
-  },
-  {
-    id: "LEAD-107",
     avatar: "VS",
     name: "Vikram Singhania",
     mobile: "+91 98770 66778",
@@ -156,27 +89,10 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     owner: "me",
     status: "Contacted",
     statusSubtext: "Call completed • Awaiting time slot confirmation",
-    date: "24 Aug 2026, 03:45 PM"
+    date: "24 Aug 2026, 04:00 PM"
   },
   {
-    id: "LEAD-108",
-    avatar: "SS",
-    name: "Sneha Sen",
-    mobile: "+91 98440 88990",
-    city: "Kolkata",
-    packageName: "Thyroid & Hormone Complete Profile",
-    parameters: 36,
-    realizedRevenue: 720,
-    directIncentive: 216,
-    teamBonus: 72,
-    owner: "c2",
-    c2PartnerName: "SUDHEER REDDY",
-    status: "Test Scheduled",
-    statusSubtext: "Sample collection scheduled for Friday morning",
-    date: "23 Aug 2026, 10:15 AM"
-  },
-  {
-    id: "LEAD-109",
+    id: "LEAD-104",
     avatar: "AG",
     name: "Amit Gupta",
     mobile: "+91 98660 11445",
@@ -192,24 +108,7 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     date: "22 Aug 2026, 01:20 PM"
   },
   {
-    id: "LEAD-110",
-    avatar: "PB",
-    name: "Pooja Bannerjee",
-    mobile: "+91 98230 44112",
-    city: "Kolkata",
-    packageName: "Liver & Gastrointestinal Vitality",
-    parameters: 42,
-    realizedRevenue: 960,
-    directIncentive: 288,
-    teamBonus: 96,
-    owner: "c2",
-    c2PartnerName: "SAI MAHENDRA",
-    status: "Report Delivered",
-    statusSubtext: "Report delivered • via SAI MAHENDRA (C2)",
-    date: "20 Aug 2026, 02:45 PM"
-  },
-  {
-    id: "LEAD-111",
+    id: "LEAD-105",
     avatar: "MD",
     name: "Manish Deshmukh",
     mobile: "+91 98900 33774",
@@ -222,10 +121,10 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     owner: "me",
     status: "Client Onboarded",
     statusSubtext: "Profile confirmed • Home collection requested",
-    date: "19 Aug 2026, 04:30 PM"
+    date: "19 Aug 2026, 02:45 PM"
   },
   {
-    id: "LEAD-112",
+    id: "LEAD-106",
     avatar: "RM",
     name: "Rahul Mehta",
     mobile: "+91 98210 99443",
@@ -241,24 +140,7 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     date: "18 Aug 2026, 11:20 AM"
   },
   {
-    id: "LEAD-113",
-    avatar: "NK",
-    name: "Nandini Kulkarni",
-    mobile: "+91 98450 77112",
-    city: "Bengaluru",
-    packageName: "Women Advanced Wellness Profile",
-    parameters: 54,
-    realizedRevenue: 1200,
-    directIncentive: 360,
-    teamBonus: 120,
-    owner: "c2",
-    c2PartnerName: "SUDHEER REDDY",
-    status: "Test Scheduled",
-    statusSubtext: "Home collection booked for Sunday",
-    date: "17 Aug 2026, 09:00 AM"
-  },
-  {
-    id: "LEAD-114",
+    id: "LEAD-107",
     avatar: "TS",
     name: "Tarun Sharma",
     mobile: "+91 98110 33221",
@@ -273,12 +155,82 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     statusSubtext: "Report delivered • via you",
     date: "16 Aug 2026, 03:15 PM"
   },
+
+  // 5 Secondary Team Referrals via Direct C2s (3 via Sudheer Reddy + 2 via Sai Mahendra)
   {
-    id: "LEAD-115",
-    avatar: "SB",
-    name: "Sunita Bhatt",
-    mobile: "+91 98330 66554",
-    city: "Mumbai",
+    id: "LEAD-108",
+    avatar: "SS",
+    name: "Sunil Sharma",
+    mobile: "+91 98860 11223",
+    city: "Bengaluru",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Report Delivered",
+    statusSubtext: "Converted • via SUDHEER REDDY (C2)",
+    date: "28 Aug 2026, 11:30 AM"
+  },
+  {
+    id: "LEAD-109",
+    avatar: "FA",
+    name: "Farhan Ali",
+    mobile: "+91 98110 77889",
+    city: "Hyderabad",
+    packageName: "Comprehensive Master Health Checkup",
+    parameters: 68,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled • via SUDHEER REDDY (C2)",
+    date: "27 Aug 2026, 02:30 PM"
+  },
+  {
+    id: "LEAD-110",
+    avatar: "SS",
+    name: "Sneha Sen",
+    mobile: "+91 98440 88990",
+    city: "Bengaluru",
+    packageName: "Thyroid & Hormone Complete Profile",
+    parameters: 36,
+    realizedRevenue: 720,
+    directIncentive: 216,
+    teamBonus: 72,
+    owner: "c2",
+    c2PartnerName: "SUDHEER REDDY",
+    status: "Client Onboarded",
+    statusSubtext: "Profile confirmed • via SUDHEER REDDY (C2)",
+    date: "23 Aug 2026, 10:15 AM"
+  },
+  {
+    id: "LEAD-111",
+    avatar: "MK",
+    name: "Meena K.",
+    mobile: "+91 98220 55441",
+    city: "Pune",
+    packageName: "Executive Heart & Cardiac Risk Profile",
+    parameters: 58,
+    realizedRevenue: 1600,
+    directIncentive: 480,
+    teamBonus: 160,
+    owner: "c2",
+    c2PartnerName: "SAI MAHENDRA",
+    status: "Report Delivered",
+    statusSubtext: "Converted • via SAI MAHENDRA (C2)",
+    date: "27 Aug 2026, 04:15 PM"
+  },
+  {
+    id: "LEAD-112",
+    avatar: "KJ",
+    name: "Karan Joshi",
+    mobile: "+91 98990 44556",
+    city: "Pune",
     packageName: "Senior Citizen Comprehensive Care",
     parameters: 64,
     realizedRevenue: 1440,
@@ -286,9 +238,212 @@ const INITIAL_LEADS: CustomerLeadRecord[] = [
     teamBonus: 144,
     owner: "c2",
     c2PartnerName: "SAI MAHENDRA",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled • via SAI MAHENDRA (C2)",
+    date: "25 Aug 2026, 05:00 PM"
+  }
+]
+
+const SUDHEER_LEADS: CustomerLeadRecord[] = [
+  {
+    id: "LEAD-S1",
+    avatar: "SS",
+    name: "Sunil Sharma",
+    mobile: "+91 98860 11223",
+    city: "Bengaluru",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "28 Aug 2026, 11:30 AM"
+  },
+  {
+    id: "LEAD-S2",
+    avatar: "FA",
+    name: "Farhan Ali",
+    mobile: "+91 98110 77889",
+    city: "Hyderabad",
+    packageName: "Comprehensive Master Health Checkup",
+    parameters: 68,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled for tomorrow",
+    date: "27 Aug 2026, 02:30 PM"
+  },
+  {
+    id: "LEAD-S3",
+    avatar: "SS",
+    name: "Sneha Sen",
+    mobile: "+91 98440 88990",
+    city: "Bengaluru",
+    packageName: "Thyroid & Hormone Complete Profile",
+    parameters: 36,
+    realizedRevenue: 720,
+    directIncentive: 216,
+    teamBonus: 72,
+    owner: "me",
     status: "Client Onboarded",
-    statusSubtext: "Onboarded via SAI MAHENDRA (C2)",
+    statusSubtext: "Profile confirmed • Home collection requested",
+    date: "23 Aug 2026, 10:15 AM"
+  },
+  {
+    id: "LEAD-S4",
+    avatar: "NK",
+    name: "Nandini Kulkarni",
+    mobile: "+91 98450 77112",
+    city: "Bengaluru",
+    packageName: "Women Advanced Wellness Profile",
+    parameters: 54,
+    realizedRevenue: 1200,
+    directIncentive: 360,
+    teamBonus: 120,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "17 Aug 2026, 09:00 AM"
+  }
+]
+
+const MAHENDRA_LEADS: CustomerLeadRecord[] = [
+  {
+    id: "LEAD-M1",
+    avatar: "MK",
+    name: "Meena K.",
+    mobile: "+91 98220 55441",
+    city: "Pune",
+    packageName: "Executive Heart & Cardiac Risk Profile",
+    parameters: 58,
+    realizedRevenue: 1600,
+    directIncentive: 480,
+    teamBonus: 160,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "27 Aug 2026, 04:15 PM"
+  },
+  {
+    id: "LEAD-M2",
+    avatar: "KJ",
+    name: "Karan Joshi",
+    mobile: "+91 98990 44556",
+    city: "Pune",
+    packageName: "Senior Citizen Comprehensive Care",
+    parameters: 64,
+    realizedRevenue: 1440,
+    directIncentive: 432,
+    teamBonus: 144,
+    owner: "me",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled for tomorrow 8:00 AM",
+    date: "25 Aug 2026, 05:00 PM"
+  },
+  {
+    id: "LEAD-M3",
+    avatar: "PB",
+    name: "Pooja Bannerjee",
+    mobile: "+91 98230 44112",
+    city: "Pune",
+    packageName: "Liver & Gastrointestinal Vitality",
+    parameters: 42,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "me",
+    status: "Client Onboarded",
+    statusSubtext: "Onboarded • Home visit scheduled",
+    date: "20 Aug 2026, 02:45 PM"
+  },
+  {
+    id: "LEAD-M4",
+    avatar: "SB",
+    name: "Sunita Bhatt",
+    mobile: "+91 98330 66554",
+    city: "Pune",
+    packageName: "Senior Citizen Comprehensive Care",
+    parameters: 64,
+    realizedRevenue: 1440,
+    directIncentive: 432,
+    teamBonus: 144,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
     date: "15 Aug 2026, 01:45 PM"
+  },
+  {
+    id: "LEAD-M5",
+    avatar: "DP",
+    name: "Divya Pillai",
+    mobile: "+91 98330 22334",
+    city: "Vijayawada",
+    packageName: "Diabetic Comprehensive Management",
+    parameters: 48,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "c2",
+    c2PartnerName: "VISHNU VARDHAN",
+    status: "Report Delivered",
+    statusSubtext: "Converted • via VISHNU VARDHAN (C2)",
+    date: "26 Aug 2026, 11:00 AM"
+  },
+  {
+    id: "LEAD-M6",
+    avatar: "AR",
+    name: "Anand Rao",
+    mobile: "+91 98220 99881",
+    city: "Vijayawada",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "c2",
+    c2PartnerName: "VISHNU VARDHAN",
+    status: "Test Scheduled",
+    statusSubtext: "Converted • via VISHNU VARDHAN (C2)",
+    date: "24 Aug 2026, 03:30 PM"
+  }
+]
+
+const VISHNU_LEADS: CustomerLeadRecord[] = [
+  {
+    id: "LEAD-V1",
+    avatar: "DP",
+    name: "Divya Pillai",
+    mobile: "+91 98330 22334",
+    city: "Vijayawada",
+    packageName: "Diabetic Comprehensive Management",
+    parameters: 48,
+    realizedRevenue: 960,
+    directIncentive: 288,
+    teamBonus: 96,
+    owner: "me",
+    status: "Report Delivered",
+    statusSubtext: "Report delivered • via you",
+    date: "26 Aug 2026, 11:00 AM"
+  },
+  {
+    id: "LEAD-V2",
+    avatar: "AR",
+    name: "Anand Rao",
+    mobile: "+91 98220 99881",
+    city: "Vijayawada",
+    packageName: "Full Body Wellness Profile",
+    parameters: 62,
+    realizedRevenue: 800,
+    directIncentive: 240,
+    teamBonus: 80,
+    owner: "me",
+    status: "Test Scheduled",
+    statusSubtext: "Sample collection scheduled for tomorrow 8:30 AM",
+    date: "24 Aug 2026, 03:30 PM"
   }
 ]
 
@@ -303,7 +458,22 @@ const STAGE_FILTERS = [
 
 export default function MyCustomersLeadsPage() {
   const { currentUser } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
   const isC1 = currentUser.role === "c1"
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const leadsForUser = !mounted
+    ? INITIAL_LEADS
+    : currentUser.id === "C2-SUDHEER"
+    ? SUDHEER_LEADS
+    : currentUser.id === "C2-MAHENDRA"
+    ? MAHENDRA_LEADS
+    : currentUser.id === "C2-VISHNU"
+    ? VISHNU_LEADS
+    : INITIAL_LEADS
 
   const [activeOwnerTab, setActiveOwnerTab] = useState<"all" | "me" | "c2">("all")
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("All")
@@ -313,7 +483,7 @@ export default function MyCustomersLeadsPage() {
   const itemsPerPage = 10
 
   // Filter leads based on tab, status, and search query
-  const filteredLeads = INITIAL_LEADS.filter((lead) => {
+  const filteredLeads = leadsForUser.filter((lead) => {
     // Owner tab filter
     if (activeOwnerTab === "me" && lead.owner !== "me") return false
     if (activeOwnerTab === "c2" && lead.owner !== "c2") return false
@@ -344,9 +514,9 @@ export default function MyCustomersLeadsPage() {
   const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
   // Counts for tabs
-  const totalCount = INITIAL_LEADS.length
-  const meCount = INITIAL_LEADS.filter(l => l.owner === "me").length
-  const c2Count = INITIAL_LEADS.filter(l => l.owner === "c2").length
+  const totalCount = leadsForUser.length
+  const meCount = leadsForUser.filter(l => l.owner === "me").length
+  const c2Count = leadsForUser.filter(l => l.owner === "c2").length
 
   const handleTabChange = (tab: "all" | "me" | "c2") => {
     setActiveOwnerTab(tab)
@@ -359,7 +529,7 @@ export default function MyCustomersLeadsPage() {
   }
 
   return (
-    <div className="w-full font-sans space-y-4 pb-12">
+    <div className="w-full font-sans space-y-4 pb-12" suppressHydrationWarning>
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3.5">

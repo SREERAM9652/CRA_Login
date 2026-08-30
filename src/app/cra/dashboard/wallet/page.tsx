@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useWorkflowStore } from "@/lib/workflow-store"
 import Link from "next/link"
 import { 
@@ -214,6 +214,7 @@ const EARNING_FILTERS = [
 
 export default function EarningsStatementPage() {
   const { currentUser, getUserWallet } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
   const wallet = getUserWallet(currentUser.id)
   const isC1 = currentUser.role === "c1"
   const [searchQuery, setSearchQuery] = useState("")
@@ -221,8 +222,12 @@ export default function EarningsStatementPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Combine store transactions or mapped ledger
-  const activeEntries: LedgerEntry[] = wallet.transactions.length > 0
+  const activeEntries: LedgerEntry[] = (mounted && wallet.transactions.length > 0)
     ? wallet.transactions.map((t, idx) => ({
         id: t.id,
         avatar: t.customerName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() || "CU",
@@ -268,7 +273,7 @@ export default function EarningsStatementPage() {
   }
 
   return (
-    <div className="w-full font-sans space-y-4 pb-12">
+    <div className="w-full font-sans space-y-4 pb-12" suppressHydrationWarning>
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3.5">
