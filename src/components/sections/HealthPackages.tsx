@@ -11,81 +11,90 @@ export function HealthPackages() {
       <div className="container mx-auto px-4 md:px-6 space-y-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200/80 text-[#382685] text-xs font-black uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5 text-[#382685]" /> Proactive Preventive Healthcare
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/80 pb-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              Wellness Profiles
+            </h2>
+            <p className="text-slate-500 text-xs sm:text-sm font-medium">
+              A dozen curated profiles, priced simply.
+            </p>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1e1b4b]">
-            Comprehensive Health Packages
-          </h2>
-          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal">
-            Curated by clinical pathologists. Full-body screening covering cardiac, liver, kidney, thyroid, sugar, and vitamins.
-          </p>
+
+          <Link
+            href="/booking"
+            className="text-xs sm:text-sm font-bold text-[#251b5c] hover:text-[#382685] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <span>View all</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        {/* Packages Grid - Compact & Sleek */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+        {/* Packages Grid - Sleek, Clean Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch pt-2">
           {HEALTH_PACKAGES.map((pkg) => (
             <div
               key={pkg.id}
-              className={`flex flex-col justify-between relative rounded-2xl transition-all duration-200 bg-white p-4 sm:p-5 ${
+              className={`flex flex-col justify-between relative rounded-3xl transition-all duration-200 bg-white p-5 sm:p-6 ${
                 pkg.popular
-                  ? "border-2 border-[#382685] shadow-lg ring-2 ring-purple-100/80"
-                  : "border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5"
+                  ? "border-2 border-[#251b5c] shadow-lg ring-4 ring-purple-50"
+                  : "border border-slate-200/90 shadow-2xs hover:shadow-md hover:-translate-y-0.5"
               }`}
             >
-              {/* Popular / Specialized Banner */}
+              {/* Popular / Specialized Banner Centered on Top Border */}
               {pkg.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#251b5c] to-[#382685] text-white text-[10px] font-black uppercase tracking-wider py-0.5 px-3 rounded-full shadow-xs">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#251b5c] text-white text-[10px] font-black uppercase tracking-wider py-1 px-3.5 rounded-full shadow-md z-10 whitespace-nowrap">
                   {pkg.badge}
                 </div>
               )}
 
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="px-2 py-0.5 rounded-md bg-purple-50 text-[#382685] text-[10.5px] font-black border border-purple-100">
+                {/* Top Row: Parameters Pill & Turnaround Time */}
+                <div className="flex justify-between items-center mb-3">
+                  <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-[#382685] text-[11px] font-black border border-purple-100/80">
                     {pkg.parameterCount} Parameters
                   </span>
                   <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-slate-400" /> {pkg.tat}
+                    <Clock className="h-3.5 w-3.5 text-slate-400" /> {pkg.tat}
                   </span>
                 </div>
                 
-                <h3 className="text-base font-black text-slate-900 leading-tight">
+                {/* Title & Tagline */}
+                <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
                   {pkg.name}
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1 leading-snug font-medium line-clamp-2">
+                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed font-normal min-h-[36px]">
                   {pkg.tagline}
                 </p>
 
                 {/* Price block */}
-                <div className="py-2.5 my-2 border-y border-slate-100">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-900">₹{pkg.price}</span>
+                <div className="py-3 my-3 border-y border-slate-100">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900">₹{pkg.price}</span>
                     <span className="text-xs text-slate-400 line-through font-semibold">₹{pkg.mrp}</span>
-                    <span className="text-[9.5px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                       Save {Math.round(((pkg.mrp - pkg.price) / pkg.mrp) * 100)}%
                     </span>
                   </div>
-                  <div className="text-[10.5px] text-emerald-700 font-bold mt-0.5">
-                    ✓ Free Home Sample Collection
+                  <div className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1">
+                    <span>✓</span> Free Home Sample Collection
                   </div>
                 </div>
 
                 {/* Inclusions */}
-                <div className="space-y-1.5 text-[11px] text-slate-600 mb-4">
-                  <div className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">
-                    Includes {pkg.parameterCount} Tests:
+                <div className="space-y-2 text-xs text-slate-600 mb-6">
+                  <div className="font-extrabold text-slate-800 uppercase tracking-wider text-[10.5px]">
+                    INCLUDES {pkg.parameterCount} TESTS:
                   </div>
-                  <ul className="space-y-1 font-medium">
+                  <ul className="space-y-1.5 font-medium">
                     {pkg.includes.slice(0, 4).map((inc, i) => (
-                      <li key={i} className="flex items-start gap-1.5 truncate">
-                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <li key={i} className="flex items-start gap-2 text-[11.5px]">
+                        <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                         <span className="truncate">{inc}</span>
                       </li>
                     ))}
                     {pkg.includes.length > 4 && (
-                      <li className="text-[10.5px] font-bold text-[#382685] pl-5">
+                      <li className="text-[11px] font-bold text-[#382685] pl-6 pt-0.5">
                         + {pkg.includes.length - 4} more panels
                       </li>
                     )}
@@ -93,16 +102,13 @@ export function HealthPackages() {
                 </div>
               </div>
 
+              {/* Action Button */}
               <Link
                 href={`/booking?package=${pkg.id}`}
-                className={`w-full h-9 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
-                  pkg.popular
-                    ? "bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white"
-                    : "bg-slate-900 hover:bg-[#251b5c] text-white"
-                }`}
+                className="w-full h-11 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md bg-[#251b5c] hover:bg-[#1e1b4b] text-white hover:scale-101 cursor-pointer"
               >
                 <span>Book Package</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           ))}

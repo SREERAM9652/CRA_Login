@@ -34,35 +34,54 @@ export function Hero() {
         <div className="w-[450px] h-[450px] rounded-full bg-cyan-100/40 blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+      <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
           
           {/* ========================================================================= */}
-          {/* LEFT COLUMN: HERO HEADLINE & SEARCH BOX (7 COLS ON LG)                     */}
+          {/* LEFT COLUMN: HERO HEADLINE & SEARCH BOX (6 COLS ON LG)                     */}
           {/* ========================================================================= */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div className="lg:col-span-6 space-y-5 text-center lg:text-left">
             
-            {/* Trust Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-200/80 text-[#382685] text-xs font-black shadow-xs">
-              <Sparkles className="h-4 w-4 text-[#382685]" />
-              <span>Gold Standard Clinical Testing • 500+ Tests &amp; Health Packages</span>
+            {/* Category Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-[#2F5FDE] text-xs font-black tracking-wider uppercase shadow-2xs">
+              <Sparkles className="h-3.5 w-3.5 text-[#2F5FDE]" />
+              <span>B2C WELLNESS TESTING</span>
             </div>
             
-            {/* Hero Heading - Proportional & Balanced */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 leading-[1.16]">
-              Accurate Lab Results.<br />
-              <span className="bg-gradient-to-r from-[#251b5c] via-[#382685] to-cyan-600 bg-clip-text text-transparent">
-                Better Healthcare Decisions.
+            {/* Hero Heading */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 leading-[1.12]">
+              Know your body.<br />
+              <span className="text-[#251b5c]">
+                Act on it.
               </span>
             </h1>
             
             {/* Subheading */}
-            <p className="text-xs sm:text-base text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Book routine clinical tests and full-body health profiles online from our catalog of <strong>500+ pathology tests</strong>. Experience gold-standard laboratory precision with <strong>100% painless home sample collection</strong>.
+            <p className="text-xs sm:text-base text-slate-600 leading-relaxed font-normal">
+              Comprehensive wellness profiles with certified labs, optional home collection, and reports you actually understand.
             </p>
 
+            {/* Direct Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-0.5">
+              <Link
+                href="#packages"
+                className="px-6 py-3 rounded-2xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-black text-xs sm:text-sm shadow-md shadow-indigo-950/15 transition-all inline-flex items-center gap-2 cursor-pointer hover:scale-102"
+              >
+                <span>Book a Test</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              
+              <Link
+                href="/cra"
+                className="px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 border border-[#2F5FDE]/50 text-[#2F5FDE] font-bold text-xs sm:text-sm shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4 text-[#2F5FDE]" />
+                <span>Become a CRA Partner</span>
+              </Link>
+            </div>
+
             {/* Integrated Search & Booking Widget */}
-            <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/90 max-w-xl mx-auto lg:mx-0 space-y-3.5">
+            <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/90 space-y-3.5">
               
               {/* Collection Method Selector Pills */}
               <div className="flex items-center gap-2 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/80 w-fit mx-auto lg:mx-0">
@@ -107,15 +126,15 @@ export function Hero() {
                 </div>
                 <Link
                   href={`/booking?search=${encodeURIComponent(searchQuery)}&method=${collectionMethod}`}
-                  className="py-3 px-6 text-xs sm:text-sm font-black bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white rounded-2xl shadow-md shadow-indigo-950/15 transition-all flex items-center justify-center gap-2 shrink-0"
+                  className="py-3 px-6 text-xs sm:text-sm font-black bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 text-white rounded-2xl shadow-md shadow-indigo-950/15 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
                 >
-                  <span>Find Test &amp; Book</span>
+                  <span>Find &amp; Book</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
               {/* Popular Test Suggestions Chips */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-slate-500">
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs text-slate-500">
                 <span className="font-bold text-slate-700 text-[11px]">Popular:</span>
                 {[
                   { name: "Hemogram (H6)", query: "Hemogram" },
@@ -136,17 +155,17 @@ export function Hero() {
 
             </div>
 
-            {/* 3 Trust Signals */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-xs text-slate-600 max-w-lg mx-auto lg:mx-0 font-medium">
-              <div className="flex items-center gap-2">
+            {/* 3 Trust Signals - Clean & Compact */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs text-slate-600 font-medium">
+              <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>Certified Phlebotomists</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-[#382685] shrink-0" />
                 <span>Reports in 6-12 Hours</span>
               </div>
-              <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-cyan-600 shrink-0" />
                 <span>100% Barcoded Cold-Chain</span>
               </div>
@@ -155,87 +174,67 @@ export function Hero() {
           </div>
 
           {/* ========================================================================= */}
-          {/* RIGHT COLUMN: HERO EXPERIENCE SHOWCASE CARD (5 COLS ON LG)                */}
+          {/* RIGHT COLUMN: HERO EXPERIENCE SHOWCASE VISUAL (6 COLS ON LG)              */}
           {/* ========================================================================= */}
-          <div className="lg:col-span-5 relative w-full max-w-md mx-auto">
+          <div className="lg:col-span-6 relative w-full">
             
-            {/* Main Interactive Showcase Card */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#251b5c] to-[#382685] text-white p-6 sm:p-7 shadow-2xl border border-white/15 space-y-5 relative overflow-hidden">
+            {/* Visual Frame with Real Generated Lab Graphic */}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900 group">
               
-              {/* Soft Radial Glow */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hero_diagnostic_lab.jpg"
+                alt="AVM Labs Diagnostic Laboratory"
+                className="w-full h-[380px] sm:h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
+              />
 
-              {/* Card Top Hub Status */}
-              <div className="flex items-center justify-between bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/15">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <div>
-                    <div className="text-[10px] text-cyan-300 font-extrabold uppercase tracking-wider">Automated Diagnostic Hub</div>
-                    <div className="text-xs font-bold text-white">Roche Cobas &amp; Beckman Coulter Analyzers</div>
-                  </div>
+              {/* Gradient Overlay for Text Readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+
+              {/* Floating Top Pill */}
+              <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white text-[11px] font-bold shadow-lg">
+                  <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Automated Roche Cobas Hub</span>
                 </div>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-black px-2 py-0.5 rounded-full border border-emerald-500/30">
+                <span className="bg-emerald-500 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-sm">
                   NABL Live
                 </span>
               </div>
 
-              {/* Featured Diagnostic Panel Snapshot */}
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 space-y-3">
+              {/* Bottom Quick Feature Card */}
+              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-xl space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-black tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30">
-                    ⭐ Most Popular Panel
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#382685]" />
+                    <span className="text-xs sm:text-sm font-black text-slate-900">Comprehensive Health Panel</span>
+                  </div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                    63 Parameters
                   </span>
-                  <span className="text-[10.5px] text-cyan-200 font-mono font-bold">63 Parameters</span>
                 </div>
                 
-                <div>
-                  <h4 className="text-base font-black text-white">Comprehensive Vital Health Profile</h4>
-                  <p className="text-[11px] text-blue-100/80 mt-0.5 font-medium">
-                    CBC, Liver, Kidney, Lipid, Thyroid (TSH), Blood Sugar, HbA1c &amp; Urine
-                  </p>
-                </div>
-
-                {/* Price & Action Row */}
-                <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl sm:text-2xl font-black text-white">₹1,999</span>
-                      <span className="text-xs text-blue-200 line-through">₹4,200</span>
-                      <span className="text-[10px] font-black text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded">52% OFF</span>
-                    </div>
-                    <span className="text-[10px] text-blue-200 font-medium">Includes Free Home Collection</span>
+                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-mono font-black text-base sm:text-lg text-slate-900">₹1,999</span>
+                    <span className="font-mono text-slate-400 line-through text-xs">₹4,200</span>
+                    <span className="text-[10px] font-bold text-emerald-600">52% OFF</span>
                   </div>
-
+                  
                   <Link
                     href="/booking?pkg=pkg-master"
-                    className="px-4 py-2 rounded-xl bg-white text-[#251b5c] hover:bg-slate-100 font-black text-xs transition-transform hover:scale-105 shadow-md shrink-0 flex items-center gap-1"
+                    className="px-4 py-2 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs transition-colors shadow-xs inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <span>Book Now</span>
-                    <ChevronRight className="h-3.5 w-3.5 text-[#382685]" />
+                    <span>Book Test</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
                   </Link>
-                </div>
-              </div>
-
-              {/* Bottom 3 Stats Row */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center">
-                <div className="p-2 bg-white/5 rounded-xl">
-                  <div className="text-lg font-black text-white">99.98%</div>
-                  <div className="text-[9.5px] text-blue-200 uppercase font-extrabold tracking-wider">Accuracy</div>
-                </div>
-                <div className="p-2 bg-white/5 rounded-xl">
-                  <div className="text-lg font-black text-cyan-300">&lt; 12h</div>
-                  <div className="text-[9.5px] text-blue-200 uppercase font-extrabold tracking-wider">TAT Reports</div>
-                </div>
-                <div className="p-2 bg-white/5 rounded-xl">
-                  <div className="text-lg font-black text-emerald-300">1.5M+</div>
-                  <div className="text-[9.5px] text-blue-200 uppercase font-extrabold tracking-wider">Tests Done</div>
                 </div>
               </div>
 
             </div>
 
-            {/* Floating Trust Pill */}
-            <div className="absolute -bottom-4 -left-3 sm:-left-5 bg-white p-3 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-2.5 max-w-[270px] z-20">
+            {/* Floating Trust Badge */}
+            <div className="absolute -bottom-4 -left-3 sm:-left-4 bg-white p-3 rounded-2xl shadow-xl border border-slate-200/90 flex items-center gap-2.5 max-w-[270px] z-20">
               <div className="h-9 w-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold shrink-0">
                 <Zap className="h-4.5 w-4.5" />
               </div>
