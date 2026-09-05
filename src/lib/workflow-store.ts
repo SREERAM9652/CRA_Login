@@ -225,6 +225,76 @@ export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
     directIncentive: 816,
     createdAt: "3 days ago",
     shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-cardio-care"
+  },
+  {
+    id: "profile-women-hormone",
+    craId: "C1-SREERAM",
+    craName: "THURAKA SREERAM",
+    brandOrOrgName: "HerWellness Diagnostic Studio",
+    profileTitle: "Women's Complete Vitality & Hormonal Screen",
+    description: "Holistic screening panel covering iron stores, thyroid regulation, bone health minerals, and metabolic vitality for active women.",
+    category: "Women's Health",
+    selectedTestCodes: ["H6", "TSH", "VITD", "B12", "FERRITIN"],
+    testNames: [
+      "Complete Blood Count (CBC)",
+      "Thyroid Stimulating Hormone (TSH)",
+      "Vitamin D 25-Hydroxy",
+      "Vitamin B12 Cyanocobalamin",
+      "Serum Ferritin"
+    ],
+    totalMrp: 3100,
+    discountedPrice: 2480,
+    realizedRevenue: 2480,
+    directIncentive: 744,
+    createdAt: "4 days ago",
+    shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-women-hormone"
+  },
+  {
+    id: "profile-senior-care",
+    craId: "C1-SREERAM",
+    craName: "THURAKA SREERAM",
+    brandOrOrgName: "Golden Years Elder Care Clinic",
+    profileTitle: "Senior Citizen Comprehensive Health Scan",
+    description: "Designed for geriatric wellness, checking renal filtration, hepatic enzymes, electrolyte balance, and glycemic control.",
+    category: "Senior Care",
+    selectedTestCodes: ["H6", "FBS", "HBA1C", "KFT", "LFT", "LIPID"],
+    testNames: [
+      "Complete Blood Count (CBC)",
+      "Fasting Blood Sugar (FBS)",
+      "HbA1c Glycated Hemoglobin",
+      "Kidney Function Test (KFT)",
+      "Liver Function Test (LFT)",
+      "Lipid Profile Comprehensive"
+    ],
+    totalMrp: 4200,
+    discountedPrice: 3360,
+    realizedRevenue: 3360,
+    directIncentive: 1008,
+    createdAt: "5 days ago",
+    shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-senior-care"
+  },
+  {
+    id: "profile-diabetic-care",
+    craId: "C1-SREERAM",
+    craName: "THURAKA SREERAM",
+    brandOrOrgName: "SugarCare Metabolic Center",
+    profileTitle: "Target 360 Diabetic Glycemic Panel",
+    description: "Targeted protocol for pre-diabetic and diabetic management, lipid risks, and micro-albuminuria markers.",
+    category: "Cardio-Diabetic",
+    selectedTestCodes: ["FBS", "PPBS", "HBA1C", "LIPID", "CREAT"],
+    testNames: [
+      "Fasting Blood Sugar (FBS)",
+      "Post Prandial Blood Sugar (PPBS)",
+      "HbA1c Glycated Hemoglobin",
+      "Lipid Profile Comprehensive",
+      "Serum Creatinine"
+    ],
+    totalMrp: 2600,
+    discountedPrice: 2080,
+    realizedRevenue: 2080,
+    directIncentive: 624,
+    createdAt: "1 week ago",
+    shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-diabetic-care"
   }
 ]
 

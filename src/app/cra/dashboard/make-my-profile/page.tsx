@@ -37,7 +37,12 @@ import {
   Calendar,
   X,
   ChevronDown,
-  Filter
+  Filter,
+  LayoutGrid,
+  List as ListIcon,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp
 } from "lucide-react"
 
 export interface SelectableTest {
@@ -92,6 +97,16 @@ export default function MakeMyProfilePage() {
   // Share Modal State
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [activeShareProfile, setActiveShareProfile] = useState<any>(null)
+
+  // Published Profiles Manager State (Compact, Scalable UX for 30+ items)
+  const [publishedSearchQuery, setPublishedSearchQuery] = useState("")
+  const [publishedCategoryFilter, setPublishedCategoryFilter] = useState("All")
+  const [publishedSortBy, setPublishedSortBy] = useState<"newest" | "earning_desc" | "price_asc" | "title_asc">("newest")
+  const [publishedViewMode, setPublishedViewMode] = useState<"compact" | "list">("compact")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(4)
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
+  const [copiedProfileId, setCopiedProfileId] = useState<string | null>(null)
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -197,6 +212,64 @@ export default function MakeMyProfilePage() {
   const handleOpenShare = (profile: any) => {
     setActiveShareProfile(profile)
     setShareModalOpen(true)
+  }
+
+  // Categories present in published profiles
+  const publishedCategories = useMemo(() => {
+    const cats = Array.from(new Set(customProfiles.map(p => p.category)))
+    return ["All", ...cats]
+  }, [customProfiles])
+
+  // Filtered & Sorted published profiles
+  const filteredPublishedProfiles = useMemo(() => {
+    return customProfiles
+      .filter((p) => {
+        if (publishedCategoryFilter !== "All" && p.category !== publishedCategoryFilter) {
+          return false
+        }
+        if (!publishedSearchQuery.trim()) return true
+        const q = publishedSearchQuery.toLowerCase()
+        return (
+          p.profileTitle.toLowerCase().includes(q) ||
+          p.brandOrOrgName.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.testNames.some(t => t.toLowerCase().includes(q)) ||
+          p.selectedTestCodes.some(c => c.toLowerCase().includes(q))
+        )
+      })
+      .sort((a, b) => {
+        if (publishedSortBy === "earning_desc") return b.directIncentive - a.directIncentive
+        if (publishedSortBy === "price_asc") return a.discountedPrice - b.discountedPrice
+        if (publishedSortBy === "title_asc") return a.profileTitle.localeCompare(b.profileTitle)
+        return 0
+      })
+  }, [customProfiles, publishedCategoryFilter, publishedSearchQuery, publishedSortBy])
+
+  const totalPages = Math.max(1, Math.ceil(filteredPublishedProfiles.length / (pageSize === -1 ? filteredPublishedProfiles.length || 1 : pageSize)))
+  
+  const paginatedProfiles = useMemo(() => {
+    if (pageSize === -1) return filteredPublishedProfiles
+    const start = (currentPage - 1) * pageSize
+    return filteredPublishedProfiles.slice(start, start + pageSize)
+  }, [filteredPublishedProfiles, currentPage, pageSize])
+
+  // Auto-adjust page if filter or search changes total pages
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
+
+  const handleCopyProfileLink = (p: any) => {
+    const url = p.shareLink || (typeof window !== "undefined"
+      ? `${window.location.origin}/booking?ref=${currentUser.code}&profile=${p.id}`
+      : `https://avmlabs.com/booking?ref=${currentUser.code}&profile=${p.id}`)
+    
+    if (typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(url)
+      setCopiedProfileId(p.id)
+      setTimeout(() => setCopiedProfileId(null), 2000)
+    }
   }
 
   return (
@@ -625,101 +698,386 @@ export default function MakeMyProfilePage() {
             </div>
           </div>
 
-          {/* Active Custom Profiles Gallery */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="font-black text-xs sm:text-sm text-slate-900">
-                Your Published Profiles ({customProfiles.length})
-              </h3>
+          {/* Active Custom Profiles Manager & Catalog */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-3.5 shadow-2xs">
+            
+            {/* Header: Title, Count badge & View Switcher */}
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-[#382685]" />
+                <h3 className="font-black text-xs sm:text-sm text-slate-900">
+                  Published Profiles
+                </h3>
+                <span className="font-mono text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-[#382685]">
+                  {customProfiles.length}
+                </span>
+              </div>
+
+              {/* View Toggle (Compact Cards vs Dense List) */}
+              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPublishedViewMode("compact")}
+                  className={`h-7 px-2 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer ${
+                    publishedViewMode === "compact"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                  title="Card View (Compact)"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Cards</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPublishedViewMode("list")}
+                  className={`h-7 px-2 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer ${
+                    publishedViewMode === "list"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                  title="Dense List View (Best for 10+ profiles)"
+                >
+                  <ListIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">List</span>
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {customProfiles.map((p) => (
-                <div
-                  key={p.id}
-                  className="bg-white border border-slate-200 rounded-3xl p-4 shadow-2xs space-y-3 hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wider bg-purple-50 text-[#382685] border border-purple-200">
-                        {p.category}
-                      </span>
-                      <h4 className="font-black text-sm text-slate-900 mt-1">{p.profileTitle}</h4>
-                      <p className="text-[11px] text-slate-500 font-medium">by {p.brandOrOrgName}</p>
-                    </div>
-
+            {/* Quick Search & Sort Filter Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={publishedSearchQuery}
+                    onChange={(e) => {
+                      setPublishedSearchQuery(e.target.value)
+                      setCurrentPage(1)
+                    }}
+                    placeholder={`Search ${customProfiles.length} profiles by title or test...`}
+                    className="w-full h-8 pl-8 pr-7 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
+                  />
+                  {publishedSearchQuery && (
                     <button
                       type="button"
-                      onClick={() => deleteCustomProfile(p.id)}
-                      className="text-slate-300 hover:text-rose-500 p-1 cursor-pointer"
-                      title="Delete profile"
+                      onClick={() => setPublishedSearchQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <X className="h-3 w-3" />
                     </button>
-                  </div>
+                  )}
+                </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2">
-                    {p.description}
+                {/* Sort dropdown */}
+                <select
+                  value={publishedSortBy}
+                  onChange={(e: any) => setPublishedSortBy(e.target.value)}
+                  className="h-8 px-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#382685] cursor-pointer"
+                  title="Sort profiles"
+                >
+                  <option value="newest">Sort: Newest</option>
+                  <option value="earning_desc">Earning: High → Low</option>
+                  <option value="price_asc">Price: Low → High</option>
+                  <option value="title_asc">Title: A → Z</option>
+                </select>
+              </div>
+
+              {/* Category Pills */}
+              {publishedCategories.length > 2 && (
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
+                  {publishedCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        setPublishedCategoryFilter(cat)
+                        setCurrentPage(1)
+                      }}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 transition-colors cursor-pointer ${
+                        publishedCategoryFilter === cat
+                          ? "bg-[#251b5c] text-white shadow-2xs"
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                      }`}
+                    >
+                      {cat === "All" ? `All (${customProfiles.length})` : cat.split(" ")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Scroll-contained List / Cards Container */}
+            <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+              {paginatedProfiles.length === 0 ? (
+                <div className="py-8 px-4 text-center rounded-2xl bg-slate-50/80 border border-dashed border-slate-200 space-y-2">
+                  <Package className="h-8 w-8 text-slate-300 mx-auto" />
+                  <div className="text-xs font-bold text-slate-700">
+                    {publishedSearchQuery || publishedCategoryFilter !== "All"
+                      ? "No matching profiles found"
+                      : "No custom profiles published yet"}
+                  </div>
+                  <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                    {publishedSearchQuery || publishedCategoryFilter !== "All"
+                      ? "Try searching with a different term or clear your category filter."
+                      : "Select tests on the left and click 'Create & Save' to publish your first branded bundle."}
                   </p>
+                  {(publishedSearchQuery || publishedCategoryFilter !== "All") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPublishedSearchQuery("")
+                        setPublishedCategoryFilter("All")
+                      }}
+                      className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-[#382685] hover:bg-slate-50 cursor-pointer shadow-2xs"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              ) : publishedViewMode === "compact" ? (
+                /* Compact Cards View */
+                paginatedProfiles.map((p) => (
+                  <div
+                    key={p.id}
+                    className="bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs space-y-2 hover:border-slate-300 hover:shadow-xs transition-all"
+                  >
+                    {/* Header Row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-purple-50 text-[#382685] border border-purple-200">
+                            {p.category}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium truncate">by {p.brandOrOrgName}</span>
+                        </div>
+                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate" title={p.profileTitle}>
+                          {p.profileTitle}
+                        </h4>
+                      </div>
 
-                  {/* Included Tests Pill List */}
-                  <div className="bg-slate-50 p-2 rounded-xl text-[11px] text-slate-600 space-y-1">
-                    <span className="font-bold text-slate-700 block text-[10.5px]">Includes {p.selectedTestCodes.length} Tests:</span>
-                    <p className="line-clamp-1 text-slate-500">{p.testNames.join(", ")}</p>
-                  </div>
-
-                  {/* Pricing and Earnings Row */}
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Patient Pays</span>
-                      <span className="font-mono font-black text-sm text-slate-900">₹{p.discountedPrice}</span>
-                      <span className="text-[10px] line-through text-slate-400 font-mono ml-1.5">₹{p.totalMrp}</span>
+                      {/* Quick Icons */}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyProfileLink(p)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Copy direct referral booking link"
+                        >
+                          {copiedProfileId === p.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenShare(p)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-[#382685] hover:bg-purple-50 transition-colors cursor-pointer"
+                          title="Share Flyer & WhatsApp"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteCustomProfile(p.id)}
+                          className="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete profile"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Earning (30%)</span>
-                      <span className="font-mono font-black text-sm text-emerald-600">+₹{p.directIncentive}</span>
+                    {/* Tests snippet & collapsible trigger */}
+                    <div className="flex items-center justify-between text-[11px] bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <FlaskConical className="h-3 w-3 text-[#382685] shrink-0" />
+                        <span className="font-bold text-slate-700 text-[10.5px]">{p.selectedTestCodes.length} Tests:</span>
+                        <span className="truncate text-slate-500 text-[10.5px]">{p.testNames.slice(0, 2).join(", ")}{p.testNames.length > 2 ? ` +${p.testNames.length - 2} more` : ""}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedProfileId(expandedProfileId === p.id ? null : p.id)}
+                        className="text-[10px] font-bold text-[#382685] hover:underline shrink-0 ml-1.5 flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>{expandedProfileId === p.id ? "Hide" : "Details"}</span>
+                        {expandedProfileId === p.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </button>
                     </div>
-                  </div>
 
-                  {/* Action Buttons: Book for Customer, Book for Family, Share & Flyer */}
-                  <div className="space-y-2 pt-1">
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* Expanded Drawer */}
+                    {expandedProfileId === p.id && (
+                      <div className="p-2 bg-purple-50/50 rounded-xl border border-purple-100 text-[10.5px] space-y-1.5 animate-in fade-in">
+                        <p className="text-slate-600 italic">{p.description}</p>
+                        <div className="flex flex-wrap gap-1 pt-0.5">
+                          {p.testNames.map((name, idx) => (
+                            <span key={idx} className="bg-white border border-purple-200/80 text-purple-950 px-1.5 py-0.5 rounded text-[9.5px] font-medium shadow-2xs">
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Price & Earning inline */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Pays:</span>
+                        <span className="font-mono font-black text-sm text-slate-900">₹{p.discountedPrice}</span>
+                        <span className="text-[10px] line-through text-slate-400 font-mono">₹{p.totalMrp}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Earn:</span>
+                        <span className="font-mono font-black text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-lg">
+                          +₹{p.directIncentive} (30%)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons: Customer & Family */}
+                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                       <button
                         type="button"
                         onClick={() => router.push(`/cra/dashboard/add-lead?mode=referral&profileId=${p.id}`)}
-                        className="h-9 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                        title="Redirect to referral page with this profile auto-selected"
+                        className="h-8 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                        title="Book for customer"
                       >
-                        <User className="h-3.5 w-3.5 text-emerald-100" />
-                        <span>Book for Customer</span>
+                        <User className="h-3 w-3 text-emerald-100" />
+                        <span>Book Customer</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=family&profileId=${p.id}`)}
+                        className="h-8 px-2 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                        title="Book for family member"
+                      >
+                        <Users className="h-3 w-3 text-cyan-300" />
+                        <span>Book Family</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                /* Dense List View (Super space-efficient for 30+ items) */
+                paginatedProfiles.map((p) => (
+                  <div
+                    key={p.id}
+                    className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex items-center justify-between gap-2.5 text-xs"
+                  >
+                    <div className="min-w-0 flex-1 flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-lg bg-purple-50 text-[#382685] flex items-center justify-center font-mono font-black text-[11px] shrink-0 border border-purple-100">
+                        {p.selectedTestCodes.length}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <h4 className="font-bold text-slate-900 text-xs truncate max-w-[150px] sm:max-w-[200px]" title={p.profileTitle}>
+                            {p.profileTitle}
+                          </h4>
+                          <span className="px-1 py-0.2 text-[8px] font-extrabold uppercase bg-slate-100 text-slate-600 rounded shrink-0">
+                            {p.category.split(" ")[0]}
+                          </span>
+                        </div>
+                        <div className="text-[10.5px] text-slate-400 font-medium truncate">
+                          ₹{p.discountedPrice} <span className="line-through text-slate-300 font-mono">₹{p.totalMrp}</span> • <span className="text-emerald-600 font-bold font-mono">+₹{p.directIncentive}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=referral&profileId=${p.id}`)}
+                        className="h-7 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Book for Customer"
+                      >
+                        <User className="h-3 w-3" />
+                        <span className="hidden sm:inline">Customer</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => router.push(`/cra/dashboard/add-lead?mode=family&profileId=${p.id}`)}
-                        className="h-9 px-2 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                        title="Redirect to family booking page with this profile auto-selected"
+                        className="h-7 px-2 rounded-lg bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Book for Family"
                       >
-                        <Users className="h-3.5 w-3.5 text-cyan-300" />
-                        <span>Book for Family</span>
+                        <Users className="h-3 w-3 text-cyan-300" />
+                        <span className="hidden sm:inline">Family</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenShare(p)}
+                        className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-500 hover:text-[#382685] flex items-center justify-center transition-colors cursor-pointer"
+                        title="Share Flyer & Link"
+                      >
+                        <Share2 className="h-3 w-3" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteCustomProfile(p.id)}
+                        className="h-7 w-7 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Delete Profile"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenShare(p)}
-                      className="w-full h-8 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      title="Share WhatsApp referral link & flyer"
-                    >
-                      <Share2 className="h-3.5 w-3.5 text-[#382685]" />
-                      <span>Share Link & Flyer (WhatsApp / QR)</span>
-                    </button>
                   </div>
-
-                </div>
-              ))}
+                ))
+              )}
             </div>
+
+            {/* Pagination & Footer Controls */}
+            {filteredPublishedProfiles.length > 0 && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                <div className="text-[11px]">
+                  Showing <strong className="text-slate-800 font-mono">{paginatedProfiles.length}</strong> of{" "}
+                  <strong className="text-slate-800 font-mono">{filteredPublishedProfiles.length}</strong>
+                  {pageSize !== -1 && totalPages > 1 && ` (Pg ${currentPage}/${totalPages})`}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  {/* Page Size selector */}
+                  <select
+                    value={pageSize}
+                    onChange={(e: any) => {
+                      setPageSize(Number(e.target.value))
+                      setCurrentPage(1)
+                    }}
+                    className="h-7 px-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[10.5px] font-bold text-slate-600 focus:outline-none cursor-pointer mr-1"
+                    title="Items per page"
+                  >
+                    <option value={4}>4 / page</option>
+                    <option value={8}>8 / page</option>
+                    <option value={12}>12 / page</option>
+                    <option value={-1}>All</option>
+                  </select>
+
+                  {/* Previous / Next buttons */}
+                  {pageSize !== -1 && totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-colors"
+                        title="Previous page"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-colors"
+                        title="Next page"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
 
         </div>
