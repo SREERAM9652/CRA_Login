@@ -137,7 +137,7 @@ export default function CRADashboardLayout({
             <img
               src="/logo.jpg"
               alt="AVMLabs Diagnostics"
-              className="h-9 w-auto max-w-[130px] object-contain mix-blend-multiply"
+              className="h-11 w-auto max-w-[150px] object-contain mix-blend-multiply"
             />
           </Link>
           

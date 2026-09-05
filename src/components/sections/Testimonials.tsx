@@ -33,7 +33,7 @@ export function Testimonials() {
       {/* Decorative background element */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-slate-50/50 -z-10" />
       
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-4">What Our Patients Say</h2>
           <p className="text-slate-600">

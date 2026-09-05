@@ -6,6 +6,7 @@ export interface CRATestItem {
   realizedRevenue: number
   c1Incentive: number
   category: string
+  cat: "Blood" | "Thyroid" | "Diabetes" | "Cardiology" | "Vitamins" | "Liver" | "Kidney"
   technology: string
   sample: string
 }
@@ -19,6 +20,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Complete Urine Analysis",
+    cat: "Kidney",
     technology: "Microscopy",
     sample: "Urine"
   },
@@ -30,6 +32,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Hematology",
+    cat: "Blood",
     technology: "Hematology Analyzer",
     sample: "EDTA"
   },
@@ -41,6 +44,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 400.0,
     c1Incentive: 120.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -52,6 +56,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -63,6 +68,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -74,6 +80,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 440.0,
     c1Incentive: 132.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -85,6 +92,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -96,6 +104,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -107,6 +116,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -118,6 +128,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Kidney Function",
+    cat: "Kidney",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -129,6 +140,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -140,6 +152,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 400.0,
     c1Incentive: 120.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -151,6 +164,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 200.0,
     c1Incentive: 60.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -162,6 +176,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 600.0,
     c1Incentive: 180.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -173,6 +188,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 520.0,
     c1Incentive: 156.0,
     category: "Cardiac",
+    cat: "Cardiology",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -184,6 +200,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -195,6 +212,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Pituitary & Growth",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -206,6 +224,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 560.0,
     c1Incentive: 168.0,
     category: "Pituitary & Growth",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -217,6 +236,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "Photometry",
     sample: "Fluoride"
   },
@@ -228,6 +248,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Vitamins",
+    cat: "Vitamins",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -239,6 +260,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Pathology Profile",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -250,6 +272,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -261,6 +284,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -272,6 +296,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 520.0,
     c1Incentive: 156.0,
     category: "Bone Metabolism",
+    cat: "Vitamins",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -283,6 +308,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 320.0,
     c1Incentive: 96.0,
     category: "Vitamins",
+    cat: "Vitamins",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -294,6 +320,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -305,6 +332,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 400.0,
     c1Incentive: 120.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -316,6 +344,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Iron Studies",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -327,6 +356,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -338,6 +368,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -349,6 +380,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 440.0,
     c1Incentive: 132.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -360,6 +392,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 400.0,
     c1Incentive: 120.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -371,6 +404,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -382,6 +416,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -393,6 +428,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 320.0,
     c1Incentive: 96.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -404,6 +440,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Pregnancy",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -415,6 +452,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 200.0,
     c1Incentive: 60.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -426,6 +464,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Bone Metabolism",
+    cat: "Vitamins",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -437,6 +476,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -448,6 +488,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -459,6 +500,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -470,6 +512,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Kidney Function",
+    cat: "Kidney",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -481,6 +524,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 440.0,
     c1Incentive: 132.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -492,6 +536,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -503,6 +548,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -514,6 +560,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -525,6 +572,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Pregnancy",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -536,6 +584,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -547,6 +596,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -558,6 +608,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -569,6 +620,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Allergy & Immunology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -580,6 +632,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -591,6 +644,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -602,6 +656,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -613,6 +668,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 320.0,
     c1Incentive: 96.0,
     category: "Vitamins",
+    cat: "Vitamins",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -624,6 +680,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -635,6 +692,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 560.0,
     c1Incentive: 168.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -646,6 +704,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -657,6 +716,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -668,6 +728,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -679,6 +740,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -690,6 +752,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -701,6 +764,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "Photometry",
     sample: "Fluoride"
   },
@@ -712,6 +776,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Cardiac",
+    cat: "Cardiology",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -723,6 +788,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -734,6 +800,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 200.0,
     c1Incentive: 60.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -745,6 +812,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -756,6 +824,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -767,6 +836,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -778,6 +848,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -789,6 +860,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "General Biochemistry",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -800,6 +872,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 240.0,
     c1Incentive: 72.0,
     category: "Iron Studies",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -811,6 +884,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -822,6 +896,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Pituitary & Growth",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -833,6 +908,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 440.0,
     c1Incentive: 132.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -844,6 +920,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 360.0,
     c1Incentive: 108.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -855,6 +932,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 400.0,
     c1Incentive: 120.0,
     category: "Tumor Markers",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -866,6 +944,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Diabetes",
+    cat: "Diabetes",
     technology: "Photometry",
     sample: "Fluoride"
   },
@@ -877,6 +956,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 520.0,
     c1Incentive: 156.0,
     category: "Autoimmune",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -888,6 +968,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 280.0,
     c1Incentive: 84.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -899,6 +980,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Kidney Function",
+    cat: "Kidney",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -910,6 +992,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Lipid Profile",
+    cat: "Cardiology",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -921,6 +1004,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 160.0,
     c1Incentive: 48.0,
     category: "Iron Studies",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -932,6 +1016,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -943,6 +1028,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 480.0,
     c1Incentive: 144.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -954,6 +1040,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 600.0,
     c1Incentive: 180.0,
     category: "Reproductive & Endocrinology",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -965,6 +1052,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Kidney Function",
+    cat: "Kidney",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -976,6 +1064,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Thyroid",
+    cat: "Thyroid",
     technology: "E.C.L.I.A",
     sample: "Serum"
   },
@@ -987,6 +1076,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 440.0,
     c1Incentive: 132.0,
     category: "Infectious Disease Serology",
+    cat: "Blood",
     technology: "Photometry",
     sample: "Serum"
   },
@@ -998,6 +1088,7 @@ export const CRA_TESTS: CRATestItem[] = [
     realizedRevenue: 80.0,
     c1Incentive: 24.0,
     category: "Liver Function",
+    cat: "Liver",
     technology: "Photometry",
     sample: "Serum"
   }

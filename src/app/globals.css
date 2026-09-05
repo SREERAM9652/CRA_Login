@@ -34,7 +34,17 @@
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-hover: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
 
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-roboto);
+  --font-script: var(--font-caveat, cursive);
+  --font-signature: var(--font-signature, 'Alex Brush', cursive);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+.font-signature {
+  font-family: var(--font-signature);
 }
 
 @keyframes float-slow {
@@ -147,6 +157,26 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Global widescreen container expansion up to 1680px for 125% browser zoom */
+.container {
+  width: 100% !important;
+  max-width: 1680px !important;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-hide,
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
 }
 
 @media print {

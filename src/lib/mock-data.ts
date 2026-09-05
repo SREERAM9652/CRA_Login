@@ -1,7 +1,7 @@
 export interface DiagnosticTest {
   id: string
   name: string
-  category: "Blood" | "Thyroid" | "Diabetes" | "Cardiology" | "Liver" | "Kidney" | "Vitamins" | "Infection"
+  category: "Blood" | "Thyroid" | "Diabetes" | "Cardiology" | "Vitamins" | "Liver" | "Kidney"
   sampleType: "Blood (Serum)" | "EDTA Whole Blood" | "Urine (Spot)" | "Plasma (Sodium Fluoride)" | "EDTA Whole Blood + Plasma" | string
   parameterCount: number
   tat: string
@@ -82,19 +82,10 @@ import { CRA_TESTS, CRATestItem } from "./cra-tests"
 export { CRA_TESTS, type CRATestItem }
 
 export const DIAGNOSTIC_TESTS: DiagnosticTest[] = CRA_TESTS.map(t => {
-  let cat: "Blood" | "Thyroid" | "Diabetes" | "Cardiology" | "Liver" | "Kidney" | "Vitamins" | "Infection" = "Blood"
-  if (t.category.includes("Thyroid")) cat = "Thyroid"
-  else if (t.category.includes("Diabetes")) cat = "Diabetes"
-  else if (t.category.includes("Lipid") || t.category.includes("Cardiac")) cat = "Cardiology"
-  else if (t.category.includes("Liver")) cat = "Liver"
-  else if (t.category.includes("Kidney")) cat = "Kidney"
-  else if (t.category.includes("Vitamin")) cat = "Vitamins"
-  else if (t.category.includes("Infectious") || t.category.includes("Pathology")) cat = "Infection"
-
   return {
     id: `test-${t.code.toLowerCase()}`,
     name: t.name,
-    category: cat,
+    category: t.cat,
     sampleType: `${t.sample} (${t.technology})`,
     parameterCount: 1,
     tat: t.technology === "E.C.L.I.A" ? "6 Hours" : "4-8 Hours",
@@ -146,40 +137,6 @@ export const HEALTH_PACKAGES: HealthPackage[] = [
     testsIncluded: ["Hemogram", "Thyroid Panel", "Vitamin D3/Calcium", "Iron Profile", "Metabolic Profile", "Urine Routine"]
   },
   {
-    id: "pkg-diabetes",
-    name: "Diabetes Screening & Care Panel",
-    slug: "diabetes-screening-care",
-    tagline: "HbA1c, average estimated glucose, and organ screening for diabetic management.",
-    parameterCount: 45,
-    tat: "8 Hours",
-    mrp: 600,
-    price: 480,
-    popular: true,
-    gender: "All",
-    fastingRequired: true,
-    fastingHours: 10,
-    idealFor: "Individuals managing diabetes or with family history of diabetes.",
-    includes: ["HbA1c Glycated Hemoglobin", "Average Blood Glucose", "Fasting Plasma Glucose", "Microalbuminuria Urine", "Serum Creatinine"],
-    testsIncluded: ["HbA1c", "Fasting Blood Sugar", "Serum Creatinine", "Urine Albumin"]
-  },
-  {
-    id: "pkg-senior",
-    name: "Senior Citizen Wellness Panel",
-    slug: "senior-citizen-wellness-panel",
-    tagline: "Tailored for senior vitality, bone mineral density, arthritis markers, and cardiac risk.",
-    parameterCount: 92,
-    tat: "24 Hours",
-    mrp: 1400,
-    price: 1120,
-    popular: false,
-    gender: "Senior Citizens",
-    fastingRequired: true,
-    fastingHours: 12,
-    idealFor: "Seniors aged 55+ with focus on arthritis, cardiac, kidney, and bone health.",
-    includes: ["All Master Health Inclusions", "hs-CRP (Cardiac Risk)", "Serum Calcium & Phosphorus", "Rheumatoid Factor", "Serum Uric Acid"],
-    testsIncluded: ["Master Health (85)", "hs-CRP", "Bone Minerals", "RA Factor", "Uric Acid"]
-  },
-  {
     id: "pkg-master",
     name: "Comprehensive Master Health Profile",
     slug: "comprehensive-master-health-profile",
@@ -206,6 +163,40 @@ export const HEALTH_PACKAGES: HealthPackage[] = [
       "Complete Urine Examination (18 params)"
     ],
     testsIncluded: ["CBC", "Lipid Profile", "Liver Function", "Kidney Function", "Thyroid Profile", "HbA1c", "Vitamin D & B12", "Iron Studies", "Urine Microscopy"]
+  },
+  {
+    id: "pkg-senior",
+    name: "Senior Citizen Wellness Panel",
+    slug: "senior-citizen-wellness-panel",
+    tagline: "Tailored for senior vitality, bone mineral density, arthritis markers, and cardiac risk.",
+    parameterCount: 92,
+    tat: "24 Hours",
+    mrp: 1400,
+    price: 1120,
+    popular: false,
+    gender: "Senior Citizens",
+    fastingRequired: true,
+    fastingHours: 12,
+    idealFor: "Seniors aged 55+ with focus on arthritis, cardiac, kidney, and bone health.",
+    includes: ["All Master Health Inclusions", "hs-CRP (Cardiac Risk)", "Serum Calcium & Phosphorus", "Rheumatoid Factor", "Serum Uric Acid"],
+    testsIncluded: ["Master Health (85)", "hs-CRP", "Bone Minerals", "RA Factor", "Uric Acid"]
+  },
+  {
+    id: "pkg-diabetes",
+    name: "Diabetes Screening & Care Panel",
+    slug: "diabetes-screening-care",
+    tagline: "HbA1c, average estimated glucose, and organ screening for diabetic management.",
+    parameterCount: 45,
+    tat: "8 Hours",
+    mrp: 600,
+    price: 480,
+    popular: true,
+    gender: "All",
+    fastingRequired: true,
+    fastingHours: 10,
+    idealFor: "Individuals managing diabetes or with family history of diabetes.",
+    includes: ["HbA1c Glycated Hemoglobin", "Average Blood Glucose", "Fasting Plasma Glucose", "Microalbuminuria Urine", "Serum Creatinine"],
+    testsIncluded: ["HbA1c", "Fasting Blood Sugar", "Serum Creatinine", "Urine Albumin"]
   },
   {
     id: "pkg-heart",
@@ -404,7 +395,7 @@ export const MOCK_CRA_REFERRALS: CRAReferralRecord[] = [
     timeline: [
       { title: "Lead Submitted", timestamp: "18 Aug 2026, 10:15 AM", description: "Lead logged via CRA Portal by Rajesh J.", done: true },
       { title: "AVMLabs Team Contacted", timestamp: "18 Aug 2026, 11:30 AM", description: "Counselor explained fasting guidelines & confirmed package.", done: true },
-      { title: "Slot Booked & Home Collection", timestamp: "19 Aug 2026, 07:00 AM", description: "Certified phlebotomist collected blood & urine samples at home.", done: true },
+      { title: "Slot Booked & Home Collection", timestamp: "19 Aug 2026, 07:00 AM", description: "Trained phlebotomist collected blood & urine samples at home.", done: true },
       { title: "Lab Processing & Quality Check", timestamp: "19 Aug 2026, 04:00 PM", description: "Barcoded samples analyzed on Roche & Beckman automated analyzers.", done: true },
       { title: "Report Released & Incentive Credited", timestamp: "19 Aug 2026, 08:30 PM", description: "Digital report sent to patient. ₹1,440 credited to CRA Wallet.", done: true }
     ]

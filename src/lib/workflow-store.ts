@@ -14,6 +14,43 @@ export interface CRAUser {
   c1Name?: string // Name of parent / introducer
 }
 
+export interface Beneficiary {
+  id: string
+  fullName: string
+  relation: "Self" | "Father" | "Mother" | "Wife" | "Husband" | "Son" | "Daughter" | "Brother" | "Sister" | "Friend" | "Other"
+  age: number
+  gender: "Male" | "Female" | "Other"
+  address: string
+  city: string
+  pincode: string
+  selectedTests: string[] // Test / Profile IDs
+}
+
+export interface PrescriptionRequest {
+  id: string
+  customerName: string
+  mobile: string
+  uploadedFileUrl?: string
+  fileName?: string
+  notes?: string
+  requestedAt: string
+  status: "Pending Review" | "Doctor Called" | "Order Created"
+  recommendedTests?: string[]
+}
+
+export interface CustomerProfile {
+  id: string
+  name: string
+  mobile: string
+  email: string
+  isReferred: boolean
+  referralCode?: string
+  referrerName?: string
+  walletBalance: number
+  cashbackEarned: number
+  activeCoupons: string[]
+}
+
 export interface CustomerOrder {
   id: string
   orderNumber: string
@@ -25,10 +62,10 @@ export interface CustomerOrder {
   cataloguePrice: number // e.g. 1000
   discount: number       // e.g. 200 (20%)
   realizedRevenue: number // e.g. 800
-  homeCollectionFee: number // e.g. 200
-  totalPayable: number   // e.g. 1000
+  homeCollectionFee: number // e.g. 150
+  totalPayable: number   // e.g. 950
   status: "Payment Pending" | "Paid" | "Sample Collected" | "Completed"
-  createdByRole: "c1" | "c2"
+  createdByRole: "c1" | "c2" | "customer"
   creatorId: string
   creatorName: string
   c1Id?: string          // Parent C1/C2 if created by sub-partner
@@ -36,9 +73,16 @@ export interface CustomerOrder {
   createdAt: string
   paidAt?: string
   paymentMethod?: string
+  paymentType?: "Prepaid" | "Postpaid (Pay on Collection)"
   transactionId?: string
   collectionAddress?: string
   collectionSlot?: string
+  beneficiariesSummary?: {
+    name: string
+    relation: string
+    tests: string[]
+  }[]
+  mergedAddressApplied?: boolean
 }
 
 export interface WalletTransaction {
@@ -66,6 +110,80 @@ export interface LiveActivityEvent {
   amount?: number
   timestamp: string
   isLive?: boolean
+}
+
+export const DEFAULT_BENEFICIARIES: Beneficiary[] = [
+  {
+    id: "ben-1",
+    fullName: "Suresh M.",
+    relation: "Self",
+    age: 42,
+    gender: "Male",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-fullbody"]
+  },
+  {
+    id: "ben-2",
+    fullName: "Ramanathan M.",
+    relation: "Father",
+    age: 70,
+    gender: "Male",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-diabetes"]
+  },
+  {
+    id: "ben-3",
+    fullName: "Lakshmi M.",
+    relation: "Mother",
+    age: 65,
+    gender: "Female",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-senior"]
+  },
+  {
+    id: "ben-4",
+    fullName: "Priya S.",
+    relation: "Wife",
+    age: 39,
+    gender: "Female",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-women"]
+  }
+]
+
+export const DEFAULT_PRESCRIPTIONS: PrescriptionRequest[] = [
+  {
+    id: "RX-901",
+    customerName: "Suresh M.",
+    mobile: "+91 98450 12345",
+    uploadedFileUrl: "/hero_diagnostic_lab.jpg",
+    fileName: "Dr_Sharma_Prescription_Aug2026.pdf",
+    notes: "Doctor advised 3-month follow up for fasting sugar and thyroid.",
+    requestedAt: "Today, 09:30 AM",
+    status: "Pending Review",
+    recommendedTests: ["HbA1c Glycated Hemoglobin", "Fasting Blood Sugar", "Thyroid Profile (TSH)"]
+  }
+]
+
+export const DEFAULT_CUSTOMER: CustomerProfile = {
+  id: "CUST-981",
+  name: "Suresh M.",
+  mobile: "+91 98450 12345",
+  email: "suresh.m@example.com",
+  isReferred: true,
+  referralCode: "AVM-SREERAM-C1",
+  referrerName: "THURAKA SREERAM",
+  walletBalance: 350,
+  cashbackEarned: 150,
+  activeCoupons: ["WELLNESS20", "HEALTH100"]
 }
 
 // -------------------------------------------------------------
@@ -693,9 +811,13 @@ interface WorkflowState {
   orders: CustomerOrder[]
   transactions: WalletTransaction[]
   liveEvents: LiveActivityEvent[]
+  customer: CustomerProfile
+  isCustomerLoggedIn: boolean
+  beneficiaries: Beneficiary[]
+  prescriptionRequests: PrescriptionRequest[]
 }
 
-const STORAGE_KEY = "avm_workflow_state_v6"
+const STORAGE_KEY = "avm_workflow_state_v8"
 
 function loadState(): WorkflowState {
   if (typeof window === "undefined") {
@@ -705,7 +827,11 @@ function loadState(): WorkflowState {
       c2List: DEFAULT_C2_LIST,
       orders: DEFAULT_ORDERS,
       transactions: DEFAULT_TRANSACTIONS,
-      liveEvents: DEFAULT_LIVE_EVENTS
+      liveEvents: DEFAULT_LIVE_EVENTS,
+      customer: DEFAULT_CUSTOMER,
+      isCustomerLoggedIn: false,
+      beneficiaries: DEFAULT_BENEFICIARIES,
+      prescriptionRequests: DEFAULT_PRESCRIPTIONS
     }
   }
 
@@ -715,7 +841,13 @@ function loadState(): WorkflowState {
       const parsed = JSON.parse(data)
       // Validate that currentUser matches current personas
       if (parsed.currentUser && parsed.c1 && parsed.c2List) {
-        return parsed
+        return {
+          ...parsed,
+          customer: parsed.customer || DEFAULT_CUSTOMER,
+          isCustomerLoggedIn: parsed.isCustomerLoggedIn ?? false,
+          beneficiaries: parsed.beneficiaries || DEFAULT_BENEFICIARIES,
+          prescriptionRequests: parsed.prescriptionRequests || DEFAULT_PRESCRIPTIONS
+        }
       }
     }
   } catch (e) {
@@ -728,7 +860,11 @@ function loadState(): WorkflowState {
     c2List: DEFAULT_C2_LIST,
     orders: DEFAULT_ORDERS,
     transactions: DEFAULT_TRANSACTIONS,
-    liveEvents: DEFAULT_LIVE_EVENTS
+    liveEvents: DEFAULT_LIVE_EVENTS,
+    customer: DEFAULT_CUSTOMER,
+    isCustomerLoggedIn: false,
+    beneficiaries: DEFAULT_BENEFICIARIES,
+    prescriptionRequests: DEFAULT_PRESCRIPTIONS
   }
 }
 
@@ -741,22 +877,51 @@ function saveState(state: WorkflowState) {
   }
 }
 
+let globalState: WorkflowState = loadState()
+const listeners = new Set<(state: WorkflowState) => void>()
+
+function updateGlobalState(newState: WorkflowState) {
+  globalState = newState
+  saveState(newState)
+  listeners.forEach(fn => fn(globalState))
+}
+
 export function useWorkflowStore() {
-  const [state, setState] = useState<WorkflowState>(loadState)
+  const [state, setState] = useState<WorkflowState>(() => {
+    if (typeof window !== "undefined") {
+      return globalState
+    }
+    return loadState()
+  })
 
   useEffect(() => {
+    // Sync with global singleton on mount
+    setState(globalState)
+
+    const handleStateChange = (nextState: WorkflowState) => {
+      setState(nextState)
+    }
+
+    listeners.add(handleStateChange)
+
     // Sync storage across browser tabs in real time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
-          setState(JSON.parse(e.newValue))
+          const parsed = JSON.parse(e.newValue)
+          globalState = parsed
+          listeners.forEach(fn => fn(globalState))
         } catch (err) {
           console.error("Realtime sync error", err)
         }
       }
     }
     window.addEventListener("storage", handleStorageChange)
-    return () => window.removeEventListener("storage", handleStorageChange)
+
+    return () => {
+      listeners.delete(handleStateChange)
+      window.removeEventListener("storage", handleStorageChange)
+    }
   }, [])
 
   // Switch role between Sreeram (C1), Sudheer (C2), Sai Mahendra (C2), Vishnu (C2), and Customer
@@ -779,22 +944,110 @@ export function useWorkflowStore() {
       }
     } else {
       newUser = {
-        id: "CUST-001",
+        id: "CUST-981",
         role: "customer",
-        name: "Sunil Sharma",
-        mobile: "+91 98450 99887",
-        email: "sunil.sharma@example.com",
-        code: "CUST-SUNIL",
-        city: "Hyderabad"
+        name: state.customer?.name || "Suresh M.",
+        mobile: state.customer?.mobile || "+91 98450 12345",
+        email: state.customer?.email || "suresh.m@example.com",
+        code: "CUST-SURESH",
+        city: "Bengaluru"
       }
     }
 
     const newState = {
       ...state,
-      currentUser: newUser
+      currentUser: newUser,
+      isCustomerLoggedIn: roleOrPersona === "customer" ? true : state.isCustomerLoggedIn
     }
-    setState(newState)
-    saveState(newState)
+    updateGlobalState(newState)
+  }
+
+  // Beneficiary Management
+  const addBeneficiary = (ben: Omit<Beneficiary, "id">) => {
+    const newBen: Beneficiary = {
+      ...ben,
+      id: `ben-${Date.now().toString().slice(-4)}`
+    }
+    const newState = {
+      ...state,
+      beneficiaries: [...state.beneficiaries, newBen]
+    }
+    updateGlobalState(newState)
+    return newBen
+  }
+
+  const updateBeneficiary = (id: string, updated: Partial<Beneficiary>) => {
+    const newState = {
+      ...state,
+      beneficiaries: state.beneficiaries.map(b => b.id === id ? { ...b, ...updated } : b)
+    }
+    updateGlobalState(newState)
+  }
+
+  const removeBeneficiary = (id: string) => {
+    const newState = {
+      ...state,
+      beneficiaries: state.beneficiaries.filter(b => b.id !== id)
+    }
+    updateGlobalState(newState)
+  }
+
+  // Prescription Upload & Callback Request
+  const addPrescriptionRequest = (req: {
+    customerName: string
+    mobile: string
+    fileName?: string
+    notes?: string
+  }) => {
+    const newReq: PrescriptionRequest = {
+      id: `RX-${Math.floor(100 + Math.random() * 900)}`,
+      customerName: req.customerName,
+      mobile: req.mobile,
+      fileName: req.fileName || "Uploaded_Prescription.pdf",
+      notes: req.notes || "Callback requested for doctor consultation",
+      requestedAt: "Just now",
+      status: "Pending Review",
+      recommendedTests: ["Fasting Blood Sugar", "HbA1c", "Thyroid Profile (TSH)"]
+    }
+    const newState = {
+      ...state,
+      prescriptionRequests: [newReq, ...state.prescriptionRequests]
+    }
+    updateGlobalState(newState)
+    return newReq
+  }
+
+  // Set customer referral status (Referred with 20% discount vs Regular)
+  const setCustomerReferral = (isReferred: boolean, code?: string, referrerName?: string) => {
+    const newState = {
+      ...state,
+      customer: {
+        ...state.customer,
+        isReferred,
+        referralCode: isReferred ? (code || "AVM-RAMESH-C1") : undefined,
+        referrerName: isReferred ? (referrerName || "Ramesh Gupta") : undefined
+      }
+    }
+    updateGlobalState(newState)
+  }
+
+  // Customer Login / Logout State
+  const loginCustomer = (profile?: Partial<CustomerProfile>) => {
+    const updatedCustomer = profile ? { ...state.customer, ...profile } : state.customer
+    const newState: WorkflowState = {
+      ...state,
+      isCustomerLoggedIn: true,
+      customer: updatedCustomer
+    }
+    updateGlobalState(newState)
+  }
+
+  const logoutCustomer = () => {
+    const newState: WorkflowState = {
+      ...state,
+      isCustomerLoggedIn: false
+    }
+    updateGlobalState(newState)
   }
 
   const resetDemo = () => {
@@ -804,10 +1057,13 @@ export function useWorkflowStore() {
       c2List: DEFAULT_C2_LIST,
       orders: DEFAULT_ORDERS,
       transactions: DEFAULT_TRANSACTIONS,
-      liveEvents: DEFAULT_LIVE_EVENTS
+      liveEvents: DEFAULT_LIVE_EVENTS,
+      customer: DEFAULT_CUSTOMER,
+      isCustomerLoggedIn: false,
+      beneficiaries: DEFAULT_BENEFICIARIES,
+      prescriptionRequests: DEFAULT_PRESCRIPTIONS
     }
-    setState(newState)
-    saveState(newState)
+    updateGlobalState(newState)
   }
 
   // Introduce a new Partner
@@ -840,8 +1096,7 @@ export function useWorkflowStore() {
       c2List: [newC2, ...state.c2List],
       liveEvents: [liveEvent, ...state.liveEvents.slice(0, 10)]
     }
-    setState(newState)
-    saveState(newState)
+    updateGlobalState(newState)
     return newC2
   }
 
@@ -897,8 +1152,7 @@ export function useWorkflowStore() {
       orders: [newOrder, ...state.orders],
       liveEvents: [liveEvent, ...state.liveEvents.slice(0, 10)]
     }
-    setState(newState)
-    saveState(newState)
+    updateGlobalState(newState)
     return newOrder
   }
 
@@ -997,8 +1251,7 @@ export function useWorkflowStore() {
       transactions: [...newTransactions, ...state.transactions],
       liveEvents: [liveEvent, ...state.liveEvents.slice(0, 10)]
     }
-    setState(newState)
-    saveState(newState)
+    updateGlobalState(newState)
     return updatedOrders.find(o => o.id === orderId)
   }
 
@@ -1064,6 +1317,13 @@ export function useWorkflowStore() {
     createCustomerBooking,
     payForOrder,
     getUserWallet,
-    simulateLiveReferral
+    simulateLiveReferral,
+    addBeneficiary,
+    updateBeneficiary,
+    removeBeneficiary,
+    addPrescriptionRequest,
+    setCustomerReferral,
+    loginCustomer,
+    logoutCustomer
   }
 }

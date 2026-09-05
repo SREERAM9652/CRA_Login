@@ -6,7 +6,6 @@ import { HealthPackages } from "@/components/sections/HealthPackages"
 import { HowItWorks } from "@/components/sections/HowItWorks"
 import { WhyChooseUs } from "@/components/sections/WhyChooseUs"
 import { Testimonials } from "@/components/sections/Testimonials"
-import { FAQ } from "@/components/sections/FAQ"
 import { BookingCTA } from "@/components/sections/BookingCTA"
 
 export default function Home() {
@@ -20,7 +19,6 @@ export default function Home() {
         <HowItWorks />
         <WhyChooseUs />
         <Testimonials />
-        <FAQ />
         <BookingCTA />
       </main>
       <Footer />

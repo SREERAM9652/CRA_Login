@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Roboto, Caveat, Alex_Brush } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const roboto = Roboto({
+  weight: ['100', '300', '400', '500', '700', '900'],
+  variable: "--font-roboto",
+  subsets: ["latin"],
+});
+
+const caveat = Caveat({
+  weight: ['600', '700'],
+  variable: "--font-caveat",
+  subsets: ["latin"],
+});
+
+const alexBrush = Alex_Brush({
+  weight: ['400'],
+  variable: "--font-signature",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "AVMLabs | Clinical Reference Laboratory & Diagnostic Services",
-  description: "Book tests, health checkup packages, and access digital reports online with AVMLabs India. Certified NABL laboratory with home sample collection.",
+  description: "Book tests, health checkup packages, and access digital reports online with AVMLabs India.",
   icons: {
     icon: [
       { url: "/favicon.png", type: "image/png" },
@@ -27,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} font-sans h-full antialiased`}>
+    <html lang="en" className={`${roboto.variable} ${caveat.variable} ${alexBrush.variable} font-sans h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

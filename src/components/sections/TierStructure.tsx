@@ -131,7 +131,7 @@ export function TierStructure() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Certified digital report sent directly via WhatsApp &amp; Email.</span>
+                  <span>Verified digital report sent directly via WhatsApp &amp; Email.</span>
                 </li>
               </ul>
             </div>

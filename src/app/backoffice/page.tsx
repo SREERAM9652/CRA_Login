@@ -33,10 +33,10 @@ import {
 } from "lucide-react"
 
 export default function BackOfficeConsolePage() {
-  const { orders, transactions, c1, c2List } = useWorkflowStore()
+  const { orders, transactions, c1, c2List, prescriptionRequests } = useWorkflowStore()
   
   const [activeTab, setActiveTab] = useState<
-    "overview" | "onboarding" | "hierarchy" | "leads" | "incentives" | "payouts" | "pricing" | "legacy" | "retention"
+    "overview" | "onboarding" | "hierarchy" | "leads" | "prescriptions" | "incentives" | "payouts" | "pricing" | "legacy" | "retention"
   >("overview")
 
   const [toastMsg, setToastMsg] = useState("")
@@ -161,6 +161,7 @@ export default function BackOfficeConsolePage() {
           { id: "onboarding", label: "Onboarding Queue (KYC)", icon: Users, badge: onboardingQueue.length },
           { id: "hierarchy", label: "CRA Hierarchy (C1/C2)", icon: Layers },
           { id: "leads", label: "Lead Inbox (<24h)", icon: Inbox, badge: leadsInbox.length },
+          { id: "prescriptions", label: "Prescriptions & Callbacks", icon: FlaskConical, badge: prescriptionRequests.length },
           { id: "incentives", label: "RR & Incentive Engine", icon: Coins },
           { id: "payouts", label: "Payout Batches", icon: FileSpreadsheet },
           { id: "pricing", label: "Catalogue & Price Rules", icon: Sliders },
@@ -443,8 +444,69 @@ export default function BackOfficeConsolePage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 5: RR & INCENTIVE ENGINE                                              */}
+      {/* TAB: CUSTOMER PRESCRIPTIONS & CALLBACK QUEUE                              */}
       {/* ========================================================================= */}
+      {activeTab === "prescriptions" && (
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="font-black text-base text-slate-900">Customer Prescriptions &amp; Doctor Callbacks</h3>
+              <p className="text-xs text-slate-500">Customer care queue for deciphering uploaded doctor slips and building customer test carts</p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-rose-50 text-[#dc2626] font-extrabold text-xs border border-rose-200">
+              {prescriptionRequests.length} Pending Review
+            </span>
+          </div>
+
+          <div className="border border-slate-200 rounded-2xl overflow-hidden text-xs">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3">Req ID &amp; Time</th>
+                  <th className="px-4 py-3">Patient Name</th>
+                  <th className="px-4 py-3">Mobile Number</th>
+                  <th className="px-4 py-3">Uploaded Slip</th>
+                  <th className="px-4 py-3">Patient Notes</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {prescriptionRequests.map((rx) => (
+                  <tr key={rx.id} className="hover:bg-slate-50/50">
+                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900">
+                      {rx.id}
+                      <div className="text-[10px] text-slate-400 font-normal">{rx.requestedAt}</div>
+                    </td>
+                    <td className="px-4 py-3.5 font-black text-slate-900">{rx.customerName}</td>
+                    <td className="px-4 py-3.5 font-mono text-slate-700">{rx.mobile}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="font-bold text-[#382685] bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                        📄 {rx.fileName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-slate-600 max-w-xs truncate">{rx.notes}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                        {rx.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => showToast(`Initiating call to ${rx.customerName} (${rx.mobile}) to confirm test package.`)}
+                        className="px-3 py-1 rounded-lg bg-[#251b5c] text-white font-bold text-xs hover:bg-[#1e1b4b] cursor-pointer"
+                      >
+                        Call &amp; Build Cart
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
       {activeTab === "incentives" && (
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-5">
           <div className="border-b border-slate-100 pb-3">

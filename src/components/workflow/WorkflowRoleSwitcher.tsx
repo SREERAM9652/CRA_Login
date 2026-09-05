@@ -9,7 +9,7 @@ export function WorkflowRoleSwitcher() {
 
   return (
     <div className="bg-gradient-to-r from-slate-900 via-[#1a1438] to-slate-900 text-white text-xs py-2 px-3 sm:px-4 border-b border-indigo-950/80 shadow-md no-print print:hidden z-50 sticky top-0">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 sm:gap-3">
+      <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-2 sm:gap-3">
         
         {/* Left: Workflow Controller Label */}
         <div className="flex items-center gap-2">
