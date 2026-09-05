@@ -18,14 +18,22 @@ import {
   Headphones,
   Bell,
   HeartHandshake,
+  PanelLeftClose,
 } from "lucide-react"
 
 interface CRASidebarProps {
   mobileOpen?: boolean
   setMobileOpen?: (open: boolean) => void
+  desktopOpen?: boolean
+  setDesktopOpen?: (open: boolean) => void
 }
 
-export function CRASidebar({ mobileOpen = false, setMobileOpen }: CRASidebarProps) {
+export function CRASidebar({ 
+  mobileOpen = false, 
+  setMobileOpen,
+  desktopOpen = true,
+  setDesktopOpen
+}: CRASidebarProps) {
   const pathname = usePathname()
   const { currentUser } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
@@ -62,7 +70,9 @@ export function CRASidebar({ mobileOpen = false, setMobileOpen }: CRASidebarProp
       {/* ========================================================================= */}
       {/* DESKTOP FIXED SIDEBAR                                                     */}
       {/* ========================================================================= */}
-      <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 left-0 top-0 z-40 shadow-xs">
+      <aside className={`hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 left-0 top-0 z-40 shadow-xs transition-transform duration-300 ease-in-out ${
+        desktopOpen ? "translate-x-0" : "-translate-x-full"
+      }`}>
         {/* Logo */}
         <div className="py-2 px-3 flex items-center justify-center border-b border-slate-100/90 bg-white">
           <Link href="/" className="inline-block hover:scale-102 transition-transform">
@@ -112,7 +122,7 @@ export function CRASidebar({ mobileOpen = false, setMobileOpen }: CRASidebarProp
         <div className="p-3.5 border-t border-slate-100 bg-slate-50/90" suppressHydrationWarning>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-9 w-9 rounded-xl text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0 bg-gradient-to-tr from-indigo-900 to-purple-800">
+              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0">
                 {currentUserName
                   .split(" ")
                   .map((n) => n[0])
@@ -173,7 +183,7 @@ export function CRASidebar({ mobileOpen = false, setMobileOpen }: CRASidebarProp
               suppressHydrationWarning
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#1e1b4b] to-[#382685] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0">
                   {currentUserName
                     .split(" ")
                     .map((n) => n[0])

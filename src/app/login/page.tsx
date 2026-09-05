@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
@@ -31,7 +31,7 @@ import {
 
 export default function LoginPage() {
   const router = useRouter()
-  const { switchRole, setCustomerReferral, loginCustomer } = useWorkflowStore()
+  const { switchRole, setCustomerReferral, loginCustomer, loginWithCredentials } = useWorkflowStore()
 
   const [role, setRole] = useState<"customer" | "cra">("customer")
   const [loginMode, setLoginMode] = useState<"password" | "otp">("password")
@@ -43,6 +43,20 @@ export default function LoginPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [loading, setLoading] = useState(false)
   const [referralCode, setReferralCode] = useState("")
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("role") === "cra") {
+        setRole("cra")
+      }
+      const refParam = params.get("ref")
+      if (refParam) {
+        setIdentifier(refParam)
+        setRole("cra")
+      }
+    }
+  }, [])
 
   const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({})
   const [touched, setTouched] = useState<{ identifier?: boolean; password?: boolean }>({})
@@ -237,36 +251,12 @@ export default function LoginPage() {
     setTimeout(() => {
       setLoading(false)
       const cleanId = identifier.trim()
-      const cleanDigits = cleanId.replace(/[\s\-()]/g, "").replace(/^(\+91|91|0)/, "")
+      const result = loginWithCredentials(cleanId, password)
 
-      const matchedCra = CRA_MEMBERS.find(
-        (m) =>
-          m.code.toLowerCase() === cleanId.toLowerCase() ||
-          m.mobile === cleanDigits ||
-          m.id.toLowerCase() === cleanId.toLowerCase()
-      )
-
-      const isCraLogin = Boolean(
-        matchedCra ||
-        /^AVM-[A-Za-z0-9-]+$/i.test(cleanId) ||
-        (role === "cra" && !cleanId.includes("@"))
-      )
-
-      if (isCraLogin) {
-        const persona = matchedCra ? (matchedCra.id as "sreeram" | "sudheer" | "mahendra" | "vishnu") : "sreeram"
-        switchRole(persona)
-        router.push("/cra/dashboard")
+      if (result && result.success) {
+        router.push(result.targetUrl)
       } else {
-        const customerName = cleanId.includes("@")
-          ? cleanId.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-          : "Suresh M."
-
-        loginCustomer({
-          name: customerName,
-          mobile: cleanDigits.length === 10 ? cleanDigits : "+91 98450 12345"
-        })
-        switchRole("customer")
-        router.push("/customer/dashboard")
+        router.push(role === "cra" ? "/cra/dashboard" : "/customer/dashboard")
       }
     }, 350)
   }
@@ -574,6 +564,17 @@ export default function LoginPage() {
                       <UserPlus className="h-3.5 w-3.5 text-[#251b5c]" />
                       <span>Register Now</span>
                     </button>
+
+                    <div className="pt-1 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleRoleChange("cra")}
+                        className="text-[11px] font-medium text-slate-600 hover:text-[#251b5c] transition-colors cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <span>Are you an Associate / Partner?</span>
+                        <span className="font-bold underline text-[#251b5c]">CRA Partner Login &rarr;</span>
+                      </button>
+                    </div>
                   </div>
 
                 </form>

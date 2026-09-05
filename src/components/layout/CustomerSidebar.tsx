@@ -14,14 +14,22 @@ import {
   Sparkles,
   Users,
   Wallet,
+  PanelLeftClose
 } from "lucide-react"
 
 interface CustomerSidebarProps {
   mobileOpen?: boolean
   setMobileOpen?: (open: boolean) => void
+  desktopOpen?: boolean
+  setDesktopOpen?: (open: boolean) => void
 }
 
-export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerSidebarProps) {
+export function CustomerSidebar({ 
+  mobileOpen = false, 
+  setMobileOpen,
+  desktopOpen = true,
+  setDesktopOpen
+}: CustomerSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { customer, logoutCustomer } = useWorkflowStore()
@@ -34,8 +42,8 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
   const navLinks = [
     { name: "My Health Dashboard", href: "/customer/dashboard", icon: LayoutDashboard },
     { name: "Find Tests & Book", href: "/booking", icon: Search },
-    { name: "Orders & Appointments", href: "/customer/dashboard#orders", icon: ClipboardList },
-    { name: "Digital Lab Reports", href: "/customer/dashboard#reports", icon: FileText },
+    { name: "Orders & Appointments", href: "/customer/dashboard/orders", icon: ClipboardList },
+    { name: "Digital Lab Reports", href: "/customer/dashboard/reports", icon: FileText },
   ]
 
   const customerName = customer?.name || "Suresh M."
@@ -54,7 +62,9 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
       {/* ========================================================================= */}
       {/* DESKTOP FIXED SIDEBAR                                                     */}
       {/* ========================================================================= */}
-      <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 left-0 top-0 z-40 shadow-xs">
+      <aside className={`hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 left-0 top-0 z-40 shadow-xs transition-transform duration-300 ease-in-out ${
+        desktopOpen ? "translate-x-0" : "-translate-x-full"
+      }`}>
         {/* Logo */}
         <div className="py-2 px-3 flex items-center justify-center border-b border-slate-100/90 bg-white">
           <Link href="/" className="inline-block hover:scale-102 transition-transform">
@@ -100,10 +110,14 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
             </div>
             <nav className="space-y-1">
               <Link
-                href="/customer/dashboard#beneficiaries"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                href="/customer/dashboard/beneficiaries"
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold transition-all ${
+                  pathname === "/customer/dashboard/beneficiaries"
+                    ? "bg-[#1e3a8a] text-white shadow-sm shadow-blue-950/20"
+                    : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`}
               >
-                <Users className="h-4 w-4 text-slate-400" />
+                <Users className={`h-4 w-4 ${pathname === "/customer/dashboard/beneficiaries" ? "text-sky-200 stroke-[2.5]" : "text-slate-400"}`} />
                 <span>Family Beneficiaries</span>
               </Link>
               <Link
@@ -119,10 +133,14 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
                 </div>
               </Link>
               <Link
-                href="/cra/dashboard/help"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                href="/customer/dashboard/help"
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold transition-all ${
+                  pathname === "/customer/dashboard/help"
+                    ? "bg-[#1e3a8a] text-white shadow-sm shadow-blue-950/20"
+                    : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`}
               >
-                <HelpCircle className="h-4 w-4 text-slate-400" />
+                <HelpCircle className={`h-4 w-4 shrink-0 ${pathname === "/customer/dashboard/help" ? "text-sky-200 stroke-[2.5]" : "text-slate-400"}`} />
                 <span>Help &amp; FAQs</span>
               </Link>
               <Link
@@ -140,7 +158,7 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
         <div className="p-3.5 border-t border-slate-100 bg-slate-50/90">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#251b5c] to-[#382685] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0">
                 {avatarInitials}
               </div>
               <div className="truncate">
@@ -192,9 +210,9 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
             </div>
 
             {/* User Profile Mini Card */}
-            <div className="p-3.5 bg-gradient-to-br from-slate-50 to-indigo-50/50 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-3.5 bg-gradient-to-br from-slate-50 to-indigo-50/50 border-b border-slate-100 flex items-center">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#251b5c] to-[#382685] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0">
                   {avatarInitials}
                 </div>
                 <div className="min-w-0">
@@ -204,10 +222,6 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
                   </div>
                 </div>
               </div>
-
-              <span className="font-mono text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
-                Wallet: ₹{customer?.walletBalance || 350}
-              </span>
             </div>
 
             {/* Scrollable Nav List */}
@@ -244,11 +258,15 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
                 </div>
                 <div className="space-y-1">
                   <Link
-                    href="/customer/dashboard#beneficiaries"
+                    href="/customer/dashboard/beneficiaries"
                     onClick={closeMobile}
-                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold transition-all ${
+                      pathname === "/customer/dashboard/beneficiaries"
+                        ? "bg-[#1e3a8a] text-white"
+                        : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
                   >
-                    <Users className="h-4 w-4 text-purple-600" />
+                    <Users className={`h-4 w-4 ${pathname === "/customer/dashboard/beneficiaries" ? "text-sky-200" : "text-purple-600"}`} />
                     <span>Family Beneficiaries</span>
                   </Link>
 
@@ -259,6 +277,19 @@ export function CustomerSidebar({ mobileOpen = false, setMobileOpen }: CustomerS
                   >
                     <Wallet className="h-4 w-4 text-emerald-600" />
                     <span>Wallet &amp; Coupons (₹{customer?.walletBalance || 350})</span>
+                  </Link>
+
+                  <Link
+                    href="/customer/dashboard/help"
+                    onClick={closeMobile}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold transition-all ${
+                      pathname === "/customer/dashboard/help"
+                        ? "bg-[#1e3a8a] text-white"
+                        : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <HelpCircle className={`h-4 w-4 shrink-0 ${pathname === "/customer/dashboard/help" ? "text-sky-200 stroke-[2.5]" : "text-purple-600"}`} />
+                    <span>Help &amp; FAQs</span>
                   </Link>
 
                   <Link

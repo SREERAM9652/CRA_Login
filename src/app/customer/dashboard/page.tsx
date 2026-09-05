@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
@@ -37,7 +37,8 @@ import {
   Award,
   FlaskConical,
   X,
-  Package
+  Package,
+  ClipboardList
 } from "lucide-react"
 
 export interface CustomerTestItem {
@@ -103,15 +104,37 @@ export default function CustomerDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
   
-  const [copiedOtp, setCopiedOtp] = useState(false)
   const [selectedReportModal, setSelectedReportModal] = useState<any>(null)
 
-  // SELECT TESTS & PROFILES MODAL STATE (CRA Standard)
-  const [isSelectTestsModalOpen, setIsSelectTestsModalOpen] = useState(false)
-  const [modalSearchQuery, setModalSearchQuery] = useState("")
-  const [modalTab, setModalTab] = useState<"all" | "packages" | "tests">("all")
-  const [modalSelectedIds, setModalSelectedIds] = useState<string[]>(["pkg-master"])
-  
+  // SEARCH DROPDOWN STATE & LOGIC (Inline auto-suggest dropdown)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchTab, setSearchTab] = useState<"all" | "packages" | "tests">("all")
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const searchDropdownItems = useMemo(() => {
+    return allCatalogItems.filter((item) => {
+      if (searchTab === "packages" && item.type !== "package") return false
+      if (searchTab === "tests" && item.type !== "test") return false
+      if (!searchQuery.trim()) return true
+      const q = searchQuery.toLowerCase()
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.code.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q)
+      )
+    })
+  }, [allCatalogItems, searchTab, searchQuery])
+
   // Beneficiary Modal State
   const [showAddBenModal, setShowAddBenModal] = useState(false)
   const [benForm, setBenForm] = useState({
@@ -134,66 +157,7 @@ export default function CustomerDashboardPage() {
   })
   const [rxSuccess, setRxSuccess] = useState(false)
 
-  const handleCopyOtp = () => {
-    navigator.clipboard.writeText("4821")
-    setCopiedOtp(true)
-    setTimeout(() => setCopiedOtp(false), 2000)
-  }
-
-  // Modal Multi-Select Toggle
-  const handleModalToggleItem = (itemId: string) => {
-    if (modalSelectedIds.includes(itemId)) {
-      if (modalSelectedIds.length > 1) {
-        setModalSelectedIds(modalSelectedIds.filter(id => id !== itemId))
-      }
-    } else {
-      setModalSelectedIds([...modalSelectedIds, itemId])
-    }
-  }
-
-  const handleModalRemoveItem = (itemId: string) => {
-    if (modalSelectedIds.length > 1) {
-      setModalSelectedIds(modalSelectedIds.filter(id => id !== itemId))
-    }
-  }
-
-  const modalSelectedItems = allCatalogItems.filter(item => modalSelectedIds.includes(item.id))
-  const modalTotalMrp = modalSelectedItems.reduce((sum, item) => sum + item.mrp, 0)
-  const modalTotalDiscount = modalSelectedItems.reduce((sum, item) => sum + item.discount, 0)
-  const modalTotalPrice = modalSelectedItems.reduce((sum, item) => sum + item.price, 0)
-
-  // Filter items in modal
-  const filteredModalItems = allCatalogItems.filter(item => {
-    if (modalTab === "packages" && item.type !== "package") return false
-    if (modalTab === "tests" && item.type !== "test") return false
-    if (!modalSearchQuery.trim()) return true
-    const q = modalSearchQuery.toLowerCase()
-    return (
-      item.name.toLowerCase().includes(q) ||
-      item.code.toLowerCase().includes(q) ||
-      item.category.toLowerCase().includes(q)
-    )
-  })
-
-  // Quick 1-Tap Popular Chips in Modal
-  const POPULAR_QUICK_PICKS = [
-    { id: "pkg-master", label: "Full Body Master (₹800)" },
-    { id: "pkg-women", label: "Women's Wellness (₹960)" },
-    { id: "pkg-senior", label: "Senior Citizen (₹1,440)" },
-    { id: "pkg-cardiac", label: "Cardiac Risk Panel (₹1,200)" },
-    { id: "pkg-diabetes", label: "Diabetes Care (₹880)" },
-    { id: "test-H6", label: "CBC Hemogram (₹240)" },
-    { id: "test-CUA", label: "Urine Analysis (₹240)" },
-    { id: "test-AMYL", label: "Serum Amylase (₹160)" }
-  ]
-
-  // Proceed to Booking with selected tests
-  const handleProceedToBooking = () => {
-    setIsSelectTestsModalOpen(false)
-    router.push(`/booking?items=${modalSelectedIds.join(",")}`)
-  }
-
-  // Recommended Health Packages matching Image 1
+  // Recommended Health Packages (Concise & Classic)
   const RECOMMENDED_PACKAGES = [
     {
       id: "pkg-fullbody",
@@ -203,7 +167,9 @@ export default function CustomerDashboardPage() {
       discountedPrice: 800,
       discountBadge: "20% off",
       category: "fullbody",
-      popular: true
+      popular: true,
+      parameters: "62 Tests",
+      icon: ShieldCheck
     },
     {
       id: "pkg-women",
@@ -213,47 +179,57 @@ export default function CustomerDashboardPage() {
       discountedPrice: 960,
       discountBadge: "20% off",
       category: "women",
-      popular: true
+      popular: true,
+      parameters: "58 Tests",
+      icon: Sparkles
     },
     {
       id: "pkg-senior",
       title: "Senior Citizen Health Profile",
-      subtitle: "74 parameters · vitals, bone & kidney health",
+      subtitle: "74 parameters · vitals & bone health",
       originalPrice: 1800,
       discountedPrice: 1440,
       discountBadge: "20% off",
       category: "senior",
-      popular: false
+      popular: false,
+      parameters: "74 Tests",
+      icon: Award
     },
     {
       id: "pkg-cardiac",
       title: "Cardiac Risk & Heart Panel",
-      subtitle: "Lipid profile, hsCRP, ApoB & cardiac markers",
+      subtitle: "Lipid profile & cardiac markers",
       originalPrice: 1500,
       discountedPrice: 1200,
       discountBadge: "20% off",
       category: "cardiac",
-      popular: false
+      popular: false,
+      parameters: "42 Tests",
+      icon: Activity
     },
     {
       id: "pkg-diabetes",
       title: "Executive Diabetes Care Profile",
-      subtitle: "HbA1c, Fasting Glucose, Microalbumin, Kidney vitals",
+      subtitle: "HbA1c & fasting glucose vitals",
       originalPrice: 1100,
       discountedPrice: 880,
       discountBadge: "20% off",
       category: "diabetes",
-      popular: false
+      popular: false,
+      parameters: "38 Tests",
+      icon: Droplets
     },
     {
       id: "test-vitd",
-      title: "Vitamin D (25-OH) & Vitamin B12 Duo",
-      subtitle: "Bone strength, immunity & nerve vitality",
+      title: "Vitamin D & Vitamin B12 Duo",
+      subtitle: "Bone strength & vitality panel",
       originalPrice: 900,
       discountedPrice: 720,
       discountBadge: "20% off",
       category: "routine",
-      popular: false
+      popular: false,
+      parameters: "2 Tests",
+      icon: FlaskConical
     }
   ]
 
@@ -349,40 +325,35 @@ export default function CustomerDashboardPage() {
   }
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-4 font-sans">
       
       {/* ========================================================================= */}
-      {/* 1. TOP REFERRAL PROMO BANNER (EXACT IMAGE 1 DESIGN: FULL WIDTH ON TOP)   */}
+      {/* 1. TOP REFERRAL PROMO BANNER (CLASSIC HEALTHCARE PARTNER BANNER)           */}
       {/* ========================================================================= */}
-      <div className="rounded-2xl sm:rounded-3xl bg-[#eef4ff] border border-[#d6e4ff] p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-2xs">
-        <div className="flex items-start gap-3">
-          <div className="text-[#2F5FDE] shrink-0 mt-0.5">
-            <Share2 className="h-5 w-5 stroke-[2.2]" />
+      <div className="rounded-2xl bg-[#1e293b] p-3.5 sm:p-4 text-white shadow-xs border border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-blue-300 shrink-0">
+            <Share2 className="h-5 w-5" />
           </div>
           <div className="space-y-0.5">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <h2 className="text-xs sm:text-base font-bold text-[#1d4ed8]">
-                Referred by {customer?.referrerName || "Ramesh Gupta"}
-              </h2>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] sm:text-[10px] font-black uppercase">
-                20% DISCOUNT ACTIVE
-              </span>
-            </div>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-normal leading-relaxed">
-              You get 20% off your first wellness profile — already applied below.
+            <h2 className="text-sm sm:text-base font-bold text-white">
+              Referred by {customer?.referrerName || "THURAKA SREERAM"}
+            </h2>
+            <p className="text-xs text-slate-300 font-normal">
+              Special partner pricing applied across all diagnostic tests &amp; wellness packages.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => setIsSelectTestsModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#2F5FDE] hover:bg-[#2554c7] text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shrink-0 shadow-xs transition-all cursor-pointer"
+            onClick={() => router.push("/booking")}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <FlaskConical className="h-3.5 w-3.5" />
+            <FlaskConical className="h-3.5 w-3.5 text-white" />
             <span>Select Tests &amp; Profiles ({allCatalogItems.length}+)</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ArrowRight className="h-3.5 w-3.5 text-white" />
           </button>
         </div>
       </div>
@@ -390,125 +361,271 @@ export default function CustomerDashboardPage() {
       {/* ========================================================================= */}
       {/* 2. MAIN 2-COLUMN BALANCED DASHBOARD GRID (8 COLS LEFT, 4 COLS RIGHT)       */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
         {/* ======================================================================= */}
-        {/* LEFT / CENTER MAIN COLUMN (LG:COL-SPAN-8): SEARCH & RECOMMENDED CARDS   */}
+        {/* LEFT COLUMN (LG:COL-SPAN-8): SEARCH & RECOMMENDED PACKAGES              */}
         {/* ======================================================================= */}
-        <div className="lg:col-span-8 space-y-4 sm:space-y-5">
+        <div className="lg:col-span-8 space-y-3.5">
           
-          {/* Search Bar matching Image 1 with Quick Modal Launcher */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-400 pointer-events-none" />
+          {/* Search Bar with Auto-suggest Dropdown */}
+          <div ref={searchContainerRef} className="relative z-30">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
-              onClick={() => setIsSelectTestsModalOpen(true)}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tests & wellness profiles (Click to open full selector)..."
-              className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm rounded-2xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2F5FDE] focus:ring-2 focus:ring-[#2F5FDE]/10 shadow-2xs transition-all cursor-pointer"
+              onFocus={() => setIsSearchOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setIsSearchOpen(true)
+              }}
+              placeholder="Search 100+ tests &amp; profiles (e.g. Full Body, Thyroid, CBC, Lipid)..."
+              className="w-full pl-10 pr-24 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 shadow-2xs"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("")
+                  setIsSearchOpen(false)
+                }}
+                className="absolute right-20 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                title="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setIsSelectTestsModalOpen(true)}
-              className="absolute right-2 top-2 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#251b5c] font-bold text-xs border border-purple-200 cursor-pointer hidden sm:inline-flex items-center gap-1"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer inline-flex items-center gap-1 transition-colors"
             >
-              <FlaskConical className="h-3 w-3" />
-              <span>Browse All</span>
+              <FlaskConical className="h-3 w-3 text-slate-300" />
+              <span>Browse</span>
             </button>
+
+            {/* Inline Search Dropdown Results */}
+            {isSearchOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 z-50">
+                {/* Search Dropdown Filter Header */}
+                <div className="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                    <button
+                      type="button"
+                      onClick={() => setSearchTab("all")}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        searchTab === "all"
+                          ? "bg-slate-900 text-white"
+                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      All ({allCatalogItems.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSearchTab("packages")}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        searchTab === "packages"
+                          ? "bg-slate-900 text-white"
+                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      Packages (12)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSearchTab("tests")}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        searchTab === "tests"
+                          ? "bg-slate-900 text-white"
+                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      Tests (90+)
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    20% Discount Active
+                  </span>
+                </div>
+
+                {/* Dropdown Results List */}
+                <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 p-1">
+                  {searchDropdownItems.slice(0, 15).map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        setIsSearchOpen(false)
+                        router.push(`/booking?package=${item.id}`)
+                      }}
+                      className="p-2.5 rounded-xl flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-blue-600 truncate transition-colors">
+                          {item.name}
+                        </div>
+                        <div className="text-[10.5px] text-slate-500 flex items-center gap-1.5 font-mono mt-0.5">
+                          <span>{item.code}</span>
+                          <span>•</span>
+                          <span>{item.parameterCount}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <div className="flex items-baseline gap-1.5 justify-end">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900">₹{item.price}</span>
+                            <span className="text-[10px] line-through text-slate-400">₹{item.mrp}</span>
+                          </div>
+                          <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">
+                            20% OFF
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setIsSearchOpen(false)
+                            router.push(`/booking?package=${item.id}`)
+                          }}
+                          className="px-3 py-1 rounded-lg bg-[#1e3a8a] hover:bg-[#1d4ed8] text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                        >
+                          Book
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {searchDropdownItems.length === 0 && (
+                    <div className="py-6 text-center text-xs text-slate-400">
+                      No diagnostic tests or profiles found matching &quot;{searchQuery}&quot;
+                    </div>
+                  )}
+                </div>
+
+                {searchDropdownItems.length > 15 && (
+                  <div className="p-2 bg-slate-50 border-t border-slate-100 text-center">
+                    <Link
+                      href="/booking"
+                      className="text-xs font-semibold text-blue-600 hover:underline"
+                      onClick={() => setIsSearchOpen(false)}
+                    >
+                      View all {searchDropdownItems.length} matching tests in catalog →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Filter Category Chips with Horizontal Scroll */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+          {/* Filter Category Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">
             {[
-              { id: "all", label: "All Profiles" },
-              { id: "fullbody", label: "Full Body" },
-              { id: "women", label: "Women's Health" },
-              { id: "senior", label: "Senior Care" },
-              { id: "cardiac", label: "Cardiac" },
-              { id: "diabetes", label: "Diabetes" },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  activeCategory === cat.id
-                    ? "bg-[#2F5FDE] text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+              { id: "all", label: "All Profiles", icon: Sparkles },
+              { id: "fullbody", label: "Full Body", icon: ShieldCheck },
+              { id: "women", label: "Women's Health", icon: Heart },
+              { id: "senior", label: "Senior Care", icon: Award },
+              { id: "cardiac", label: "Cardiac", icon: Activity },
+              { id: "diabetes", label: "Diabetes", icon: Droplets },
+            ].map((cat) => {
+              const Icon = cat.icon
+              const isActive = activeCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-slate-900 text-white"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? "text-white" : "text-slate-400"}`} />
+                  <span>{cat.label}</span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* Section: Recommended for you with See all */}
-          <div className="space-y-3 sm:space-y-4 pt-1">
-            <div className="flex items-center justify-between px-0.5">
-              <h2 className="text-sm sm:text-lg font-bold text-slate-900 tracking-tight">
-                Recommended for you
-              </h2>
+          {/* Section: Recommended for you */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  Recommended for you
+                </h2>
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-semibold border border-slate-200">
+                  {filteredPackages.length} Profiles
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsSelectTestsModalOpen(true)}
-                className="text-xs sm:text-sm font-semibold text-[#2F5FDE] hover:underline cursor-pointer"
+                onClick={() => router.push('/booking')}
+                className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
               >
-                See all ({allCatalogItems.length}+)
+                <span>See all ({allCatalogItems.length}+)</span>
+                <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {/* Product Cards Grid: 1 Column on Mobile, 2 Columns on Tablet/Desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            {/* Product Cards Grid: Clean, Compact, Classic */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group"
+                  className="bg-white rounded-2xl border border-slate-200 p-3.5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
                 >
-                  
-                  {/* Top Image Container */}
-                  <div className="w-full h-32 rounded-2xl bg-slate-50 border border-dashed border-slate-300 flex items-center justify-center text-slate-400 font-medium text-xs tracking-wide select-none group-hover:bg-blue-50/40 group-hover:border-blue-200 transition-colors">
-                    profile image
-                  </div>
-
-                  {/* Title & 20% off Badge */}
-                  <div className="space-y-1">
+                  {/* Top: Title + Subtitle + Discount Badge */}
+                  <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug">
-                        {pkg.title}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-md bg-[#e6f7ef] text-[#0f9f59] border border-[#bbf0d4] text-[10.5px] sm:text-[11px] font-bold shrink-0">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-sm leading-snug">
+                          {pkg.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 font-normal">
+                          {pkg.subtitle}
+                        </p>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10.5px] font-bold shrink-0">
                         {pkg.discountBadge}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-500 font-normal line-clamp-1 sm:line-clamp-2">
-                      {pkg.subtitle}
-                    </p>
-                  </div>
-
-                  {/* Price & Book Now Row */}
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <span className="text-xs text-slate-400 line-through font-medium">
-                        ₹{pkg.originalPrice.toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-base sm:text-lg font-bold text-[#2F5FDE]">
-                        ₹{pkg.discountedPrice.toLocaleString("en-IN")}
-                      </span>
+                      {/* Clean 1-Line Info */}
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                        <span className="font-semibold text-slate-700">{pkg.parameters}</span>
+                        <span>•</span>
+                        <span>Fasting Required</span>
+                        <span>•</span>
+                        <span>Home Pickup</span>
+                      </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleBookNow(pkg.id)}
-                      className="px-4 py-1.5 sm:py-2 rounded-xl bg-[#2F5FDE] hover:bg-[#2554c7] text-white font-bold text-xs sm:text-sm shadow-xs hover:shadow-md transition-all cursor-pointer"
-                    >
-                      Book Now
-                    </button>
-                  </div>
+                    {/* Bottom: Price + Action Button */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-base sm:text-lg font-black text-slate-900">
+                          ₹{pkg.discountedPrice.toLocaleString("en-IN")}
+                        </span>
+                        <span className="text-xs text-slate-400 line-through">
+                          ₹{pkg.originalPrice.toLocaleString("en-IN")}
+                        </span>
+                      </div>
 
-                </div>
-              ))}
+                      <button
+                        type="button"
+                        onClick={() => handleBookNow(pkg.id)}
+                        className="px-3.5 py-1.5 rounded-lg bg-[#1e3a8a] hover:bg-[#1d4ed8] text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <span>Book Now</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                  </div>
+                ))}
             </div>
 
           </div>
@@ -516,151 +633,145 @@ export default function CustomerDashboardPage() {
         </div>
 
         {/* ======================================================================= */}
-        {/* RIGHT COLUMN (LG:COL-SPAN-4): WIDGETS (TRACKING, REPORTS, BENEFICIARIES) */}
+        {/* RIGHT COLUMN (LG:COL-SPAN-4): WIDGETS (REPORTS, BENEFICIARIES, RX)       */}
         {/* ======================================================================= */}
-        <div className="lg:col-span-4 space-y-5">
+        <div className="lg:col-span-4 space-y-3.5 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto no-scrollbar">
           
-          {/* 1. Active Live Sample Tracking Widget */}
-          <div className="rounded-3xl bg-gradient-to-br from-[#1e1b4b] to-[#251b5c] text-white p-5 space-y-4 shadow-md">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-extrabold text-[10px] uppercase">
-                  Live Appointment
-                </span>
-                <h3 className="text-sm font-bold text-white mt-1.5">
-                  Full Body Wellness Panel
+
+          {/* 1. Verified Pathology Reports Widget */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-1.5">
+                <div className="h-6 w-6 rounded-md bg-slate-100 text-[#1e3a8a] flex items-center justify-center">
+                  <FileText className="h-3.5 w-3.5" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                  Pathology Lab Reports
                 </h3>
-                <p className="text-[11px] text-blue-200 mt-0.5">
-                  Tomorrow, 07:30 AM • Home Pickup
-                </p>
               </div>
-              <span className="text-[10.5px] font-mono text-blue-200">#ORD-8493</span>
-            </div>
-
-            <div className="bg-white/10 rounded-2xl p-3 border border-white/15 flex items-center justify-between text-xs">
-              <div>
-                <div className="text-slate-300 text-[10.5px]">Phlebotomist: <b>Ravi Kumar</b></div>
-                <div className="text-cyan-300 font-mono font-bold text-sm mt-0.5">Safety OTP: 4821</div>
-              </div>
-              <button
-                type="button"
-                onClick={handleCopyOtp}
-                className="px-3 py-1.5 rounded-xl bg-white text-[#1e1b4b] font-bold text-xs shadow-xs hover:bg-slate-100 cursor-pointer"
+              <Link
+                href="/customer/dashboard/reports"
+                className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-0.5"
               >
-                {copiedOtp ? "Copied ✓" : "Copy OTP"}
-              </button>
-            </div>
-
-            <div className="space-y-1 pt-0.5">
-              <div className="flex justify-between text-[10px] text-blue-200 font-semibold">
-                <span className="text-cyan-300">✓ Assigned</span>
-                <span className="text-white">Sample Pickup</span>
-                <span className="text-slate-400">Lab Test</span>
-              </div>
-              <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-gradient-to-r from-emerald-400 to-cyan-400 h-full w-[50%] rounded-full" />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Verified Pathology Reports Widget */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#382685]" />
-                <span>Pathology Lab Reports</span>
-              </h3>
-              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                Verified
-              </span>
+                <span>View All &amp; Download</span>
+                <ChevronRight className="h-3 w-3" />
+              </Link>
             </div>
 
             <div className="space-y-2">
               {LAB_REPORTS.map((r) => (
-                <div key={r.id} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                <div key={r.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all flex items-center justify-between text-xs">
                   <div className="truncate pr-2">
-                    <div className="font-bold text-slate-900 truncate">{r.title}</div>
-                    <div className="text-[10.5px] text-slate-500">{r.date}</div>
+                    <div className="font-bold text-slate-900 truncate text-xs">{r.title}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1">
+                      <Calendar className="h-3 w-3 text-slate-400" />
+                      <span>{r.date}</span>
+                      <span>•</span>
+                      <span className="text-emerald-700 font-semibold">{r.status}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => setSelectedReportModal(r)}
-                      className="px-2.5 py-1 rounded-lg bg-purple-50 text-[#382685] font-bold text-[11px] hover:bg-purple-100"
+                      className="px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-semibold text-[11px] hover:bg-slate-100 transition-colors cursor-pointer"
                     >
                       View
                     </button>
                     <button
                       type="button"
                       onClick={() => alert(`Downloading verified PDF: ${r.id}.pdf`)}
-                      className="p-1 rounded-lg bg-[#2F5FDE] text-white hover:bg-blue-700"
+                      className="p-1.5 rounded-md bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer"
                       title="Download PDF"
                     >
-                      <Download className="h-3.5 w-3.5" />
+                      <Download className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
               ))}
             </div>
+
+            <Link
+              href="/customer/dashboard/reports"
+              className="w-full py-1.5 text-center block text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-100"
+            >
+              Open Complete Reports Archive ({filteredPackages.length + 6} Records) →
+            </Link>
           </div>
 
-          {/* 3. Family Beneficiaries Quick Widget */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
-                <Users className="h-4 w-4 text-purple-600" />
-                <span>Family Members</span>
-              </h3>
+          {/* 3. Family Members Widget */}
+          <div id="beneficiaries" className="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-1.5">
+                <div className="h-6 w-6 rounded-md bg-slate-100 text-[#1e3a8a] flex items-center justify-center">
+                  <Users className="h-3.5 w-3.5" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                  Family Members
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowAddBenModal(true)}
-                className="text-[11px] font-bold text-[#2F5FDE] hover:underline cursor-pointer"
+                className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
               >
-                + Add Member
+                <Plus className="h-3 w-3" />
+                <span>Add</span>
               </button>
             </div>
 
             <div className="space-y-1.5">
               {beneficiaries.map((b) => (
-                <div key={b.id} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-lg bg-[#251b5c] text-white flex items-center justify-center font-bold text-[10px]">
+                <div key={b.id} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="h-7 w-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">
                       {b.relation.slice(0, 2).toUpperCase()}
                     </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-[11.5px]">{b.fullName}</div>
-                      <div className="text-[10px] text-slate-400">{b.relation} • {b.age} yrs</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900 text-[11px] truncate">{b.fullName}</div>
+                      <div className="text-[10px] text-slate-500">{b.relation} • {b.age} yrs • {b.gender}</div>
                     </div>
                   </div>
                   {b.relation !== "Self" && (
                     <button
                       type="button"
                       onClick={() => removeBeneficiary(b.id)}
-                      className="text-slate-300 hover:text-rose-500 p-1 cursor-pointer"
+                      className="text-slate-400 hover:text-rose-500 p-1 rounded hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                      title="Remove member"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   )}
                 </div>
               ))}
             </div>
+
+            <Link
+              href="/customer/dashboard/beneficiaries"
+              className="w-full py-1.5 text-center block text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-100"
+            >
+              View All &amp; Manage Beneficiaries ({beneficiaries.length}) →
+            </Link>
           </div>
 
           {/* 4. Prescription Upload CTA Card */}
-          <div className="p-4 rounded-3xl border border-rose-200 bg-rose-50/50 space-y-2">
-            <div className="flex items-center gap-2 text-rose-900 font-bold text-xs">
-              <FileText className="h-4 w-4 text-rose-600" />
-              <span>Have a Doctor&apos;s Prescription?</span>
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-slate-900 font-bold text-xs sm:text-sm">
+              <div className="h-6 w-6 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center">
+                <FileText className="h-3.5 w-3.5" />
+              </div>
+              <span>Have a Prescription?</span>
             </div>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Upload your prescription slip and our lab care coordinator will call you to build your test package.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Upload doctor prescription slip to get customized lab test assistance within 10 minutes.
             </p>
             <button
               type="button"
               onClick={() => setRxModal(true)}
-              className="w-full py-2 rounded-xl bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+              className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
-              Upload Prescription Slip
+              <Upload className="h-3.5 w-3.5" />
+              <span>Upload Prescription</span>
             </button>
           </div>
 
@@ -668,221 +779,7 @@ export default function CustomerDashboardPage() {
 
       </div>
 
-      {/* ========================================================================= */}
-      {/* POPUP MODAL: SELECT TESTS & PROFILES (CRA MULTI-SELECT STANDARD)          */}
-      {/* ========================================================================= */}
-      {isSelectTestsModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 space-y-4 shadow-2xl animate-in zoom-in-95 border border-slate-200 max-h-[90vh] flex flex-col">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-100 text-[#251b5c] border border-purple-200">
-                    20% Discount Active
-                  </span>
-                  <h3 className="font-black text-lg text-slate-900">Select Tests &amp; Profiles</h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Choose from 100+ diagnostic tests &amp; comprehensive wellness profiles
-                </p>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => setIsSelectTestsModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Search Bar & Tabs */}
-            <div className="space-y-2.5 shrink-0">
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={modalSearchQuery}
-                  onChange={(e) => setModalSearchQuery(e.target.value)}
-                  placeholder="Search tests: CBC, Thyroid, Lipid, HbA1c, Full Body..."
-                  className="w-full h-10 pl-10 pr-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#251b5c] font-medium text-slate-900"
-                  autoFocus
-                />
-              </div>
-
-              {/* Tabs */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                <button
-                  type="button"
-                  onClick={() => setModalTab("all")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    modalTab === "all" ? "bg-[#251b5c] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                  }`}
-                >
-                  All ({allCatalogItems.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalTab("packages")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    modalTab === "packages" ? "bg-[#251b5c] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                  }`}
-                >
-                  Wellness Profiles (12)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalTab("tests")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    modalTab === "tests" ? "bg-[#251b5c] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                  }`}
-                >
-                  Clinical Tests (90+)
-                </button>
-              </div>
-
-              {/* Quick 1-Tap Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-                {POPULAR_QUICK_PICKS.map((pick) => {
-                  const isSelected = modalSelectedIds.includes(pick.id)
-                  return (
-                    <button
-                      key={pick.id}
-                      type="button"
-                      onClick={() => handleModalToggleItem(pick.id)}
-                      className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer whitespace-nowrap ${
-                        isSelected
-                          ? "bg-[#251b5c] text-white border-[#251b5c]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      {isSelected ? "✓ " : "+ "}{pick.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Scrollable Tests List */}
-            <div className="overflow-y-auto p-1 space-y-1.5 divide-y divide-slate-100 flex-1 min-h-[220px]">
-              {filteredModalItems.map((item) => {
-                const isSelected = modalSelectedIds.includes(item.id)
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => handleModalToggleItem(item.id)}
-                    className={`p-3 rounded-2xl flex items-center justify-between gap-3 transition-colors cursor-pointer ${
-                      isSelected 
-                        ? "bg-purple-50/90 border border-purple-200 text-purple-950 font-bold" 
-                        : "hover:bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                        isSelected ? "bg-[#251b5c] border-[#251b5c] text-white" : "border-slate-300 bg-white"
-                      }`}>
-                        {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-bold truncate text-slate-900">
-                          {item.name}
-                        </div>
-                        <div className="text-[10.5px] text-slate-500 flex items-center gap-1.5 font-mono">
-                          <span>{item.code}</span>
-                          <span>•</span>
-                          <span>{item.parameterCount}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="font-bold text-xs sm:text-sm text-[#251b5c]">₹{item.price}</span>
-                        <span className="text-[10px] line-through text-slate-400">₹{item.mrp}</span>
-                      </div>
-                      <span className="text-[9.5px] font-extrabold text-[#0f9f59] bg-[#e6f7ef] px-1.5 py-0.5 rounded">
-                        20% OFF
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {filteredModalItems.length === 0 && (
-                <div className="p-8 text-center text-xs text-slate-400">
-                  No tests or profiles found matching &quot;{modalSearchQuery}&quot;
-                </div>
-              )}
-            </div>
-
-            {/* Selected Items Tray */}
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shrink-0 space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Selected Items ({modalSelectedItems.length})</span>
-                <span className="text-emerald-700 font-extrabold text-[11px]">20% Discount Active</span>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
-                {modalSelectedItems.map((item) => (
-                  <span
-                    key={item.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-800 shadow-2xs"
-                  >
-                    <span className="truncate max-w-[130px] font-bold">{item.name}</span>
-                    <span className="text-[#251b5c] font-bold">₹{item.price}</span>
-                    {modalSelectedItems.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleModalRemoveItem(item.id)
-                        }}
-                        className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Bottom Action Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 shrink-0">
-              <div>
-                <div className="text-[11px] text-slate-500">
-                  Total MRP: <span className="line-through">₹{modalTotalMrp}</span> • Saving: <span className="text-emerald-600 font-bold">₹{modalTotalDiscount}</span>
-                </div>
-                <div className="text-sm sm:text-base font-black text-[#251b5c]">
-                  Total Payable: ₹{modalTotalPrice}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsSelectTestsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleProceedToBooking}
-                  className="px-5 py-2.5 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Proceed to Booking ({modalSelectedItems.length})</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* POPUP MODAL: LAB REPORT PREVIEW WITH QR CODE & REFERENCE RANGES           */}

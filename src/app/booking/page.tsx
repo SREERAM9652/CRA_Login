@@ -537,48 +537,54 @@ function BookingWizardContent() {
       <main className="flex-1 w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 pb-28 lg:pb-8 space-y-6">
 
         {/* ======================================================================= */}
-        {/* 1. TOP STEPPER CAPSULE WITH ARROWS & SUBTITLES                          */}
+        {/* 1. TOP STEPPER CAPSULE WITH CONNECTED PROGRESS TRACK                    */}
         {/* ======================================================================= */}
         {step <= 4 && (
-          <div className="bg-white rounded-[8px] py-4 px-4 sm:px-6 border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center justify-between max-w-5xl mx-auto px-2 sm:px-4">
+          <div className="bg-white rounded-[8px] py-3 px-4 sm:px-6 border border-slate-200/90 shadow-2xs">
+            <div className="flex items-center justify-between w-full">
 
               {stepsList.map((s, idx) => {
                 const isCurrent = step === s.num
                 const isPassed = step > s.num
                 return (
-                  <div key={s.num} className="flex items-center flex-1 last:flex-none">
+                  <div key={s.num} className="flex items-center flex-1 last:flex-none min-w-0">
 
                     <div
                       onClick={() => {
                         if (isPassed) setStep(s.num)
                       }}
-                      className={`flex flex-col items-center text-center gap-1.5 cursor-pointer group flex-1 ${!isPassed && !isCurrent ? "cursor-not-allowed opacity-60" : ""
-                        }`}
+                      className={`flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0 transition-opacity ${
+                        !isPassed && !isCurrent ? "cursor-not-allowed opacity-60" : "hover:opacity-90"
+                      }`}
                     >
-                      <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-black text-xs sm:text-sm transition-all ${isCurrent
-                        ? "bg-[#1e3a8a] text-white shadow-sm ring-2 ring-blue-200"
-                        : isPassed
-                          ? "bg-emerald-600 text-white shadow-xs"
-                          : "bg-slate-100 text-slate-400 border border-slate-200"
-                        }`}>
-                        {isPassed ? <Check className="h-4 w-4 stroke-[3]" /> : s.num}
+                      <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
+                        isCurrent
+                          ? "bg-[#1e3a8a] text-white shadow-xs"
+                          : isPassed
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}>
+                        {isPassed ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : s.num}
                       </div>
 
-                      <div className="space-y-0.5">
-                        <div className={`text-xs font-bold leading-tight ${isCurrent ? "text-[#1e3a8a]" : isPassed ? "text-slate-800" : "text-slate-400"}`}>
+                      <div className="text-left leading-tight">
+                        <div className={`text-xs font-bold whitespace-nowrap ${
+                          isCurrent ? "text-[#1e3a8a]" : isPassed ? "text-slate-800" : "text-slate-500"
+                        }`}>
                           {s.name}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-medium hidden sm:block">
+                        <div className="text-[10px] text-slate-400 font-medium hidden lg:block whitespace-nowrap">
                           {s.subtitle}
                         </div>
                       </div>
                     </div>
 
-                    {/* Arrow Divider */}
+                    {/* Progress Connecting Line */}
                     {idx < stepsList.length - 1 && (
-                      <div className="px-2 text-slate-300 shrink-0 hidden sm:block">
-                        <ArrowRight className="h-4 w-4" />
+                      <div className="flex-1 mx-2.5 sm:mx-4 h-0.5 bg-slate-200 min-w-[16px] rounded-full overflow-hidden">
+                        <div className={`h-full transition-all duration-300 ${
+                          isPassed ? "bg-emerald-500 w-full" : "w-0"
+                        }`} />
                       </div>
                     )}
 

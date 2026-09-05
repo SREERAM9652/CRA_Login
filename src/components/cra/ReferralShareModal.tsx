@@ -53,7 +53,7 @@ export function ReferralShareModal({
     (profileTitle ? `🩺 Recommended Profile: *${profileTitle}*\n` : `🩺 100+ Clinical & Preventive Tests Available\n`) +
     `🎁 Special Partner Discount: *${discountPercent}% OFF*\n` +
     `🏠 Free Home Sample Collection by Certified Phlebotomists\n` +
-    `⚡ Smart WhatsApp & NABL Verified Digital Reports\n\n` +
+    `⚡ Smart WhatsApp & Fast Digital Lab Reports\n\n` +
     `Book online now:\n${resolvedUrl}`
   )
 
@@ -174,7 +174,7 @@ export function ReferralShareModal({
           {/* Direct Link Input with 1-Click Copy */}
           <div className="space-y-1.5">
             <label className="font-bold text-slate-700 uppercase text-[10.5px] tracking-wider flex items-center justify-between">
-              <span>Your Unique Referral URL</span>
+              <span>Referral URL</span>
               <span className="text-slate-400 font-normal">Code: {craCode}</span>
             </label>
             <div className="flex items-center gap-2">

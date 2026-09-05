@@ -53,7 +53,9 @@ export default function CRADashboardOverview() {
   const userIntroducer = mounted ? currentUser.c1Name : undefined
   const isC1 = userRole === "c1"
 
-  const wallet = getUserWallet(currentUser.id)
+  const currentUserId = mounted ? currentUser.id : DEFAULT_C1.id
+  const wallet = getUserWallet(currentUserId)
+  const beneficiaryCount = mounted ? beneficiaries.length : 3
 
   const referralUrl = typeof window !== "undefined"
     ? `${window.location.origin}/booking?ref=${userCode}`
@@ -150,7 +152,7 @@ export default function CRADashboardOverview() {
               <Share2 className="h-4 w-4 text-cyan-300" />
             </div>
             <div>
-              <h2 className="font-black text-sm text-slate-900">Your Unique Referral Link &amp; Sharing</h2>
+              <h2 className="font-black text-sm text-slate-900">Referral Link &amp; Sharing</h2>
               <p className="text-[11px] text-slate-500">Every customer booking via this link earns you 30% direct cash incentive</p>
             </div>
           </div>
@@ -226,7 +228,7 @@ export default function CRADashboardOverview() {
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {/* RR Generated */}
           <div className="bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between space-y-0.5 shadow-2xs" suppressHydrationWarning>
-            <div className="font-mono font-bold text-sm sm:text-2xl text-slate-900 truncate">
+            <div className="font-mono font-bold text-sm sm:text-2xl text-slate-900 truncate" suppressHydrationWarning>
               ₹{wallet.totalRealizedRevenue.toLocaleString("en-IN")}
             </div>
             <div className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight">
@@ -236,17 +238,17 @@ export default function CRADashboardOverview() {
 
           {/* My Incentive */}
           <div className="bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between space-y-0.5 shadow-2xs" suppressHydrationWarning>
-            <div className="font-mono font-bold text-sm sm:text-2xl text-[#2F5FDE] truncate">
+            <div className="font-mono font-bold text-sm sm:text-2xl text-[#2F5FDE] truncate" suppressHydrationWarning>
               ₹{wallet.totalIncentive.toLocaleString("en-IN")}
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight truncate">
+            <div className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight truncate" suppressHydrationWarning>
               {wallet.overrideIncentive > 0 ? "30% + 10% bonus" : "30% direct"}
             </div>
           </div>
 
           {/* Active Leads */}
           <div className="bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between space-y-0.5 shadow-2xs" suppressHydrationWarning>
-            <div className="font-mono font-bold text-sm sm:text-2xl text-slate-900 truncate">
+            <div className="font-mono font-bold text-sm sm:text-2xl text-slate-900 truncate" suppressHydrationWarning>
               {wallet.transactions.length > 0 ? wallet.transactions.length : (isC1 ? 6 : 3)}
             </div>
             <div className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight">
@@ -279,8 +281,9 @@ export default function CRADashboardOverview() {
                   ? "bg-[#251b5c] text-white shadow-xs"
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
               }`}
+              suppressHydrationWarning
             >
-              B. Personal &amp; Family Care ({beneficiaries.length} Members)
+              B. Personal &amp; Family Care ({beneficiaryCount} Members)
             </button>
           </div>
         </div>

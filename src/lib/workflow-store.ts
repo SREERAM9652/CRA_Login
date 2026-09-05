@@ -14,6 +14,16 @@ export interface CRAUser {
   c1Name?: string // Name of parent / introducer
 }
 
+export interface LoginResult {
+  success: boolean
+  targetUrl: string
+  role: "c1" | "c2" | "customer"
+  accountName: string
+  user: CRAUser | CustomerProfile
+  message?: string
+  error?: string
+}
+
 export interface Beneficiary {
   id: string
   fullName: string
@@ -424,6 +434,100 @@ export const DEFAULT_C2_LIST: CRAUser[] = [
     city: "Vijayawada",
     c1Id: "C2-MAHENDRA",
     c1Name: "SAI MAHENDRA"
+  }
+]
+
+export interface SystemAccount {
+  id: string
+  role: "c1" | "c2" | "customer"
+  personaKey: "sreeram" | "sudheer" | "mahendra" | "vishnu" | "customer"
+  name: string
+  roleTitle: string
+  code: string
+  mobile: string
+  email: string
+  password: string
+  targetDashboard: string
+  description: string
+  badgeColor: string
+  aliases?: string[]
+}
+
+export const SYSTEM_ACCOUNTS: SystemAccount[] = [
+  {
+    id: "C1-SREERAM",
+    role: "c1",
+    personaKey: "sreeram",
+    name: "THURAKA SREERAM",
+    roleTitle: "Primary CRA Super-Partner (C1)",
+    code: "AVM-SREERAM-C1",
+    mobile: "9845012345",
+    email: "sreeram.thuraka@avmlabs.com",
+    password: "sreeram@123",
+    targetDashboard: "/cra/dashboard",
+    description: "Top Root Partner • 30% Direct Commission + 10% 2nd-Level Override from Sub-Partners",
+    badgeColor: "bg-purple-100 text-[#382685] border-purple-200",
+    aliases: ["sreeram", "c1", "+91 98450 12345", "98450 12345"]
+  },
+  {
+    id: "C2-SUDHEER",
+    role: "c2",
+    personaKey: "sudheer",
+    name: "SUDHEER REDDY",
+    roleTitle: "Tier-2 Sub-Partner (C2)",
+    code: "AVM-SUDHEER-C2",
+    mobile: "9886054321",
+    email: "sudheer.reddy@avmlabs.com",
+    password: "sudheer@123",
+    targetDashboard: "/cra/dashboard",
+    description: "Introduced by Thuraka Sreeram • 30% Direct Commission on Diagnostic Bookings",
+    badgeColor: "bg-blue-100 text-[#2F5FDE] border-blue-200",
+    aliases: ["sudheer", "+91 98860 54321", "98860 54321"]
+  },
+  {
+    id: "C2-MAHENDRA",
+    role: "c2",
+    personaKey: "mahendra",
+    name: "SAI MAHENDRA",
+    roleTitle: "Tier-2 Partner & Introducer (C2)",
+    code: "AVM-MAHENDRA-C2",
+    mobile: "9740098765",
+    email: "sai.mahendra@avmlabs.com",
+    password: "mahendra@123",
+    targetDashboard: "/cra/dashboard",
+    description: "Introduced by Sreeram & Introducer of Vishnu • 30% Direct + 10% Sub-Partner Override",
+    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    aliases: ["mahendra", "9877011223", "+91 97400 98765", "97400 98765"]
+  },
+  {
+    id: "C2-VISHNU",
+    role: "c2",
+    personaKey: "vishnu",
+    name: "VISHNU VARDHAN",
+    roleTitle: "Tier-3 Partner (C2 Sub)",
+    code: "AVM-VISHNU-C2",
+    mobile: "9822077112",
+    email: "vishnu.vardhan@avmlabs.com",
+    password: "vishnu@123",
+    targetDashboard: "/cra/dashboard",
+    description: "Introduced by Sai Mahendra • 30% Direct Commission (Overrides stop at Mahendra)",
+    badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+    aliases: ["vishnu", "9866033445", "+91 98220 77112", "98220 77112"]
+  },
+  {
+    id: "CUST-981",
+    role: "customer",
+    personaKey: "customer",
+    name: "Suresh M.",
+    roleTitle: "Patient / Health Customer",
+    code: "CUST-SURESH",
+    mobile: "9845012345",
+    email: "suresh.m@example.com",
+    password: "customer@123",
+    targetDashboard: "/customer/dashboard",
+    description: "Customer Health Portal • Book Diagnostic Packages, Home Sample Collection & View Reports",
+    badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
+    aliases: ["suresh", "customer", "patient"]
   }
 ]
 
@@ -1247,6 +1351,127 @@ export function useWorkflowStore() {
     updateGlobalState(newState)
   }
 
+  // Unified credential-based login: maps identifier and password to the correct user & dashboard
+  const loginWithCredentials = (identifier: string, _password?: string): LoginResult => {
+    const rawTrimmed = (identifier || "").trim()
+    const cleanId = rawTrimmed.toLowerCase()
+    const cleanDigits = rawTrimmed.replace(/[\s\-()]/g, "").replace(/^(\+91|91|0)/, "")
+
+    if (!rawTrimmed) {
+      return {
+        success: false,
+        targetUrl: "/login",
+        role: "customer",
+        accountName: "",
+        user: state.currentUser,
+        error: "Please enter your Mobile Number, Email ID, or CRA ID."
+      }
+    }
+
+    // 1. Check exact or alias match in SYSTEM_ACCOUNTS
+    const matchedSystemAccount = SYSTEM_ACCOUNTS.find((acc) => {
+      const codeMatch = acc.code.toLowerCase() === cleanId
+      const emailMatch = acc.email.toLowerCase() === cleanId
+      const mobileMatch = acc.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+      const personaMatch = acc.personaKey === cleanId
+      const idMatch = acc.id.toLowerCase() === cleanId
+      const aliasMatch = acc.aliases?.some(
+        (a) =>
+          a.toLowerCase() === cleanId ||
+          a.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+      )
+      return codeMatch || emailMatch || mobileMatch || personaMatch || idMatch || aliasMatch
+    })
+
+    if (matchedSystemAccount) {
+      if (matchedSystemAccount.role === "c1" || matchedSystemAccount.role === "c2") {
+        switchRole(matchedSystemAccount.personaKey as any)
+        return {
+          success: true,
+          targetUrl: "/cra/dashboard",
+          role: matchedSystemAccount.role,
+          accountName: matchedSystemAccount.name,
+          user: state.currentUser,
+          message: `Authenticated as ${matchedSystemAccount.name} (${matchedSystemAccount.roleTitle}). Opening Partner Dashboard...`
+        }
+      }
+
+      if (matchedSystemAccount.role === "customer") {
+        loginCustomer({
+          name: matchedSystemAccount.name,
+          mobile: matchedSystemAccount.mobile,
+          email: matchedSystemAccount.email
+        })
+        switchRole("customer")
+        return {
+          success: true,
+          targetUrl: "/customer/dashboard",
+          role: "customer",
+          accountName: matchedSystemAccount.name,
+          user: state.customer,
+          message: `Welcome ${matchedSystemAccount.name}! Opening Customer Dashboard...`
+        }
+      }
+    }
+
+    // 2. Check if identifier matches any custom C2 Partner created dynamically in state.c2List
+    const matchedCustomC2 = state.c2List.find((c2) => {
+      const codeMatch = c2.code.toLowerCase() === cleanId
+      const emailMatch = c2.email.toLowerCase() === cleanId
+      const mobileMatch = c2.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+      const idMatch = c2.id.toLowerCase() === cleanId
+      return codeMatch || emailMatch || mobileMatch || idMatch
+    })
+
+    if (matchedCustomC2) {
+      switchRole("c2", matchedCustomC2.id)
+      return {
+        success: true,
+        targetUrl: "/cra/dashboard",
+        role: "c2",
+        accountName: matchedCustomC2.name,
+        user: matchedCustomC2,
+        message: `Welcome back, ${matchedCustomC2.name}! Opening Partner Dashboard...`
+      }
+    }
+
+    // 4. CRA ID Pattern fallback (e.g. AVM-XXXX-C1 or AVM-XXXX-C2)
+    if (/^AVM-[A-Za-z0-9-]+$/i.test(rawTrimmed)) {
+      switchRole("c1")
+      return {
+        success: true,
+        targetUrl: "/cra/dashboard",
+        role: "c1",
+        accountName: state.c1.name,
+        user: state.c1,
+        message: `CRA Partner ID verified. Opening Partner Dashboard...`
+      }
+    }
+
+    // 5. Default Patient / Customer authentication
+    const customerDisplayName = rawTrimmed.includes("@")
+      ? rawTrimmed.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      : cleanDigits.length === 10
+        ? `Patient (${cleanDigits.slice(-4)})`
+        : rawTrimmed
+
+    loginCustomer({
+      name: customerDisplayName || "Suresh M.",
+      mobile: cleanDigits.length === 10 ? `+91 ${cleanDigits}` : state.customer?.mobile || "+91 98450 12345",
+      email: rawTrimmed.includes("@") ? rawTrimmed : state.customer?.email || "suresh.m@example.com"
+    })
+    switchRole("customer")
+
+    return {
+      success: true,
+      targetUrl: "/customer/dashboard",
+      role: "customer",
+      accountName: customerDisplayName || "Suresh M.",
+      user: state.customer,
+      message: `Welcome ${customerDisplayName}! Opening Customer Dashboard...`
+    }
+  }
+
   const resetDemo = () => {
     const newState: WorkflowState = {
       currentUser: DEFAULT_C1,
@@ -1649,6 +1874,7 @@ export function useWorkflowStore() {
     setCustomerReferral,
     loginCustomer,
     logoutCustomer,
+    loginWithCredentials,
     createCustomProfile,
     deleteCustomProfile,
     updateOrgProfile,

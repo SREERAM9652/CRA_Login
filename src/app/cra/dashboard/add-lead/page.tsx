@@ -336,7 +336,7 @@ function AddReferralContent() {
             <Share2 className="h-4.5 w-4.5 text-[#2F5FDE] shrink-0" />
             <div className="min-w-0">
               <span className="font-bold text-slate-900">Want the customer to book by themselves?</span>
-              <p className="text-[11px] text-slate-500 truncate">Share your unique link or QR flyer directly on WhatsApp</p>
+              <p className="text-[11px] text-slate-500 truncate">Share link or QR flyer directly on WhatsApp</p>
             </div>
           </div>
 

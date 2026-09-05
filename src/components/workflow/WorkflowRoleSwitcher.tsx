@@ -27,7 +27,7 @@ export function WorkflowRoleSwitcher() {
           {/* C1 Button */}
           <button
             type="button"
-            onClick={() => switchRole("c1")}
+            onClick={() => switchRole("sreeram")}
             className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
               currentUser.role === "c1"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-900/40 ring-2 ring-purple-300 font-black"
@@ -35,22 +35,22 @@ export function WorkflowRoleSwitcher() {
             }`}
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>👑 C1 Primary (Rajesh)</span>
+            <span>👑 C1 Primary (Sreeram)</span>
             <span className="text-[10px] opacity-80 font-normal">30% + 10%</span>
           </button>
 
           {/* C2 Button */}
           <button
             type="button"
-            onClick={() => switchRole("c2")}
+            onClick={() => switchRole("sudheer")}
             className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-              currentUser.role === "c2"
+              currentUser.role === "c2" && currentUser.id === "C2-SUDHEER"
                 ? "bg-cyan-600 text-white shadow-md shadow-cyan-900/40 ring-2 ring-cyan-300 font-black"
                 : "bg-white/10 hover:bg-white/20 text-slate-200"
             }`}
           >
             <span className="h-2 w-2 rounded-full bg-cyan-300" />
-            <span>🤝 C2 Secondary ({c2List[0]?.name.split(" ")[0] || "Rohan"})</span>
+            <span>🤝 C2 Secondary (Sudheer)</span>
             <span className="text-[10px] opacity-80 font-normal">30% Direct</span>
           </button>
 

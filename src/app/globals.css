@@ -16,6 +16,17 @@
   --border: #e2e8f0;
 }
 
+/* Global text selection color: classic bright blue */
+::selection {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+::-moz-selection {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
