@@ -15,7 +15,10 @@ import {
   Filter,
   Clock,
   Sparkles,
-  ArrowUpRight
+  ArrowUpRight,
+  X,
+  Building2,
+  Check
 } from "lucide-react"
 
 export interface LedgerEntry {
@@ -213,7 +216,7 @@ const EARNING_FILTERS = [
 ]
 
 export default function EarningsStatementPage() {
-  const { currentUser, getUserWallet } = useWorkflowStore()
+  const { currentUser, getUserWallet, requestWalletWithdrawal } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
   const wallet = getUserWallet(currentUser.id)
   const isC1 = currentUser.role === "c1"
@@ -221,6 +224,31 @@ export default function EarningsStatementPage() {
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  // Dual Utility Wallet Action State
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [withdrawAmount, setWithdrawAmount] = useState(wallet.totalIncentive.toString() || "1000")
+  const [withdrawMethod, setWithdrawMethod] = useState<"Bank Transfer" | "UPI">("Bank Transfer")
+  const [withdrawSubmitted, setWithdrawSubmitted] = useState(false)
+
+  const handleWithdrawSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    requestWalletWithdrawal({
+      amount: parseInt(withdrawAmount, 10) || 500,
+      method: withdrawMethod,
+      bankDetails: {
+        bankName: "HDFC Bank Ltd",
+        accountNumber: "•••• •••• 9182",
+        ifsc: "HDFC0001234",
+        upiId: `${currentUser.name.toLowerCase().replace(/\s+/g, ".")}@okhdfcbank`
+      }
+    })
+    setWithdrawSubmitted(true)
+    setTimeout(() => {
+      setWithdrawSubmitted(false)
+      setShowWithdrawModal(false)
+    }, 2500)
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -327,6 +355,44 @@ export default function EarningsStatementPage() {
           <p className="text-xs text-slate-600 font-medium pt-1">
             {wallet.overrideIncentive > 0 ? "30% Direct Referrals + 10% Team Bonus" : "30% Direct Referrals"}
           </p>
+        </div>
+      </div>
+
+      {/* Dual Utility Wallet Action Card (Encash vs. Retain & Use for Bookings) */}
+      <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-[#1e1b4b] text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5 max-w-xl">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+              Dual Wallet Utility
+            </span>
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-white">
+            Available Wallet Balance: ₹{wallet.totalIncentive.toLocaleString("en-IN")}
+          </h3>
+          <p className="text-xs text-blue-200 leading-relaxed font-medium">
+            You can either encash your earnings directly to your verified bank account or retain the balance in your wallet to book future lab tests for yourself and your family.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+          {/* Action 1: Encash / Withdraw */}
+          <button
+            type="button"
+            onClick={() => setShowWithdrawModal(true)}
+            className="h-11 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+          >
+            <Coins className="h-4 w-4 text-[#382685]" />
+            <span>Encash / Withdraw</span>
+          </button>
+
+          {/* Action 2: Retain & Book for Family */}
+          <Link
+            href="/cra/dashboard/add-lead?mode=family"
+            className="h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+          >
+            <Wallet className="h-4 w-4" />
+            <span>Use for Test Booking</span>
+          </Link>
         </div>
       </div>
 
@@ -593,6 +659,106 @@ export default function EarningsStatementPage() {
         )}
 
       </div>
+
+      {/* Encash / Withdraw to Bank Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200/90 p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+            
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4.5 w-4.5 text-[#382685]" />
+                <h3 className="font-black text-sm sm:text-base text-slate-900">
+                  Encash Wallet Earnings
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWithdrawModal(false)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {withdrawSubmitted ? (
+              <div className="py-6 text-center space-y-3 animate-in fade-in">
+                <div className="h-14 w-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+                  <Check className="h-7 w-7 stroke-[3]" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-black text-slate-900 text-base">Withdrawal Request Submitted</h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    ₹{withdrawAmount} requested to registered bank account. Payout batch runs every Monday.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[10.5px] tracking-wider mb-1">
+                    Withdrawal Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="100"
+                    max={wallet.totalIncentive}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
+                  />
+                  <span className="text-[10.5px] text-slate-400 mt-1 block">
+                    Available balance: ₹{wallet.totalIncentive.toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[10.5px] tracking-wider mb-1">
+                    Payout Destination
+                  </label>
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-[#382685]" />
+                        <span>HDFC Bank (Primary Account)</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                        KYC Verified
+                      </span>
+                    </div>
+                    <div className="font-mono text-slate-600 text-[11px]">
+                      A/C: •••• •••• 9182 • IFSC: HDFC0001234
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pending Confirmation Disclaimer Note */}
+                <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900 text-[11px] leading-relaxed">
+                  <strong>Commercial Policy Notice:</strong> Minimum withdrawal thresholds, TDS deductor rules, and bank settlement turnaround times are conceptual and pending final business confirmation.
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowWithdrawModal(false)}
+                    className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 h-11 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs"
+                  >
+                    Confirm Withdrawal
+                  </button>
+                </div>
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
 
     </div>
   )

@@ -112,6 +112,122 @@ export interface LiveActivityEvent {
   isLive?: boolean
 }
 
+// -------------------------------------------------------------
+// CRA 'MAKE MY PROFILE' - CUSTOM HEALTH PROFILE BUNDLER
+// -------------------------------------------------------------
+export interface CRACustomProfile {
+  id: string
+  craId: string
+  craName: string
+  brandOrOrgName: string // e.g. "XYZ Yoga & Wellness Center"
+  profileTitle: string   // e.g. "XYZ Yoga Complete Detox & Vitality Profile"
+  description: string
+  category: "Wellness & Preventive" | "Cardio-Diabetic" | "Women's Health" | "Senior Care" | "Custom Clinic Panel"
+  selectedTestCodes: string[] // List of AVM Labs test codes included in this profile
+  testNames: string[]
+  totalMrp: number
+  discountedPrice: number
+  realizedRevenue: number
+  directIncentive: number
+  createdAt: string
+  shareLink: string
+}
+
+export interface CRAOrgProfile {
+  brandName: string // e.g. "XYZ Yoga & Wellness Center"
+  diagnosticCenterName: string // e.g. "XYZ Yoga & Diagnostic Center"
+  category: "Doctor / Clinic" | "Hospital" | "Yoga & Wellness" | "Gym / Fitness" | "Diagnostic Consultant" | "Corporate / Other"
+  tagline: string
+  address: string
+  contactPhone: string
+  isCustomProfileActive: boolean
+}
+
+export interface WalletWithdrawalRequest {
+  id: string
+  userId: string
+  userName: string
+  amount: number
+  method: "Bank Transfer" | "UPI"
+  bankDetails: {
+    bankName: string
+    accountNumber: string
+    ifsc: string
+    upiId?: string
+  }
+  requestedAt: string
+  status: "Pending Processing" | "Approved & Disbursed"
+}
+
+// Discount logic is configurable (10%-30% range discussed, pending final business confirmation)
+export const CRA_DISCOUNT_CONFIG = {
+  customerDiscountPercent: 20, // 20% currently applied
+  minRangePercent: 10,
+  maxRangePercent: 30,
+  directIncentivePercent: 30,
+  teamOverridePercent: 10,
+  isPendingConfirmation: true
+}
+
+export const DEFAULT_ORG_PROFILE: CRAOrgProfile = {
+  brandName: "XYZ Yoga & Wellness Center",
+  diagnosticCenterName: "XYZ Yoga & Diagnostic Center",
+  category: "Yoga & Wellness",
+  tagline: "Holistic Health, Preventive Diagnostics & Daily Vitality (Powered by AVM Labs)",
+  address: "#108, Prana Wellness Avenue, Jubilee Hills, Hyderabad",
+  contactPhone: "+91 98450 12345",
+  isCustomProfileActive: true
+}
+
+export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
+  {
+    id: "profile-yoga-vitality",
+    craId: "C1-SREERAM",
+    craName: "THURAKA SREERAM",
+    brandOrOrgName: "XYZ Yoga & Wellness Center",
+    profileTitle: "XYZ Yoga Complete Detox & Vitality Profile",
+    description: "Curated diagnostic wellness panel designed for yoga practitioners to monitor metabolic rate, muscle recovery, cellular hydration and endocrine harmony.",
+    category: "Wellness & Preventive",
+    selectedTestCodes: ["H6", "FBS", "LIPID", "TSH", "VITD"],
+    testNames: [
+      "Complete Blood Count (CBC)",
+      "Fasting Blood Sugar (FBS)",
+      "Lipid Profile (Cholesterol & Triglycerides)",
+      "Thyroid Stimulating Hormone (TSH)",
+      "Vitamin D 25-Hydroxy"
+    ],
+    totalMrp: 2800,
+    discountedPrice: 2240,
+    realizedRevenue: 2240,
+    directIncentive: 672,
+    createdAt: "Yesterday",
+    shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-yoga-vitality"
+  },
+  {
+    id: "profile-cardio-care",
+    craId: "C1-SREERAM",
+    craName: "THURAKA SREERAM",
+    brandOrOrgName: "Apex Heart & Life Care",
+    profileTitle: "Executive Cardio-Vascular Risk Assessment",
+    description: "Specialized clinical panel curated for executive lifestyle screening and cardiovascular health tracking.",
+    category: "Cardio-Diabetic",
+    selectedTestCodes: ["H6", "HBA1C", "LIPID", "KFT", "CRP"],
+    testNames: [
+      "Complete Blood Count (CBC)",
+      "HbA1c Glycated Hemoglobin",
+      "Lipid Profile Comprehensive",
+      "Kidney Function Test (KFT)",
+      "High Sensitivity CRP (hs-CRP)"
+    ],
+    totalMrp: 3400,
+    discountedPrice: 2720,
+    realizedRevenue: 2720,
+    directIncentive: 816,
+    createdAt: "3 days ago",
+    shareLink: "https://avmlabs.com/booking?ref=AVM-SREERAM-C1&profile=profile-cardio-care"
+  }
+]
+
 export const DEFAULT_BENEFICIARIES: Beneficiary[] = [
   {
     id: "ben-1",
@@ -815,9 +931,12 @@ interface WorkflowState {
   isCustomerLoggedIn: boolean
   beneficiaries: Beneficiary[]
   prescriptionRequests: PrescriptionRequest[]
+  customProfiles: CRACustomProfile[]
+  orgProfile: CRAOrgProfile
+  withdrawalRequests: WalletWithdrawalRequest[]
 }
 
-const STORAGE_KEY = "avm_workflow_state_v8"
+const STORAGE_KEY = "avm_workflow_state_v9"
 
 function loadState(): WorkflowState {
   if (typeof window === "undefined") {
@@ -831,7 +950,10 @@ function loadState(): WorkflowState {
       customer: DEFAULT_CUSTOMER,
       isCustomerLoggedIn: false,
       beneficiaries: DEFAULT_BENEFICIARIES,
-      prescriptionRequests: DEFAULT_PRESCRIPTIONS
+      prescriptionRequests: DEFAULT_PRESCRIPTIONS,
+      customProfiles: DEFAULT_CUSTOM_PROFILES,
+      orgProfile: DEFAULT_ORG_PROFILE,
+      withdrawalRequests: []
     }
   }
 
@@ -839,14 +961,16 @@ function loadState(): WorkflowState {
     const data = localStorage.getItem(STORAGE_KEY)
     if (data) {
       const parsed = JSON.parse(data)
-      // Validate that currentUser matches current personas
       if (parsed.currentUser && parsed.c1 && parsed.c2List) {
         return {
           ...parsed,
           customer: parsed.customer || DEFAULT_CUSTOMER,
           isCustomerLoggedIn: parsed.isCustomerLoggedIn ?? false,
           beneficiaries: parsed.beneficiaries || DEFAULT_BENEFICIARIES,
-          prescriptionRequests: parsed.prescriptionRequests || DEFAULT_PRESCRIPTIONS
+          prescriptionRequests: parsed.prescriptionRequests || DEFAULT_PRESCRIPTIONS,
+          customProfiles: parsed.customProfiles || DEFAULT_CUSTOM_PROFILES,
+          orgProfile: parsed.orgProfile || DEFAULT_ORG_PROFILE,
+          withdrawalRequests: parsed.withdrawalRequests || []
         }
       }
     }
@@ -864,7 +988,10 @@ function loadState(): WorkflowState {
     customer: DEFAULT_CUSTOMER,
     isCustomerLoggedIn: false,
     beneficiaries: DEFAULT_BENEFICIARIES,
-    prescriptionRequests: DEFAULT_PRESCRIPTIONS
+    prescriptionRequests: DEFAULT_PRESCRIPTIONS,
+    customProfiles: DEFAULT_CUSTOM_PROFILES,
+    orgProfile: DEFAULT_ORG_PROFILE,
+    withdrawalRequests: []
   }
 }
 
@@ -1061,7 +1188,10 @@ export function useWorkflowStore() {
       customer: DEFAULT_CUSTOMER,
       isCustomerLoggedIn: false,
       beneficiaries: DEFAULT_BENEFICIARIES,
-      prescriptionRequests: DEFAULT_PRESCRIPTIONS
+      prescriptionRequests: DEFAULT_PRESCRIPTIONS,
+      customProfiles: DEFAULT_CUSTOM_PROFILES,
+      orgProfile: DEFAULT_ORG_PROFILE,
+      withdrawalRequests: []
     }
     updateGlobalState(newState)
   }
@@ -1309,6 +1439,130 @@ export function useWorkflowStore() {
     return newOrder
   }
 
+  // Create a Custom Diagnostic Profile (Make My Profile)
+  const createCustomProfile = (data: {
+    brandOrOrgName: string
+    profileTitle: string
+    description: string
+    category: "Wellness & Preventive" | "Cardio-Diabetic" | "Women's Health" | "Senior Care" | "Custom Clinic Panel"
+    selectedTestCodes: string[]
+    testNames: string[]
+    totalMrp: number
+    discountedPrice: number
+    realizedRevenue: number
+    directIncentive: number
+  }) => {
+    const profileId = `profile-${Date.now().toString().slice(-6)}`
+    const newProfile: CRACustomProfile = {
+      id: profileId,
+      craId: state.currentUser.id,
+      craName: state.currentUser.name,
+      brandOrOrgName: data.brandOrOrgName,
+      profileTitle: data.profileTitle,
+      description: data.description,
+      category: data.category,
+      selectedTestCodes: data.selectedTestCodes,
+      testNames: data.testNames,
+      totalMrp: data.totalMrp,
+      discountedPrice: data.discountedPrice,
+      realizedRevenue: data.realizedRevenue,
+      directIncentive: data.directIncentive,
+      createdAt: "Just now",
+      shareLink: typeof window !== "undefined"
+        ? `${window.location.origin}/booking?ref=${state.currentUser.code}&profile=${profileId}`
+        : `https://avmlabs.com/booking?ref=${state.currentUser.code}&profile=${profileId}`
+    }
+
+    const liveEvent: LiveActivityEvent = {
+      id: `EVT-${Date.now()}`,
+      type: "new_referral",
+      title: "New Custom Profile Created",
+      subtitle: `"${data.profileTitle}" published by ${state.currentUser.name}`,
+      timestamp: "Just now",
+      isLive: true
+    }
+
+    const newState = {
+      ...state,
+      customProfiles: [newProfile, ...state.customProfiles],
+      liveEvents: [liveEvent, ...state.liveEvents.slice(0, 10)]
+    }
+    updateGlobalState(newState)
+    return newProfile
+  }
+
+  const deleteCustomProfile = (profileId: string) => {
+    const newState = {
+      ...state,
+      customProfiles: state.customProfiles.filter(p => p.id !== profileId)
+    }
+    updateGlobalState(newState)
+  }
+
+  const updateOrgProfile = (orgData: Partial<CRAOrgProfile>) => {
+    const updated = { ...state.orgProfile, ...orgData }
+    const newState = {
+      ...state,
+      orgProfile: updated
+    }
+    updateGlobalState(newState)
+  }
+
+  // Request Wallet Withdrawal (Encash to Bank)
+  const requestWalletWithdrawal = (data: {
+    amount: number
+    method: "Bank Transfer" | "UPI"
+    bankDetails: {
+      bankName: string
+      accountNumber: string
+      ifsc: string
+      upiId?: string
+    }
+  }) => {
+    const req: WalletWithdrawalRequest = {
+      id: `WD-${Date.now().toString().slice(-6)}`,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      amount: data.amount,
+      method: data.method,
+      bankDetails: data.bankDetails,
+      requestedAt: "Just now",
+      status: "Pending Processing"
+    }
+
+    const newState = {
+      ...state,
+      withdrawalRequests: [req, ...state.withdrawalRequests]
+    }
+    updateGlobalState(newState)
+    return req
+  }
+
+  // Upgrade Normal Customer to Active CRA Partner
+  const upgradeCustomerToCRA = (orgData?: Partial<CRAOrgProfile>) => {
+    const shortCode = `AVM-${state.customer.name.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "USER"}-${Math.floor(100 + Math.random() * 900)}`
+    const newCRA: CRAUser = {
+      id: `CRA-${Date.now().toString().slice(-5)}`,
+      role: "c1",
+      name: state.customer.name,
+      mobile: state.customer.mobile,
+      email: state.customer.email,
+      code: shortCode,
+      city: "Bengaluru"
+    }
+
+    const updatedOrg = orgData ? { ...state.orgProfile, ...orgData } : state.orgProfile
+
+    const newState: WorkflowState = {
+      ...state,
+      currentUser: newCRA,
+      orgProfile: updatedOrg,
+      c1: newCRA
+    }
+    updateGlobalState(newState)
+    return newCRA
+  }
+
   return {
     ...state,
     switchRole,
@@ -1324,6 +1578,11 @@ export function useWorkflowStore() {
     addPrescriptionRequest,
     setCustomerReferral,
     loginCustomer,
-    logoutCustomer
+    logoutCustomer,
+    createCustomProfile,
+    deleteCustomProfile,
+    updateOrgProfile,
+    requestWalletWithdrawal,
+    upgradeCustomerToCRA
   }
 }

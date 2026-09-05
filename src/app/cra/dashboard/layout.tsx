@@ -22,16 +22,19 @@ import {
   HeartHandshake 
 } from "lucide-react"
 
+import { ReferralShareModal } from "@/components/cra/ReferralShareModal"
+
 export default function CRADashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { currentUser } = useWorkflowStore()
+  const { currentUser, orgProfile } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -44,7 +47,9 @@ export default function CRADashboardLayout({
   // Hydration-stable static navigation items
   const navigationItems = [
     { name: "Home Dashboard", href: "/cra/dashboard", icon: LayoutDashboard },
-    { name: "Add Referral", href: "/cra/dashboard/add-lead", icon: Sparkles },
+    { name: "Make My Profile", href: "/cra/dashboard/make-my-profile", icon: Sparkles },
+    { name: "Family Beneficiaries", href: "/cra/dashboard/beneficiaries", icon: Users2 },
+    { name: "Add Referral", href: "/cra/dashboard/add-lead", icon: ClipboardList },
     { name: "My Leads & Status", href: "/cra/dashboard/referrals", icon: ClipboardList },
     { name: "My Team (Secondary CRAs)", href: "/cra/dashboard/network", icon: Users2 },
     { name: "Wellness Catalogue", href: "/cra/dashboard/catalog", icon: FlaskConical },
@@ -142,6 +147,17 @@ export default function CRADashboardLayout({
           </Link>
           
           <div className="flex items-center gap-2">
+            {/* Quick Share on Mobile */}
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className="h-8 px-2.5 rounded-xl bg-[#251b5c] text-white text-[11px] font-bold inline-flex items-center gap-1 shadow-xs cursor-pointer"
+              title="Share Referral Link & QR"
+            >
+              <Sparkles className="h-3 w-3 text-cyan-300" />
+              <span>Share</span>
+            </button>
+
             {/* Active User Account Badge on Mobile Header */}
             <Link
               href="/cra/dashboard/profile"
@@ -179,7 +195,17 @@ export default function CRADashboardLayout({
           </div>
 
           {/* Right Quick Badges */}
-          <div className="flex items-center gap-4" suppressHydrationWarning>
+          <div className="flex items-center gap-3.5" suppressHydrationWarning>
+            {/* Quick Share Referral & QR Button */}
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#251b5c] to-[#382685] hover:from-[#1e1b4b] hover:to-[#251b5c] text-white text-xs font-bold shadow-xs cursor-pointer transition-all"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+              <span>Share Link &amp; QR</span>
+            </button>
+
             <a
               href="tel:18001234567"
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-2xs"
@@ -424,6 +450,15 @@ export default function CRADashboardLayout({
         </Link>
 
       </nav>
+
+      {/* Referral Link & QR Code Modal */}
+      <ReferralShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        craName={currentUserName}
+        craCode={currentUser.code}
+        orgName={orgProfile?.brandName}
+      />
 
     </div>
   )
