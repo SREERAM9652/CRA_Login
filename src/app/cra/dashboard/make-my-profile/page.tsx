@@ -94,6 +94,12 @@ export default function MakeMyProfilePage() {
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>("All")
   const testDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Mounted state to eliminate SSR-Client hydration mismatch
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Share Modal State
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [activeShareProfile, setActiveShareProfile] = useState<any>(null)
@@ -273,7 +279,7 @@ export default function MakeMyProfilePage() {
   }
 
   return (
-    <div className="w-full font-sans space-y-6 pb-16">
+    <div className="w-full font-sans space-y-6 pb-16" suppressHydrationWarning>
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
@@ -300,7 +306,7 @@ export default function MakeMyProfilePage() {
             className="h-10 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-colors"
           >
             <Users className="h-4 w-4 text-[#382685]" />
-            <span>Family Beneficiaries ({beneficiaries.length})</span>
+            <span suppressHydrationWarning>Family Beneficiaries ({mounted ? beneficiaries.length : beneficiaries.length})</span>
           </Link>
         </div>
       </div>
@@ -699,19 +705,32 @@ export default function MakeMyProfilePage() {
           </div>
 
           {/* Active Custom Profiles Manager & Catalog */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-3.5 shadow-2xs">
-            
-            {/* Header: Title, Count badge & View Switcher */}
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-[#382685]" />
-                <h3 className="font-black text-xs sm:text-sm text-slate-900">
-                  Published Profiles
-                </h3>
-                <span className="font-mono text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-[#382685]">
-                  {customProfiles.length}
-                </span>
+          {!mounted ? (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3.5 shadow-2xs animate-pulse">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="h-4 bg-slate-200 rounded w-1/3" />
+                <div className="h-6 bg-slate-100 rounded w-16" />
               </div>
+              <div className="h-8 bg-slate-100 rounded-xl" />
+              <div className="space-y-2.5 pt-1">
+                <div className="h-28 bg-slate-50 border border-slate-100 rounded-2xl" />
+                <div className="h-28 bg-slate-50 border border-slate-100 rounded-2xl" />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-3.5 shadow-2xs" suppressHydrationWarning>
+              
+              {/* Header: Title, Count badge & View Switcher */}
+              <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-[#382685]" />
+                  <h3 className="font-black text-xs sm:text-sm text-slate-900">
+                    Published Profiles
+                  </h3>
+                  <span className="font-mono text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-[#382685]" suppressHydrationWarning>
+                    {customProfiles.length}
+                  </span>
+                </div>
 
               {/* View Toggle (Compact Cards vs Dense List) */}
               <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl">
@@ -1079,6 +1098,7 @@ export default function MakeMyProfilePage() {
             )}
 
           </div>
+        )}
 
         </div>
 

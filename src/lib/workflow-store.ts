@@ -1006,7 +1006,7 @@ interface WorkflowState {
   withdrawalRequests: WalletWithdrawalRequest[]
 }
 
-const STORAGE_KEY = "avm_workflow_state_v9"
+const STORAGE_KEY = "avm_workflow_state_v10"
 
 function loadState(): WorkflowState {
   if (typeof window === "undefined") {
