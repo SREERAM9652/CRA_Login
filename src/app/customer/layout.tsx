@@ -44,8 +44,8 @@ export default function CustomerLayout({
   const navLinks = [
     { name: "My Health Dashboard", href: "/customer/dashboard", icon: LayoutDashboard },
     { name: "Find Tests & Book", href: "/booking", icon: Search },
-    { name: "Orders & Appointments", href: "/customer/dashboard", icon: ClipboardList },
-    { name: "Digital Lab Reports", href: "/customer/dashboard", icon: FileText },
+    { name: "Orders & Appointments", href: "/customer/dashboard#orders", icon: ClipboardList },
+    { name: "Digital Lab Reports", href: "/customer/dashboard#reports", icon: FileText },
   ]
 
   const customerName = customer?.name || "Suresh M."
@@ -60,21 +60,21 @@ export default function CustomerLayout({
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 fixed inset-y-0 left-0 top-0 z-40 shadow-xs">
         
         {/* Logo */}
-        <div className="h-24 flex items-center justify-center px-4 border-b border-slate-100/90 bg-white">
+        <div className="py-2 px-3 flex items-center justify-center border-b border-slate-100/90 bg-white">
           <Link href="/" className="inline-block hover:scale-102 transition-transform">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.jpg"
+              src="/avmlabs-logo.svg"
               alt="AVMLabs Diagnostics"
-              className="h-16 w-auto max-w-[210px] object-contain mix-blend-multiply"
+              className="h-[76px] w-auto max-w-[225px] object-contain"
             />
           </Link>
         </div>
         
         {/* Navigation links */}
-        <div className="flex-1 overflow-y-auto py-5 px-3.5 space-y-5">
+        <div className="flex-1 overflow-y-auto pt-2.5 pb-5 px-3.5 space-y-4">
           <div>
-            <div className="px-3 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">
+            <div className="px-3 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
               Healthcare Portal
             </div>
             <nav className="space-y-1">
@@ -84,13 +84,13 @@ export default function CustomerLayout({
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold transition-all ${
                       isActive
-                        ? "bg-gradient-to-r from-[#251b5c] to-[#382685] text-white shadow-md shadow-indigo-950/15"
-                        : "text-slate-700 hover:bg-slate-50 hover:text-[#251b5c]"
+                        ? "bg-[#1e3a8a] text-white shadow-sm shadow-blue-950/20"
+                        : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <item.icon className={`h-4 w-4 ${isActive ? "text-cyan-300 stroke-[2.5]" : "text-slate-400"}`} />
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-sky-200 stroke-[2.5]" : "text-slate-400"}`} />
                     <span>{item.name}</span>
                   </Link>
                 )
@@ -104,36 +104,36 @@ export default function CustomerLayout({
             </div>
             <nav className="space-y-1">
               <Link
-                href="/customer/dashboard"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                href="/customer/dashboard#beneficiaries"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               >
                 <Users className="h-4 w-4 text-slate-400" />
                 <span>Family Beneficiaries</span>
               </Link>
               <Link
-                href="/customer/dashboard"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                href="/customer/dashboard#wallet"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               >
                 <Wallet className="h-4 w-4 text-slate-400" />
                 <div className="flex items-center justify-between w-full">
                   <span>Wallet &amp; Cashback</span>
-                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[5px] border border-emerald-200">
                     ₹{customer?.walletBalance || 350}
                   </span>
                 </div>
               </Link>
               <Link
                 href="/cra/dashboard/help"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               >
                 <HelpCircle className="h-4 w-4 text-slate-400" />
                 <span>Help &amp; FAQs</span>
               </Link>
               <Link
                 href="/cra"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 border border-purple-100 transition-colors mt-2"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 transition-colors mt-2"
               >
-                <Sparkles className="h-4 w-4 text-[#e04838]" />
+                <Sparkles className="h-4 w-4 text-amber-500" />
                 <span>Become a CRA Partner</span>
               </Link>
             </nav>
@@ -176,9 +176,9 @@ export default function CustomerLayout({
           <Link href="/customer/dashboard" className="inline-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.jpg"
+              src="/avmlabs-logo.svg"
               alt="AVMLabs Diagnostics"
-              className="h-11 w-auto max-w-[150px] object-contain mix-blend-multiply"
+              className="h-13 w-auto max-w-[170px] object-contain"
             />
           </Link>
           
@@ -261,9 +261,9 @@ export default function CustomerLayout({
               <Link href="/customer/dashboard" onClick={() => setMobileSidebarOpen(false)} className="inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/logo.jpg"
+                  src="/avmlabs-logo.svg"
                   alt="AVMLabs Diagnostics"
-                  className="h-10 w-auto max-w-[140px] object-contain mix-blend-multiply"
+                  className="h-12 w-auto max-w-[160px] object-contain"
                 />
               </Link>
 
@@ -311,13 +311,13 @@ export default function CustomerLayout({
                         key={item.name}
                         href={item.href}
                         onClick={() => setMobileSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold transition-all ${
                           isActive 
-                            ? "bg-gradient-to-r from-[#251b5c] to-[#382685] text-white shadow-md shadow-indigo-950/15" 
-                            : "text-slate-700 hover:bg-slate-50 hover:text-[#251b5c]"
+                            ? "bg-[#1e3a8a] text-white shadow-sm shadow-blue-950/20" 
+                            : "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
-                        <item.icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? "text-cyan-300 stroke-[2.5]" : "text-slate-400"}`} />
+                        <item.icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? "text-sky-200 stroke-[2.5]" : "text-slate-400"}`} />
                         <span className="truncate">{item.name}</span>
                       </Link>
                     )
@@ -332,18 +332,18 @@ export default function CustomerLayout({
                 </div>
                 <div className="space-y-1">
                   <Link
-                    href="/customer/dashboard"
+                    href="/customer/dashboard#beneficiaries"
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     <Users className="h-4 w-4 text-purple-600" />
                     <span>Family Beneficiaries</span>
                   </Link>
 
                   <Link
-                    href="/customer/dashboard"
+                    href="/customer/dashboard#wallet"
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     <Wallet className="h-4 w-4 text-emerald-600" />
                     <span>Wallet &amp; Coupons (₹{customer?.walletBalance || 350})</span>
@@ -352,9 +352,9 @@ export default function CustomerLayout({
                   <Link
                     href="/cra"
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-bold text-[#382685] bg-purple-50 hover:bg-purple-100 border border-purple-100 mt-2"
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 mt-2"
                   >
-                    <Sparkles className="h-4 w-4 text-[#e04838]" />
+                    <Sparkles className="h-4 w-4 text-amber-500" />
                     <span>CRA Partner Portal</span>
                   </Link>
                 </div>
