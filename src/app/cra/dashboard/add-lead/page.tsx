@@ -1551,7 +1551,7 @@ function AddReferralContent() {
 
 export default function AddReferralPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading booking workflow...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading booking ...</div>}>
       <AddReferralContent />
     </Suspense>
   )

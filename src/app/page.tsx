@@ -5,7 +5,6 @@ import { PopularTests } from "@/components/sections/PopularTests"
 import { HealthPackages } from "@/components/sections/HealthPackages"
 import { HowItWorks } from "@/components/sections/HowItWorks"
 import { WhyChooseUs } from "@/components/sections/WhyChooseUs"
-import { Testimonials } from "@/components/sections/Testimonials"
 import { BookingCTA } from "@/components/sections/BookingCTA"
 
 export default function Home() {
@@ -18,7 +17,6 @@ export default function Home() {
         <HealthPackages />
         <HowItWorks />
         <WhyChooseUs />
-        <Testimonials />
         <BookingCTA />
       </main>
       <Footer />

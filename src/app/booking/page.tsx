@@ -53,6 +53,8 @@ import {
   Upload
 } from "lucide-react"
 import Link from "next/link"
+import { AddFamilyMemberDrawer, FamilyMemberFormData } from "@/components/booking/AddFamilyMemberDrawer"
+import { SelectMemberTestsDrawer } from "@/components/booking/SelectMemberTestsDrawer"
 import { HEALTH_PACKAGES, LAB_LOCATIONS, AVAILABLE_TIME_SLOTS } from "@/lib/mock-data"
 import { CRA_TESTS } from "@/lib/cra-tests"
 import { useWorkflowStore } from "@/lib/workflow-store"
@@ -85,12 +87,24 @@ function BookingWizardContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { customer, isCustomerLoggedIn, beneficiaries: storeBeneficiaries, addPrescriptionRequest, createCustomerBooking, payForOrder } = useWorkflowStore()
+  const { customer, isCustomerLoggedIn, beneficiaries: storeBeneficiaries, addPrescriptionRequest, createCustomerBooking, payForOrder, loginCustomer } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isLoggedIn = mounted ? isCustomerLoggedIn : false
+  const homeHref = isLoggedIn ? "/customer/dashboard" : "/"
+  const ordersHref = isLoggedIn ? "/customer/dashboard/orders" : "/login?role=customer&redirect=/customer/dashboard/orders"
+  const reportsHref = isLoggedIn ? "/customer/dashboard/reports" : "/login?role=customer&redirect=/customer/dashboard/reports"
+  const beneficiariesHref = isLoggedIn ? "/customer/dashboard/beneficiaries" : "/login?role=customer&redirect=/customer/dashboard/beneficiaries"
 
   const initialTestParam = searchParams.get("test")
   const initialPkgParam = searchParams.get("package")
   const initialSearchParam = searchParams.get("search") || ""
   const initialRefParam = searchParams.get("ref") || ""
+  const initialStepParam = searchParams.get("step")
   const isUploadParam = searchParams.get("upload") === "prescription"
   const isFamilyParam = searchParams.get("mode") === "family" || !!searchParams.get("benId")
 
@@ -133,7 +147,7 @@ function BookingWizardContent() {
   }, [])
 
   // Wizard Step State (1: Select Test, 2: Beneficiaries & Assignment, 3: Slot, 4: Review & Pay, 5: Success)
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(initialStepParam ? (parseInt(initialStepParam, 10) || 1) : 1)
 
   // MULTI-TEST SELECTION STATE for Step 1
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([
@@ -161,41 +175,35 @@ function BookingWizardContent() {
 
   const [collectionMethod, setCollectionMethod] = useState<"Home Collection" | "Visit Center">("Home Collection")
 
-  // Beneficiaries State: Empty by default when not logged in; populated only if customer is logged in or members added
+  // Beneficiaries State: Populated from store if logged in, or customized by user
   const [beneficiaries, setBeneficiaries] = useState<BeneficiaryMember[]>([])
 
   useEffect(() => {
     if (isCustomerLoggedIn && storeBeneficiaries && storeBeneficiaries.length > 0) {
-      setBeneficiaries(storeBeneficiaries.map((b, idx) => ({
-        id: b.id || `ben-${idx + 1}`,
-        name: b.fullName || (b as any).name || "Family Member",
-        relation: b.relation || "Self",
-        age: String(b.age || "35"),
-        gender: b.gender || "Male",
-        mobile: (b as any).mobile || customer?.mobile || "+91 98450 12345",
-        address: b.address || "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
-        selectedTestIds: b.selectedTests || selectedItemIds
-      })))
-    } else if (!isCustomerLoggedIn) {
-      setBeneficiaries([])
-    }
-  }, [isCustomerLoggedIn, storeBeneficiaries])
+      setBeneficiaries(prev => {
+        // If the user already added/assigned tests during this booking draft, keep them
+        if (prev.length > 0) return prev
 
-  // Member Test Assignment Modal State (Allows selecting MULTIPLE tests and profiles for a single member)
+        return storeBeneficiaries.map((b, idx) => ({
+          id: b.id || `ben-${idx + 1}`,
+          name: b.fullName || (b as any).name || "Family Member",
+          relation: b.relation || "Self",
+          age: String(b.age || "35"),
+          gender: b.gender || "Male",
+          mobile: (b as any).mobile || customer?.mobile || "+91 98450 12345",
+          address: b.address || "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
+          selectedTestIds: b.selectedTests || selectedItemIds
+        }))
+      })
+    }
+  }, [isCustomerLoggedIn, storeBeneficiaries, customer, selectedItemIds])
+
+  // Member Test Selection Drawer State
   const [assigningMemberId, setAssigningMemberId] = useState<string | null>(null)
-  const [memberAssignSearch, setMemberAssignSearch] = useState("")
-  const [memberAssignTab, setMemberAssignTab] = useState<"all" | "packages" | "tests">("all")
 
   // Edit / Add Beneficiary Modal State
   const [editingMember, setEditingMember] = useState<BeneficiaryMember | null>(null)
   const [showAddBeneficiary, setShowAddBeneficiary] = useState(false)
-  const [newBenData, setNewBenData] = useState({
-    name: "",
-    relation: "Family Member" as any,
-    age: "",
-    gender: "Male" as any,
-    address: ""
-  })
 
   // Prescription Upload Modal
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(isUploadParam)
@@ -221,6 +229,89 @@ function BookingWizardContent() {
     gender: "Male" as const,
     specialInstructions: "Please call 10 mins before arrival."
   })
+
+  // State to show "Login Required Before Payment" modal
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+
+  // Automatically sync logged-in customer info to patientData
+  useEffect(() => {
+    if (isCustomerLoggedIn && customer) {
+      setPatientData(prev => ({
+        ...prev,
+        fullName: prev.fullName || customer.name || "Suresh M.",
+        mobile: prev.mobile || customer.mobile || "+91 98450 12345",
+        email: prev.email || customer.email || "suresh.m@example.com",
+        address: prev.address || customer.address || "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038"
+      }))
+    }
+  }, [isCustomerLoggedIn, customer])
+
+  // Save current booking draft to sessionStorage before navigating to login page
+  const saveBookingDraft = () => {
+    try {
+      const draft = {
+        step: 4,
+        selectedItemIds,
+        beneficiaries,
+        collectionMethod,
+        selectedDate,
+        selectedSlot,
+        patientData,
+        referralCode
+      }
+      sessionStorage.setItem("avm_booking_draft", JSON.stringify(draft))
+    } catch (e) {
+      console.error("Failed to save booking draft:", e)
+    }
+  }
+
+  // Restore booking draft when returning from login page
+  useEffect(() => {
+    try {
+      const saved = typeof window !== "undefined" ? sessionStorage.getItem("avm_booking_draft") : null
+      if (saved) {
+        const draft = JSON.parse(saved)
+        if (draft.step) setStep(draft.step)
+        if (Array.isArray(draft.selectedItemIds) && draft.selectedItemIds.length > 0) {
+          setSelectedItemIds(draft.selectedItemIds)
+        }
+        if (Array.isArray(draft.beneficiaries) && draft.beneficiaries.length > 0) {
+          setBeneficiaries(draft.beneficiaries)
+        }
+        if (draft.collectionMethod) setCollectionMethod(draft.collectionMethod)
+        if (draft.selectedDate) setSelectedDate(draft.selectedDate)
+        if (draft.selectedSlot) setSelectedSlot(draft.selectedSlot)
+        if (draft.patientData) {
+          setPatientData(prev => ({
+            ...prev,
+            ...draft.patientData,
+            fullName: isCustomerLoggedIn ? (customer?.name || draft.patientData.fullName) : draft.patientData.fullName,
+            mobile: isCustomerLoggedIn ? (customer?.mobile || draft.patientData.mobile) : draft.patientData.mobile,
+            email: isCustomerLoggedIn ? (customer?.email || draft.patientData.email) : draft.patientData.email
+          }))
+        }
+        if (draft.referralCode) setReferralCode(draft.referralCode)
+        sessionStorage.removeItem("avm_booking_draft")
+      }
+    } catch (e) {
+      console.error("Failed to restore booking draft:", e)
+    }
+  }, [isCustomerLoggedIn, customer])
+
+  // Intercept proceed to Review & Pay if not logged in
+  const handleProceedToReviewAndPayment = () => {
+    if (!isCustomerLoggedIn) {
+      setShowLoginPrompt(true)
+      return
+    }
+    setStep(4)
+  }
+
+  // Direct navigation to Login page with redirect back to step 4
+  const handleGoToLoginPage = () => {
+    saveBookingDraft()
+    router.push("/login?role=customer&redirect=/booking?step=4")
+  }
 
   // Payment & Promo (Step 4)
   const [referralCode, setReferralCode] = useState(initialRefParam || "")
@@ -355,37 +446,35 @@ function BookingWizardContent() {
     }
   }
 
-  // Add new family member
-  const handleAddNewBeneficiary = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newBenData.name || !newBenData.age) return
+  // Add new family member from sidebar drawer
+  const handleAddNewBeneficiary = (data: FamilyMemberFormData) => {
+    if (!data.name || !data.age) return
 
     const newBen: BeneficiaryMember = {
       id: `ben-${Date.now()}`,
-      name: newBenData.name,
-      relation: newBenData.relation || "Self",
-      age: newBenData.age,
-      gender: newBenData.gender || "Male",
+      name: data.name,
+      relation: data.relation || "Father",
+      age: data.age,
+      gender: data.gender || "Male",
       mobile: patientData.mobile,
-      address: newBenData.address || patientData.address,
+      address: data.address || patientData.address,
       selectedTestIds: beneficiaries.length === 0 ? [...selectedItemIds] : []
     }
     setBeneficiaries([...beneficiaries, newBen])
-    setNewBenData({
-      name: "",
-      relation: "Family Member",
-      age: "",
-      gender: "Male",
-      address: patientData.address
-    })
     setShowAddBeneficiary(false)
   }
 
-  // Edit existing family member
-  const handleUpdateMember = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Edit existing family member from sidebar drawer
+  const handleUpdateMember = (data: FamilyMemberFormData) => {
     if (!editingMember) return
-    setBeneficiaries(prev => prev.map(b => b.id === editingMember.id ? editingMember : b))
+    setBeneficiaries(prev => prev.map(b => b.id === editingMember.id ? {
+      ...b,
+      name: data.name,
+      relation: data.relation,
+      age: data.age,
+      gender: data.gender,
+      address: data.address
+    } : b))
     setEditingMember(null)
   }
 
@@ -483,23 +572,15 @@ function BookingWizardContent() {
     )
   })
 
-  // Filter items in Member Assignment Modal
-  const filteredModalItems = allAvailableItems.filter(item => {
-    if (memberAssignTab === "packages" && item.type !== "package") return false
-    if (memberAssignTab === "tests" && item.type !== "test") return false
-    if (!memberAssignSearch.trim()) return true
-    const q = memberAssignSearch.toLowerCase()
-    return (
-      item.name.toLowerCase().includes(q) ||
-      item.code.toLowerCase().includes(q) ||
-      item.category.toLowerCase().includes(q)
-    )
-  })
-
   const currentAssigningMember = beneficiaries.find(b => b.id === assigningMemberId)
 
   // Handle final booking submission
   const handleConfirmBooking = () => {
+    if (!isCustomerLoggedIn) {
+      setShowLoginPrompt(true)
+      return
+    }
+
     const generatedOrderNum = `AVM-${Math.floor(1000 + Math.random() * 9000)}`
     setBookingId(generatedOrderNum)
 
@@ -535,10 +616,10 @@ function BookingWizardContent() {
   }
 
   const stepsList = [
-    { num: 1, name: "Select Tests", subtitle: "Choose tests or packages" },
-    { num: 2, name: "Beneficiaries", subtitle: "Assign to family members" },
-    { num: 3, name: "Available Slot", subtitle: "Choose date & time" },
-    { num: 4, name: "Review & Pay", subtitle: "Confirm & complete" }
+    { num: 1, name: "Select Tests", shortName: "Tests", subtitle: "Choose tests or packages" },
+    { num: 2, name: "Family Members", shortName: "Members", subtitle: "Select tests for family members" },
+    { num: 3, name: "Available Slot", shortName: "Slot", subtitle: "Choose date & time" },
+    { num: 4, name: "Review & Pay", shortName: "Review", subtitle: "Confirm & complete" }
   ]
 
   return (
@@ -551,31 +632,80 @@ function BookingWizardContent() {
         {/* 1. TOP STEPPER CAPSULE WITH CONNECTED PROGRESS TRACK                    */}
         {/* ======================================================================= */}
         {step <= 4 && (
-          <div className="bg-white rounded-[8px] py-3 px-4 sm:px-6 border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center justify-between w-full">
+          <div className="bg-white rounded-[10px] py-3 px-3 sm:px-6 border border-slate-200/90 shadow-2xs">
 
+            {/* Mobile Stepper (< sm): Clean 4-step progress with circles & labels */}
+            <div className="sm:hidden">
+              <div className="grid grid-cols-4 relative">
+                {/* Connecting track running behind circles */}
+                <div className="absolute top-3.5 left-[12.5%] right-[12.5%] h-0.5 bg-slate-200 -translate-y-1/2 z-0">
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-300"
+                    style={{
+                      width: step === 1 ? "0%" : step === 2 ? "33.3%" : step === 3 ? "66.6%" : "100%"
+                    }}
+                  />
+                </div>
+
+                {stepsList.map((s) => {
+                  const isCurrent = step === s.num
+                  const isPassed = step > s.num
+                  return (
+                    <button
+                      key={s.num}
+                      type="button"
+                      onClick={() => { if (isPassed) setStep(s.num) }}
+                      disabled={!isPassed && !isCurrent}
+                      className={`flex flex-col items-center gap-1.5 relative z-10 ${
+                        !isPassed && !isCurrent ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                      }`}
+                    >
+                      <div className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
+                        isCurrent
+                          ? "bg-[#1e3a8a] text-white shadow-xs ring-4 ring-blue-100"
+                          : isPassed
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "bg-white text-slate-500 border-2 border-slate-200"
+                      }`}>
+                        {isPassed ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : s.num}
+                      </div>
+
+                      <span className={`text-[11px] font-bold text-center leading-tight truncate max-w-full px-0.5 ${
+                        isCurrent ? "text-[#1e3a8a]" : isPassed ? "text-slate-800" : "text-slate-400"
+                      }`}>
+                        {s.shortName}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Desktop / Tablet Stepper (>= sm) */}
+            <div className="hidden sm:flex items-center justify-between w-full">
               {stepsList.map((s, idx) => {
                 const isCurrent = step === s.num
                 const isPassed = step > s.num
                 return (
-                  <div key={s.num} className="flex items-center flex-1 last:flex-none min-w-0">
-
-                    <div
+                  <div key={s.num} className="flex items-center flex-1 last:flex-none">
+                    <button
+                      type="button"
                       onClick={() => {
                         if (isPassed) setStep(s.num)
                       }}
-                      className={`flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0 transition-opacity ${
-                        !isPassed && !isCurrent ? "cursor-not-allowed opacity-60" : "hover:opacity-90"
+                      disabled={!isPassed && !isCurrent}
+                      className={`flex items-center gap-2.5 shrink-0 transition-all text-left ${
+                        !isPassed && !isCurrent ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:opacity-90"
                       }`}
                     >
-                      <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                         isCurrent
-                          ? "bg-[#1e3a8a] text-white shadow-xs"
+                          ? "bg-[#1e3a8a] text-white shadow-xs ring-4 ring-blue-50"
                           : isPassed
                             ? "bg-emerald-600 text-white shadow-xs"
                             : "bg-slate-100 text-slate-500 border border-slate-200"
                       }`}>
-                        {isPassed ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : s.num}
+                        {isPassed ? <Check className="h-4 w-4 stroke-[3]" /> : s.num}
                       </div>
 
                       <div className="text-left leading-tight">
@@ -584,26 +714,25 @@ function BookingWizardContent() {
                         }`}>
                           {s.name}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-medium hidden lg:block whitespace-nowrap">
+                        <div className="text-[10px] text-slate-400 font-medium hidden md:block whitespace-nowrap">
                           {s.subtitle}
                         </div>
                       </div>
-                    </div>
+                    </button>
 
                     {/* Progress Connecting Line */}
                     {idx < stepsList.length - 1 && (
-                      <div className="flex-1 mx-2.5 sm:mx-4 h-0.5 bg-slate-200 min-w-[16px] rounded-full overflow-hidden">
+                      <div className="flex-1 mx-3 sm:mx-4 h-0.5 bg-slate-200 min-w-[16px] rounded-full overflow-hidden">
                         <div className={`h-full transition-all duration-300 ${
                           isPassed ? "bg-emerald-500 w-full" : "w-0"
                         }`} />
                       </div>
                     )}
-
                   </div>
                 )
               })}
-
             </div>
+
           </div>
         )}
 
@@ -828,9 +957,6 @@ function BookingWizardContent() {
                     <div className="space-y-2.5 pt-3 border-t border-slate-100">
                       <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                         <span>Active Selected Tests ({step1SelectedItems.length})</span>
-                        <span className="text-emerald-700 font-extrabold text-[11px] flex items-center gap-1">
-                          <Check className="h-3 w-3 stroke-[3]" /> 20% Referral Discount Applied
-                        </span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -962,29 +1088,6 @@ function BookingWizardContent() {
 
                   </div>
 
-                  {/* Smart Address Merging Alert Box */}
-                  <div className="p-4 rounded-[8px] bg-[#f0f5ff] border border-[#d6e4ff] flex items-center justify-between gap-3 text-xs shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-[8px] bg-blue-100 text-[#1e3a8a] flex items-center justify-center shrink-0">
-                        <Sparkles className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <span className="font-black text-[#1e3a8a] text-sm">Smart Address Merging</span>
-                        <p className="text-slate-600 font-medium">
-                          We merge tests for the same address to save your collection charges.
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => alert("When multiple family members at the same address book home collection, you pay a single flat ₹150 collection fee instead of multiple charges.")}
-                      className="text-xs font-bold text-[#1e3a8a] hover:underline shrink-0 cursor-pointer"
-                    >
-                      Learn more
-                    </button>
-                  </div>
-
                   {/* Who is this booking for? Section Header */}
                   <div className="flex items-center justify-between pt-2">
                     <div>
@@ -992,14 +1095,14 @@ function BookingWizardContent() {
                         Who is this booking for?
                       </h3>
                       <p className="text-xs text-slate-500">
-                        Assign tests to family members and add more if needed.
+                        Select tests for family members and add more if needed.
                       </p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setShowAddBeneficiary(true)}
-                      className="px-3.5 py-1.5 rounded-[8px] border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                      className="px-3.5 py-1.5 rounded-[5px] border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Member</span>
@@ -1015,20 +1118,20 @@ function BookingWizardContent() {
                         return (
                           <div
                             key={ben.id}
-                            className="bg-white rounded-[8px] border border-slate-200/90 p-5 space-y-3.5 shadow-2xs hover:shadow-xs transition-shadow"
+                            className="bg-white rounded-[5px] border border-slate-200/90 p-5 space-y-3.5 shadow-2xs hover:shadow-xs transition-shadow"
                           >
 
                             {/* Member Top Info Row */}
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                                <div className="h-10 w-10 rounded-[5px] bg-[#1e3a8a] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                                   {initials}
                                 </div>
 
                                 <div className="space-y-0.5">
                                   <div className="flex items-center gap-2">
                                     <h4 className="font-bold text-slate-900 text-sm sm:text-base">{ben.name}</h4>
-                                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200 text-[10px] font-bold">
+                                    <span className="px-2 py-0.5 rounded-[5px] bg-blue-50 text-[#1e3a8a] border border-blue-200 text-[10px] font-bold">
                                       {ben.relation}
                                     </span>
                                   </div>
@@ -1042,13 +1145,13 @@ function BookingWizardContent() {
                               <div className="flex items-center gap-2 shrink-0">
                                 <div className="text-right hidden sm:block pr-2">
                                   <div className="text-xs font-bold text-slate-900">{assignedCount} {assignedCount === 1 ? "Test" : "Tests"}</div>
-                                  <div className="text-[10px] text-slate-400">Assigned</div>
+                                  <div className="text-[10px] text-slate-400">Selected</div>
                                 </div>
 
                                 <button
                                   type="button"
                                   onClick={() => setEditingMember(ben)}
-                                  className="p-1.5 rounded-[8px] border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
+                                  className="p-1.5 rounded-[5px] border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
                                   title="Edit Member Details"
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1058,7 +1161,7 @@ function BookingWizardContent() {
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveMember(ben.id)}
-                                    className="p-1.5 rounded-[8px] border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                    className="p-1.5 rounded-[5px] border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
                                     title="Remove Member"
                                   >
                                     <Trash2 className="h-4 w-4 text-rose-500" />
@@ -1067,10 +1170,10 @@ function BookingWizardContent() {
                               </div>
                             </div>
 
-                            {/* Member Assigned Tests Section */}
+                            {/* Member Selected Tests Section */}
                             <div className="pt-2 border-t border-slate-100 space-y-2">
                               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                                Assigned Tests / Packages
+                                Selected Tests / Packages
                               </span>
 
                               <div className="flex flex-wrap items-center gap-2">
@@ -1080,7 +1183,7 @@ function BookingWizardContent() {
                                   return (
                                     <span
                                       key={tId}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#1e3a8a] text-white text-xs font-bold shadow-2xs group"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[5px] bg-[#1e3a8a] text-white text-xs font-bold shadow-2xs group"
                                     >
                                       <Check className="h-3 w-3 text-white stroke-[2.5]" />
                                       <span>{foundTest.name}</span>
@@ -1099,14 +1202,11 @@ function BookingWizardContent() {
                                 {/* Button to Add More Tests & Profiles for This Single Member */}
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setAssigningMemberId(ben.id)
-                                    setMemberAssignSearch("")
-                                  }}
-                                  className="px-3 py-1.5 rounded-[8px] border border-dashed border-blue-300 bg-blue-50/70 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  onClick={() => setAssigningMemberId(ben.id)}
+                                  className="px-3 py-1.5 rounded-[5px] border border-dashed border-blue-300 bg-blue-50/70 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
-                                  <span>Assign Tests / Packages</span>
+                                  <span>Select Tests</span>
                                 </button>
                               </div>
                             </div>
@@ -1118,21 +1218,21 @@ function BookingWizardContent() {
                   )}
 
                   {/* Add more family members or beneficiaries Dashed Card */}
-                  <div className="p-6 sm:p-8 rounded-[8px] border-2 border-dashed border-blue-200 bg-blue-50/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="p-6 sm:p-8 rounded-[5px] border-2 border-dashed border-blue-200 bg-blue-50/40 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-[8px] bg-blue-100 text-[#1e3a8a] flex items-center justify-center shrink-0">
+                      <div className="h-10 w-10 rounded-[5px] bg-blue-100 text-[#1e3a8a] flex items-center justify-center shrink-0">
                         <Users className="h-5 w-5" />
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-900 text-sm sm:text-base">Add more family members or beneficiaries</h4>
-                        <p className="text-xs text-slate-500">You can add and assign tests to more members.</p>
+                        <p className="text-xs text-slate-500">You can add family members and select tests for them.</p>
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setShowAddBeneficiary(true)}
-                      className="px-4 py-2 rounded-[8px] bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                      className="px-4 py-2 rounded-[5px] bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Member</span>
@@ -1166,9 +1266,6 @@ function BookingWizardContent() {
                         <span>Continue to Slot Selection</span>
                         <ArrowRight className="h-4 w-4 shrink-0" />
                       </button>
-                      <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-                        <ShieldCheck className="h-3 w-3 text-emerald-600" /> 100% Safe &amp; Secure Booking
-                      </span>
                     </div>
                   </div>
 
@@ -1254,8 +1351,8 @@ function BookingWizardContent() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setStep(4)}
-                      className="py-3 px-7 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
+                      onClick={handleProceedToReviewAndPayment}
+                      className="py-3 px-7 rounded-[5px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
                     >
                       <span>Continue to Review &amp; Pay</span>
                       <ArrowRight className="h-4 w-4 shrink-0" />
@@ -1351,7 +1448,7 @@ function BookingWizardContent() {
                     <button
                       type="button"
                       onClick={handleConfirmBooking}
-                      className="py-3.5 px-8 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
+                      className="py-3.5 px-8 rounded-[5px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
                     >
                       <ShieldCheck className="h-4 w-4" />
                       <span>Confirm &amp; Book Appointment</span>
@@ -1412,7 +1509,7 @@ function BookingWizardContent() {
                     <span className="line-through">₹{subtotalMRP}</span>
                   </div>
                   <div className="flex justify-between text-emerald-600 font-bold">
-                    <span>20% Package Discount</span>
+                    <span>Customer Discount 20%</span>
                     <span>- ₹{catalogueDiscount}</span>
                   </div>
                   <div className="flex justify-between text-slate-500">
@@ -1470,8 +1567,8 @@ function BookingWizardContent() {
                   {step === 3 && (
                     <button
                       type="button"
-                      onClick={() => setStep(4)}
-                      className="w-full py-3.5 px-4 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      onClick={handleProceedToReviewAndPayment}
+                      className="w-full py-3.5 px-4 rounded-[5px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span>Review &amp; Confirm Payment</span>
                       <ArrowRight className="h-4 w-4" />
@@ -1481,7 +1578,7 @@ function BookingWizardContent() {
                     <button
                       type="button"
                       onClick={handleConfirmBooking}
-                      className="w-full py-3.5 px-4 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 px-4 rounded-[5px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Lock className="h-4 w-4" />
                       <span>Pay ₹{totalAmount} &amp; Confirm</span>
@@ -1626,376 +1723,113 @@ function BookingWizardContent() {
       </main>
 
       {/* ========================================================================= */}
-      {/* POPUP MODAL: MEMBER TEST ASSIGNMENT (ALLOWS SELECTING MULTIPLE TESTS)     */}
+      {/* SLIDE-OVER SIDEBAR: SELECT MEMBER TESTS (DRAWER WITH SMOOTH ANIMATION)   */}
       {/* ========================================================================= */}
-      {assigningMemberId && currentAssigningMember && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-[8px] max-w-2xl w-full p-5 sm:p-7 space-y-4 shadow-2xl animate-in zoom-in-95 border border-slate-200 max-h-[90vh] flex flex-col">
+      <SelectMemberTestsDrawer
+        isOpen={Boolean(assigningMemberId && currentAssigningMember)}
+        onClose={() => setAssigningMemberId(null)}
+        member={currentAssigningMember || null}
+        allAvailableItems={allAvailableItems}
+        onToggleTest={toggleMemberTest}
+        onRemoveTest={removeMemberTest}
+      />
 
+      {/* ========================================================================= */}
+      {/* SLIDE-OVER SIDEBAR: ADD & EDIT FAMILY MEMBER                              */}
+      {/* ========================================================================= */}
+      <AddFamilyMemberDrawer
+        isOpen={showAddBeneficiary}
+        onClose={() => setShowAddBeneficiary(false)}
+        onSave={handleAddNewBeneficiary}
+        defaultAddress={patientData.address}
+        title="Add Family Member"
+      />
+
+      <AddFamilyMemberDrawer
+        isOpen={Boolean(editingMember)}
+        onClose={() => setEditingMember(null)}
+        onSave={handleUpdateMember}
+        defaultAddress={patientData.address}
+        initialData={editingMember ? {
+          name: editingMember.name,
+          relation: editingMember.relation as any,
+          age: editingMember.age,
+          gender: editingMember.gender,
+          address: editingMember.address
+        } : null}
+        title="Edit Member Details"
+      />
+
+      {/* ========================================================================= */}
+      {/* MODAL: ASK LOGIN BEFORE PAYMENT                                           */}
+      {/* ========================================================================= */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          {/* Backdrop with subtle blur and fade */}
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setShowLoginPrompt(false)}
+            aria-hidden="true"
+          />
+
+          <div className="relative bg-white rounded-[5px] border border-slate-200 shadow-2xl max-w-md w-full p-6 z-10 overflow-hidden text-slate-800 animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-[6px] text-[10px] font-extrabold uppercase bg-blue-50 text-[#1e3a8a] border border-blue-200">
-                    {currentAssigningMember.relation}
-                  </span>
-                  <h3 className="font-black text-lg text-slate-900">
-                    Assign Tests for {currentAssigningMember.name}
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-[5px] bg-[#1e3a8a] text-white flex items-center justify-center shadow-xs shrink-0">
+                  <Lock className="h-5 w-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                    Login Required
                   </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Sign in to continue to review &amp; pay
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Select multiple wellness profiles or pathology tests for this member
-                </p>
               </div>
-
               <button
                 type="button"
-                onClick={() => setAssigningMemberId(null)}
-                className="p-1.5 rounded-[8px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                onClick={() => setShowLoginPrompt(false)}
+                className="h-8 w-8 rounded-[5px] border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close modal"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Search Bar & Tabs */}
-            <div className="space-y-2.5 shrink-0">
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={memberAssignSearch}
-                  onChange={(e) => setMemberAssignSearch(e.target.value)}
-                  placeholder="Search tests: CBC, Thyroid, Lipid, HbA1c, Full Body..."
-                  className="w-full h-10 pl-10 pr-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-[8px] focus:bg-white focus:outline-none focus:border-[#1e3a8a] font-medium text-slate-900"
-                  autoFocus
-                />
-              </div>
-
-              {/* Tabs */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMemberAssignTab("all")}
-                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${memberAssignTab === "all" ? "bg-[#1e3a8a] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                    }`}
-                >
-                  All ({allAvailableItems.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMemberAssignTab("packages")}
-                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${memberAssignTab === "packages" ? "bg-[#1e3a8a] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                    }`}
-                >
-                  Wellness Profiles (12)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMemberAssignTab("tests")}
-                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${memberAssignTab === "tests" ? "bg-[#1e3a8a] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
-                    }`}
-                >
-                  Clinical Tests (90+)
-                </button>
+            {/* Explanation card */}
+            <div className="my-4 p-3.5 rounded-[5px] bg-blue-50/70 border border-blue-100 text-xs text-slate-700 space-y-2.5">
+              <p className="leading-relaxed text-slate-600">
+                Please log in to your account before proceeding to payment. Your selected tests, scheduled time slot, and patient details are safely saved.
+              </p>
+              <div className="pt-2 border-t border-blue-100 flex items-center justify-between text-[11px] font-semibold text-[#1e3a8a]">
+                <span>Order Total: <strong className="text-sm font-black">₹{totalAmount}</strong></span>
+                <span className="text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-[5px] font-bold">
+                  ✓ Booking Draft Saved
+                </span>
               </div>
             </div>
 
-            {/* Scrollable Tests List */}
-            <div className="overflow-y-auto p-1 space-y-1.5 divide-y divide-slate-100 flex-1 min-h-[220px]">
-              {filteredModalItems.map((item) => {
-                const isSelected = currentAssigningMember.selectedTestIds.includes(item.id)
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => toggleMemberTest(currentAssigningMember.id, item.id)}
-                    className={`p-3 rounded-[8px] flex items-center justify-between gap-3 transition-colors cursor-pointer ${isSelected
-                      ? "bg-blue-50/90 border border-blue-200 text-blue-950 font-bold"
-                      : "hover:bg-slate-50 text-slate-700"
-                      }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`h-5 w-5 rounded-[6px] border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-[#1e3a8a] border-[#1e3a8a] text-white" : "border-slate-300 bg-white"
-                        }`}>
-                        {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-bold truncate text-slate-900">
-                          {item.name}
-                        </div>
-                        <div className="text-[10.5px] text-slate-500 flex items-center gap-1.5 font-mono">
-                          <span>{item.code}</span>
-                          <span>•</span>
-                          <span>{item.parameterCount}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="font-bold text-xs sm:text-sm text-[#1e3a8a]">₹{item.price}</span>
-                        <span className="text-[10px] line-through text-slate-400">₹{item.mrp}</span>
-                      </div>
-                      <span className="text-[9.5px] font-extrabold text-[#0f9f59] bg-[#e6f7ef] px-1.5 py-0.5 rounded-[4px]">
-                        20% OFF
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Currently Selected for This Member */}
-            <div className="p-3 bg-slate-50 rounded-[8px] border border-slate-200 shrink-0 space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Assigned to {currentAssigningMember.name} ({currentAssigningMember.selectedTestIds.length})</span>
-                <span className="text-emerald-700 font-extrabold text-[11px]">✓ 20% Discount Active</span>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
-                {currentAssigningMember.selectedTestIds.map((tId) => {
-                  const item = allAvailableItems.find(i => i.id === tId)
-                  if (!item) return null
-                  return (
-                    <span
-                      key={tId}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-white border border-slate-200 text-xs font-medium text-slate-800 shadow-2xs"
-                    >
-                      <span className="truncate max-w-[140px] font-bold">{item.name}</span>
-                      <span className="text-[#1e3a8a] font-bold">₹{item.price}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          removeMemberTest(currentAssigningMember.id, tId)
-                        }}
-                        className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Modal Done Action */}
-            <div className="flex justify-end pt-2 border-t border-slate-100 shrink-0">
+            {/* Action Buttons */}
+            <div className="space-y-2.5 pt-1">
               <button
                 type="button"
-                onClick={() => setAssigningMemberId(null)}
-                className="px-6 py-2.5 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md cursor-pointer transition-all"
+                onClick={handleGoToLoginPage}
+                className="w-full h-11 rounded-[5px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
-                Done Assigning ✓
+                <span>Go to Login Page</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
-            </div>
 
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* POPUP MODAL: EDIT BENEFICIARY MEMBER                                      */}
-      {/* ========================================================================= */}
-      {editingMember && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[8px] max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Edit Member Details</h3>
               <button
                 type="button"
-                onClick={() => setEditingMember(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold cursor-pointer"
+                onClick={() => setShowLoginPrompt(false)}
+                className="w-full py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer text-center"
               >
-                ✕
+                Cancel &amp; Review Details
               </button>
             </div>
-
-            <form onSubmit={handleUpdateMember} className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingMember.name}
-                  onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Relation *</label>
-                  <select
-                    value={editingMember.relation}
-                    onChange={(e) => setEditingMember({ ...editingMember, relation: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                  >
-                    <option value="Self">Self</option>
-                    <option value="Father">Father</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Wife">Wife</option>
-                    <option value="Husband">Husband</option>
-                    <option value="Son">Son</option>
-                    <option value="Daughter">Daughter</option>
-                    <option value="Brother">Brother</option>
-                    <option value="Sister">Sister</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Age *</label>
-                  <input
-                    type="number"
-                    required
-                    value={editingMember.age}
-                    onChange={(e) => setEditingMember({ ...editingMember, age: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Collection Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingMember.address}
-                  onChange={(e) => setEditingMember({ ...editingMember, address: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingMember(null)}
-                  className="px-4 py-2.5 rounded-[8px] border border-slate-300 font-bold text-slate-700 cursor-pointer hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-[8px] bg-[#1e3a8a] hover:bg-[#152e6f] text-white font-bold shadow-xs cursor-pointer transition-colors"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* POPUP MODAL: ADD BENEFICIARY                                              */}
-      {/* ========================================================================= */}
-      {showAddBeneficiary && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[8px] max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Add Family Member</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddBeneficiary(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddNewBeneficiary} className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ramanathan M."
-                  value={newBenData.name}
-                  onChange={(e) => setNewBenData({ ...newBenData, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Relation *</label>
-                  <select
-                    value={newBenData.relation}
-                    onChange={(e) => setNewBenData({ ...newBenData, relation: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                  >
-                    <option value="Father">Father</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Wife">Wife</option>
-                    <option value="Husband">Husband</option>
-                    <option value="Son">Son</option>
-                    <option value="Daughter">Daughter</option>
-                    <option value="Brother">Brother</option>
-                    <option value="Sister">Sister</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Age *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 70"
-                    value={newBenData.age}
-                    onChange={(e) => setNewBenData({ ...newBenData, age: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Gender *</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Male", "Female", "Other"].map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setNewBenData({ ...newBenData, gender: g as any })}
-                      className={`py-2 rounded-[8px] border text-center font-bold cursor-pointer transition-colors ${newBenData.gender === g
-                        ? "bg-[#1e3a8a] text-white border-[#1e3a8a]"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                        }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Collection Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={newBenData.address}
-                  onChange={(e) => setNewBenData({ ...newBenData, address: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[8px] border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddBeneficiary(false)}
-                  className="px-4 py-2.5 rounded-[8px] border border-slate-300 font-bold text-slate-700 cursor-pointer hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-[8px] bg-[#1e3a8a] hover:bg-[#152e6f] text-white font-bold shadow-xs cursor-pointer transition-colors"
-                >
-                  Save Member
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
@@ -2098,14 +1932,18 @@ function BookingWizardContent() {
       {/* ========================================================================= */}
       {/* MODERN HIGH-END MOBILE BOTTOM APP NAVIGATION BAR (MATCHING CUSTOMER APP)  */}
       {/* ========================================================================= */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-40 h-[68px] pb-3 pt-1.5 px-3 flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.08)] overflow-visible">
-        
+      <nav 
+        className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-40 h-[68px] pb-3 pt-1.5 px-3 flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.08)] overflow-visible"
+        suppressHydrationWarning
+      >
+
         {/* Tab 1: Home */}
         <Link
-          href="/customer/dashboard"
+          href={homeHref}
           className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-400 hover:text-slate-600 transition-all"
+          suppressHydrationWarning
         >
-          <LayoutDashboard className="h-5 w-5 stroke-[1.75]" />
+          <Home className="h-5 w-5 stroke-[1.75]" />
           <span className="text-[10px] leading-none font-medium">
             Home
           </span>
@@ -2113,8 +1951,9 @@ function BookingWizardContent() {
 
         {/* Tab 2: Orders & Live Tracking */}
         <Link
-          href="/customer/dashboard"
+          href={ordersHref}
           className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-400 hover:text-slate-600 transition-all relative"
+          suppressHydrationWarning
         >
           <div className="relative">
             <ClipboardList className="h-5 w-5 stroke-[1.75]" />
@@ -2140,8 +1979,9 @@ function BookingWizardContent() {
 
         {/* Tab 4: Lab Reports */}
         <Link
-          href="/customer/dashboard"
+          href={reportsHref}
           className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-400 hover:text-slate-600 transition-all"
+          suppressHydrationWarning
         >
           <FileText className="h-5 w-5 stroke-[1.75]" />
           <span className="text-[10px] leading-none font-medium">
@@ -2151,8 +1991,9 @@ function BookingWizardContent() {
 
         {/* Tab 5: Family Members */}
         <Link
-          href="/customer/dashboard"
+          href={beneficiariesHref}
           className="flex flex-col items-center justify-center gap-1 min-w-[56px] py-1 text-slate-400 hover:text-slate-600 transition-all"
+          suppressHydrationWarning
         >
           <Users className="h-5 w-5 stroke-[1.75]" />
           <span className="text-[10px] leading-none font-medium">
@@ -2171,7 +2012,6 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#f8f9fd] flex items-center justify-center p-4">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-[#1e3a8a] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-bold text-slate-600">Loading Diagnostic Booking Wizard...</p>
         </div>
       </div>
     }>

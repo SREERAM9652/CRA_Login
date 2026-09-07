@@ -1,18 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Menu, X, Calendar, Sparkles, Handshake, ChevronRight, User, LogOut, FileText, Users } from "lucide-react"
+import { Menu, X, Calendar, Sparkles, Handshake, ChevronRight, ChevronDown, User, LogOut, FileText, Users, Home, LayoutDashboard } from "lucide-react"
 import { useWorkflowStore } from "@/lib/workflow-store"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const { customer, isCustomerLoggedIn, logoutCustomer } = useWorkflowStore()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const { customer, isCustomerLoggedIn, logoutCustomer, currentUser } = useWorkflowStore()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [dropdownOpen])
 
   const showCustomerLoggedIn = mounted && isCustomerLoggedIn
 
@@ -140,38 +156,57 @@ export function Navbar() {
         <div className="flex items-center justify-end gap-3 flex-1">
           
           {showCustomerLoggedIn ? (
-            /* Logged-in Customer View */
-            <div className="flex items-center gap-2">
-              <Link
-                href="/customer/dashboard"
-                className="h-10 px-3.5 sm:px-4 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-[#251b5c] font-bold text-xs sm:text-sm inline-flex items-center gap-2 transition-all shadow-2xs cursor-pointer"
-              >
-                <div className="h-6 w-6 rounded-full bg-[#251b5c] text-white flex items-center justify-center font-black text-[10px]">
-                  {customer.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight truncate max-w-[110px]">{customer.name}</span>
-                  <span className="text-[9.5px] text-emerald-700 font-extrabold leading-tight">Customer Portal</span>
-                </div>
-                <span className="sm:hidden text-xs font-bold">Dashboard</span>
-              </Link>
-
+            /* Logged-in Customer View with Circular Avatar Button & Dropdown Menu */
+            <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
-                onClick={() => logoutCustomer()}
-                className="h-10 px-3 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                title="Logout from Customer Account"
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="h-9 w-9 rounded-full bg-[#1e3a8a] hover:bg-[#172554] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 hover:ring-blue-900/30 transition-all cursor-pointer active:scale-95"
+                aria-expanded={dropdownOpen}
+                aria-label="User Profile Menu"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Logout</span>
+                {customer.name.slice(0, 2).toUpperCase()}
               </button>
 
-              <Link
-                href="/cra/dashboard"
-                className="h-10 px-3.5 sm:px-4 text-xs sm:text-sm font-bold inline-flex items-center justify-center whitespace-nowrap rounded-xl transition-all bg-[#2F5FDE] hover:bg-[#1d4ed8] text-white shadow-xs cursor-pointer"
-              >
-                <span>CRA Login</span>
-              </Link>
+              {/* Profile Dropdown */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  {/* Dropdown navigation items */}
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                    >
+                      <Home className="h-4 w-4 text-[#1e3a8a]" />
+                      <span>Home</span>
+                    </Link>
+
+                    <Link
+                      href="/customer/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-[#1e3a8a]" />
+                      <span>My Health Dashboard</span>
+                    </Link>
+
+                    <div className="my-1 border-t border-slate-100" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDropdownOpen(false)
+                        logoutCustomer()
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4 text-rose-600" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Unauthenticated View */
@@ -200,23 +235,23 @@ export function Navbar() {
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-200">
           
           {showCustomerLoggedIn && (
-            <div className="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between mb-2">
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between mb-2">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-full bg-[#251b5c] text-white flex items-center justify-center font-bold text-xs">
+                <div className="h-8 w-8 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                   {customer.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <div className="font-bold text-slate-900 text-xs">{customer.name}</div>
-                  <div className="text-[10.5px] text-purple-800 font-medium">{customer.mobile}</div>
+                  <div className="text-[10.5px] text-slate-500 font-medium">{customer.mobile || "+91 98450 12345"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <Link
                   href="/customer/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-1.5 rounded-xl bg-[#251b5c] text-white font-bold text-xs"
+                  className="px-3 py-1.5 rounded-xl bg-[#1e3a8a] text-white font-bold text-xs"
                 >
-                  Portal
+                  Dashboard
                 </Link>
                 <button
                   type="button"
@@ -224,7 +259,7 @@ export function Navbar() {
                     setMobileMenuOpen(false)
                     logoutCustomer()
                   }}
-                  className="p-1.5 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50"
+                  className="p-1.5 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 cursor-pointer"
                   title="Logout"
                 >
                   <LogOut className="h-4 w-4" />

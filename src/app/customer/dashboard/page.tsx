@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
 import { HEALTH_PACKAGES } from "@/lib/mock-data"
 import { CRA_TESTS } from "@/lib/cra-tests"
+import { AddFamilyMemberDrawer } from "@/components/booking/AddFamilyMemberDrawer"
 import {
   Bell,
   User,
@@ -86,6 +87,10 @@ export default function CustomerDashboardPage() {
   const isConverted = mounted ? Boolean(customer?.isConvertedToCRA) : false
   const referralCode = mounted ? (customer?.generatedReferralCode || "REF-SURESH-10") : "REF-SURESH-10"
   const craCode = mounted ? (customer?.craCode || "AVM-SURESH-CRA") : "AVM-SURESH-CRA"
+
+  const customerBeneficiaries = useMemo(() => {
+    return beneficiaries
+  }, [beneficiaries])
 
   // Determine effective referrer name for this customer / dual-role user
   const effectiveReferrerName = useMemo(() => {
@@ -490,13 +495,7 @@ export default function CustomerDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
           <div className="p-3.5 rounded-xl border transition-all bg-emerald-50/50 border-emerald-200 text-slate-800 space-y-2">
             <div className="flex items-center justify-between font-bold pb-1 text-[11px] text-slate-500 uppercase tracking-wide border-b border-emerald-100">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Step 1: Referral Code &amp; Link</span>
-              </span>
-              <span className="text-emerald-700 font-extrabold text-[10px] bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                Auto-Generated
-              </span>
+              <span>Referral Code &amp; Link</span>
             </div>
 
             <div className="space-y-1.5">
@@ -984,16 +983,16 @@ export default function CustomerDashboardPage() {
               </button>
             </div>
 
-            <div className="space-y-1.5">
-              {beneficiaries.map((b) => (
-                <div key={b.id} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-7 w-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+            <div className="space-y-1.5" suppressHydrationWarning>
+              {customerBeneficiaries.map((b) => (
+                <div key={b.id} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs" suppressHydrationWarning>
+                  <div className="flex items-center gap-2 min-w-0" suppressHydrationWarning>
+                    <div className="h-7 w-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0" suppressHydrationWarning>
                       {b.relation.slice(0, 2).toUpperCase()}
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-slate-900 text-[11px] truncate">{b.fullName}</div>
-                      <div className="text-[10px] text-slate-500">{b.relation} • {b.age} yrs • {b.gender}</div>
+                    <div className="min-w-0" suppressHydrationWarning>
+                      <div className="font-bold text-slate-900 text-[11px] truncate" suppressHydrationWarning>{b.fullName}</div>
+                      <div className="text-[10px] text-slate-500" suppressHydrationWarning>{b.relation} • {b.age} yrs • {b.gender}</div>
                     </div>
                   </div>
                   {b.relation !== "Self" && (
@@ -1014,7 +1013,7 @@ export default function CustomerDashboardPage() {
               href="/customer/dashboard/beneficiaries"
               className="w-full py-1.5 text-center block text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-100"
             >
-              View All &amp; Manage Beneficiaries ({beneficiaries.length}) →
+              View All &amp; Manage Beneficiaries ({customerBeneficiaries.length}) →
             </Link>
           </div>
 
@@ -1117,117 +1116,27 @@ export default function CustomerDashboardPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* POPUP MODAL: ADD BENEFICIARY                                              */}
+      {/* SLIDE-OVER SIDEBAR DRAWER: ADD FAMILY BENEFICIARY                         */}
       {/* ========================================================================= */}
-      {showAddBenModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Add Family Member</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddBenModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddBeneficiarySubmit} className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ramanathan M."
-                  value={benForm.fullName}
-                  onChange={(e) => setBenForm({ ...benForm, fullName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Relation *</label>
-                  <select
-                    value={benForm.relation}
-                    onChange={(e) => setBenForm({ ...benForm, relation: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-slate-50/50"
-                  >
-                    <option value="Father">Father</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Wife">Wife</option>
-                    <option value="Husband">Husband</option>
-                    <option value="Son">Son</option>
-                    <option value="Daughter">Daughter</option>
-                    <option value="Brother">Brother</option>
-                    <option value="Sister">Sister</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Age *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 70"
-                    value={benForm.age}
-                    onChange={(e) => setBenForm({ ...benForm, age: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-slate-50/50"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Gender *</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Male", "Female", "Other"].map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setBenForm({ ...benForm, gender: g as any })}
-                      className={`py-2 rounded-xl border text-center font-bold cursor-pointer ${benForm.gender === g
-                          ? "bg-[#2F5FDE] text-white border-[#2F5FDE]"
-                          : "bg-white text-slate-700 border-slate-200"
-                        }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Collection Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={benForm.address}
-                  onChange={(e) => setBenForm({ ...benForm, address: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-slate-50/50"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddBenModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#2F5FDE] text-white font-bold shadow-xs cursor-pointer"
-                >
-                  Save Member
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddFamilyMemberDrawer
+        isOpen={showAddBenModal}
+        onClose={() => setShowAddBenModal(false)}
+        onSave={(data) => {
+          addBeneficiary({
+            fullName: data.name,
+            relation: data.relation,
+            age: parseInt(data.age) || 30,
+            gender: data.gender,
+            address: data.address,
+            city: "Bengaluru",
+            pincode: "560038",
+            selectedTests: []
+          })
+          setShowAddBenModal(false)
+        }}
+        defaultAddress={customer?.address || "#42, 12th Cross, HAL 2nd Stage, Indiranagar"}
+        title="Add Family Member"
+      />
 
       {/* ========================================================================= */}
       {/* POPUP MODAL: PRESCRIPTION UPLOAD & CALLBACK                               */}

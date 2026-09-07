@@ -25,7 +25,7 @@ export default function CustomerLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { customer, logoutCustomer, currentUser } = useWorkflowStore()
+  const { customer, logoutCustomer, currentUser, isCustomerLoggedIn } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true)
@@ -35,7 +35,10 @@ export default function CustomerLayout({
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (!isCustomerLoggedIn) {
+      router.replace(`/login?role=customer&redirect=${encodeURIComponent(pathname)}`)
+    }
+  }, [isCustomerLoggedIn, pathname, router])
 
   const isCRAPartner = mounted ? Boolean(currentUser?.role === "c1" || currentUser?.role === "c2" || customer?.isConvertedToCRA || currentUser?.hasDualRole) : false
 
@@ -70,8 +73,19 @@ export default function CustomerLayout({
     router.push("/login?role=customer")
   }
 
+  if (mounted && !isCustomerLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fd] flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-[#1e3a8a] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-bold text-slate-600">Redirecting to customer login...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fd] font-sans text-slate-800 selection:bg-blue-600 selection:text-white">
+    <div className="flex flex-col h-screen h-[100dvh] overflow-hidden bg-[#f8f9fd] font-sans text-slate-800 selection:bg-blue-600 selection:text-white">
       
       {/* Customer Sidebar (Desktop + Mobile Drawer in one file) */}
       <CustomerSidebar 
@@ -84,8 +98,8 @@ export default function CustomerLayout({
       {/* ========================================================================= */}
       {/* MAIN CONTAINER (Padded left on desktop if open, 100% full width if closed)*/}
       {/* ========================================================================= */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
-        desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0"
+      <div className={`flex-1 flex flex-col min-w-0 h-full max-h-screen max-h-[100dvh] overflow-hidden transition-all duration-300 ease-in-out ${
+        desktopSidebarOpen ? "lg:pl-64" : "lg:pl-[72px]"
       }`}>
         
 
@@ -93,7 +107,7 @@ export default function CustomerLayout({
         {/* ======================================================================= */}
         {/* MOBILE TOP HEADER (CLEAN & FLEXIBLE FOR ALL MOBILE SCREENS)              */}
         {/* ======================================================================= */}
-        <header className="lg:hidden w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
+        <header className="lg:hidden w-full shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -187,8 +201,8 @@ export default function CustomerLayout({
         {/* ======================================================================= */}
         {/* DESKTOP TOP HEADER BAR (FLEXIBLE STICKY HEADER WITH PROFILE BUTTON)     */}
         {/* ======================================================================= */}
-        <header className="hidden lg:flex h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 items-center justify-between sticky top-0 z-40 shadow-xs">
-          <div className="flex items-center gap-2 shrink-0">
+        <header className="hidden lg:flex h-16 shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 items-center justify-between sticky top-0 z-40 shadow-xs">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Desktop Sidebar Close/Open Toggle Button */}
             <button
               type="button"
@@ -282,7 +296,7 @@ export default function CustomerLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-3.5 sm:p-6 lg:px-6 lg:py-5 w-full max-w-full pb-28 lg:pb-8">
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-6 lg:px-6 lg:py-5 w-full max-w-full pb-28 lg:pb-8">
           {children}
         </main>
 

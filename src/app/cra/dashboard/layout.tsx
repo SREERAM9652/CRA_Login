@@ -121,7 +121,7 @@ export default function CRADashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fd] font-sans text-slate-800 selection:bg-blue-600 selection:text-white flex flex-col" suppressHydrationWarning>
+    <div className="h-screen h-[100dvh] overflow-hidden bg-[#f8f9fd] font-sans text-slate-800 selection:bg-blue-600 selection:text-white flex flex-col" suppressHydrationWarning>
       
       {/* Desktop + Mobile CRA Sidebar in one file */}
       <CRASidebar 
@@ -132,12 +132,12 @@ export default function CRADashboardLayout({
       />
 
       {/* Main Container (Padded left: 256px when full sidebar open, 72px when slim icon rail) */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+      <div className={`flex-1 flex flex-col min-w-0 h-full max-h-screen max-h-[100dvh] overflow-hidden transition-all duration-300 ease-in-out ${
         desktopSidebarOpen ? "lg:pl-64" : "lg:pl-[72px]"
       }`}>
         
         {/* Mobile Top Header (Shows Logo + Account User Pill + Hamburger Menu) */}
-        <header className="lg:hidden w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <header className="lg:hidden w-full shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
           <Link href="/cra/dashboard" className="inline-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -181,7 +181,7 @@ export default function CRADashboardLayout({
         </header>
 
         {/* Desktop Top Header Bar (Sticky at top) */}
-        <header className="hidden lg:flex h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 items-center justify-between sticky top-0 z-30 shadow-xs">
+        <header className="hidden lg:flex h-16 shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 items-center justify-between sticky top-0 z-30 shadow-xs">
           
           {/* Left: Sidebar Collapse/Expand Toggle + Search Input */}
           <div className="flex items-center gap-3 max-w-md w-full">
@@ -316,7 +316,7 @@ export default function CRADashboardLayout({
         </header>
 
         {/* Page Content (Smooth vertical scrolling with safe bottom padding) */}
-        <main className="flex-1 p-4 sm:p-6 w-full max-w-full pb-32 lg:pb-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 w-full max-w-full pb-32 lg:pb-8">
           {children}
         </main>
 

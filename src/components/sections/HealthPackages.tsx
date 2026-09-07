@@ -195,7 +195,6 @@ export function HealthPackages() {
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin text-[#0f2756]" />
-                  <span>Loading Packages...</span>
                 </>
               ) : (
                 <>

@@ -286,7 +286,8 @@ export default function LoginPage() {
       }
     } else {
       setAccessDeniedMessage(null)
-      const target = (result && result.success && result.targetUrl) ? result.targetUrl : "/customer/dashboard"
+      const redirectParam = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect") : null
+      const target = redirectParam || ((result && result.success && result.targetUrl) ? result.targetUrl : "/customer/dashboard")
       window.location.href = target
     }
   }
@@ -304,7 +305,8 @@ export default function LoginPage() {
       referrerName: undefined,
       referralCode: undefined
     })
-    window.location.href = "/customer/dashboard"
+    const redirectParam = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect") : null
+    window.location.href = redirectParam || "/customer/dashboard"
   }
 
   const handleOtpChange = (index: number, val: string) => {
@@ -330,7 +332,8 @@ export default function LoginPage() {
         referrerName: "THURAKA SREERAM",
         referralCode: "AVM-SREERAM-C1"
       })
-      window.location.href = "/customer/dashboard"
+      const redirectParam = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect") : null
+      window.location.href = redirectParam || "/customer/dashboard"
     } else {
       switchRole(targetPersona || "sreeram")
       window.location.href = "/cra/dashboard"
@@ -617,9 +620,12 @@ export default function LoginPage() {
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#251b5c] via-[#31237a] to-[#251b5c] hover:from-[#1b1344] hover:to-[#251b5c] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#251b5c]/25 hover:shadow-lg hover:shadow-[#251b5c]/35 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99] mt-1"
                   >
                     {loading ? (
-                      <div className="spinner-xs" />
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                        <span>Signing In...</span>
+                      </div>
                     ) : (
-                      <span>Login</span>
+                      <span>Sign In</span>
                     )}
                   </button>
 
@@ -755,21 +761,14 @@ export default function LoginPage() {
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#251b5c] via-[#31237a] to-[#251b5c] hover:from-[#1b1344] hover:to-[#251b5c] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#251b5c]/25 hover:shadow-lg hover:shadow-[#251b5c]/35 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                   >
                     {loading ? (
-                      <div className="spinner-xs" />
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                        <span>Signing In as CRA Partner...</span>
+                      </div>
                     ) : (
                       <span>Sign In as CRA Partner</span>
                     )}
                   </button>
-
-                  <div className="pt-0.5 text-center">
-                    <button
-                      type="button"
-                      onClick={handleQuickRegister}
-                      className="text-[11px] text-slate-600 font-medium hover:text-[#251b5c] cursor-pointer"
-                    >
-                      Don&apos;t have an Account? <span className="font-bold text-[#251b5c] underline">Register Now</span>
-                    </button>
-                  </div>
                 </form>
 
 

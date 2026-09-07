@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   getAccountsFromJSON,
   getC1FromJSON,
@@ -65,6 +65,7 @@ export interface CustomerProfile {
   name: string
   mobile: string
   email: string
+  address?: string
   isReferred: boolean
   referralCode?: string
   referrerName?: string
@@ -2288,17 +2289,32 @@ export function useWorkflowStore() {
   }
 
   // Ensure beneficiaries array returned always has Self aligned with active user
-  const alignedBeneficiaries = state.beneficiaries.map(b => {
-    if (b.relation === "Self" && state.currentUser && state.currentUser.role !== "customer") {
-      const isSudheer = state.currentUser.id === "C2-SUDHEER" || state.currentUser.name.toLowerCase().includes("sudheer")
-      const isSreeram = state.currentUser.id === "C1-SREERAM" || state.currentUser.name.toLowerCase().includes("sreeram")
-      const expectedName = isSudheer ? "Sudheer Reddy" : isSreeram ? "Thuraka Sreeram" : state.currentUser.name
-      if (b.fullName === "Suresh M." || (isSudheer && b.fullName !== "Sudheer Reddy")) {
-        return { ...b, fullName: expectedName }
-      }
+  const alignedBeneficiaries = useMemo(() => {
+    // During SSR, preserve default beneficiaries to prevent hydration mismatches
+    if (typeof window === "undefined") {
+      return state.beneficiaries
     }
-    return b
-  })
+    // If customer is logged in or active user is customer, preserve customer profile name
+    if (state.isCustomerLoggedIn || state.currentUser?.role === "customer") {
+      return state.beneficiaries.map(b => {
+        if (b.relation === "Self" && b.fullName !== (state.customer?.name || "Suresh M.")) {
+          return { ...b, fullName: state.customer?.name || "Suresh M." }
+        }
+        return b
+      })
+    }
+    return state.beneficiaries.map(b => {
+      if (b.relation === "Self" && state.currentUser && state.currentUser.role !== "customer") {
+        const isSudheer = state.currentUser.id === "C2-SUDHEER" || state.currentUser.name.toLowerCase().includes("sudheer")
+        const isSreeram = state.currentUser.id === "C1-SREERAM" || state.currentUser.name.toLowerCase().includes("sreeram")
+        const expectedName = isSudheer ? "Sudheer Reddy" : isSreeram ? "Thuraka Sreeram" : state.currentUser.name
+        if (b.fullName === "Suresh M." || (isSudheer && b.fullName !== "Sudheer Reddy")) {
+          return { ...b, fullName: expectedName }
+        }
+      }
+      return b
+    })
+  }, [state.beneficiaries, state.currentUser, state.isCustomerLoggedIn, state.customer?.name])
 
   return {
     ...state,
