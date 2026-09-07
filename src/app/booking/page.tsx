@@ -73,7 +73,7 @@ export interface BookingItem {
 export interface BeneficiaryMember {
   id: string
   name: string
-  relation: "Self" | "Father" | "Mother" | "Wife" | "Husband" | "Son" | "Daughter" | "Brother" | "Sister" | "Other"
+  relation: "Self" | "Father" | "Mother" | "Wife" | "Husband" | "Son" | "Daughter" | "Brother" | "Sister" | "Friend" | "Other"
   age: string
   gender: "Male" | "Female" | "Other"
   mobile: string
@@ -85,15 +85,15 @@ function BookingWizardContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { customer, addPrescriptionRequest, createCustomerBooking, payForOrder } = useWorkflowStore()
+  const { customer, isCustomerLoggedIn, beneficiaries: storeBeneficiaries, addPrescriptionRequest, createCustomerBooking, payForOrder } = useWorkflowStore()
 
   const initialTestParam = searchParams.get("test")
   const initialPkgParam = searchParams.get("package")
   const initialSearchParam = searchParams.get("search") || ""
   const initialRefParam = searchParams.get("ref") || ""
   const isUploadParam = searchParams.get("upload") === "prescription"
+  const isFamilyParam = searchParams.get("mode") === "family" || !!searchParams.get("benId")
 
-  // Unified items list: 12 Curated Packages + 90+ Clinical Tests
   const allAvailableItems = useMemo<BookingItem[]>(() => {
     const packages: BookingItem[] = HEALTH_PACKAGES.map((pkg, idx) => {
       const discount = Math.round(pkg.mrp * 0.20)
@@ -161,39 +161,25 @@ function BookingWizardContent() {
 
   const [collectionMethod, setCollectionMethod] = useState<"Home Collection" | "Visit Center">("Home Collection")
 
-  // Beneficiaries State matching user mockup (Suresh K. Self, Ramanathan M. Father, Lakshmi M. Mother)
-  const [beneficiaries, setBeneficiaries] = useState<BeneficiaryMember[]>([
-    {
-      id: "ben-1",
-      name: "Suresh K.",
-      relation: "Self",
-      age: "42",
-      gender: "Male",
-      mobile: "+91 98450 12345",
-      address: "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
-      selectedTestIds: ["pkg-master", "test-H6", "test-CUA"]
-    },
-    {
-      id: "ben-2",
-      name: "Ramanathan M.",
-      relation: "Father",
-      age: "70",
-      gender: "Male",
-      mobile: "+91 98450 12345",
-      address: "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
-      selectedTestIds: ["pkg-master"]
-    },
-    {
-      id: "ben-3",
-      name: "Lakshmi M.",
-      relation: "Mother",
-      age: "65",
-      gender: "Female",
-      mobile: "+91 98450 12345",
-      address: "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
-      selectedTestIds: []
+  // Beneficiaries State: Empty by default when not logged in; populated only if customer is logged in or members added
+  const [beneficiaries, setBeneficiaries] = useState<BeneficiaryMember[]>([])
+
+  useEffect(() => {
+    if (isCustomerLoggedIn && storeBeneficiaries && storeBeneficiaries.length > 0) {
+      setBeneficiaries(storeBeneficiaries.map((b, idx) => ({
+        id: b.id || `ben-${idx + 1}`,
+        name: b.fullName || (b as any).name || "Family Member",
+        relation: b.relation || "Self",
+        age: String(b.age || "35"),
+        gender: b.gender || "Male",
+        mobile: (b as any).mobile || customer?.mobile || "+91 98450 12345",
+        address: b.address || "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
+        selectedTestIds: b.selectedTests || selectedItemIds
+      })))
+    } else if (!isCustomerLoggedIn) {
+      setBeneficiaries([])
     }
-  ])
+  }, [isCustomerLoggedIn, storeBeneficiaries])
 
   // Member Test Assignment Modal State (Allows selecting MULTIPLE tests and profiles for a single member)
   const [assigningMemberId, setAssigningMemberId] = useState<string | null>(null)
@@ -208,14 +194,14 @@ function BookingWizardContent() {
     relation: "Family Member" as any,
     age: "",
     gender: "Male" as any,
-    address: "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038"
+    address: ""
   })
 
   // Prescription Upload Modal
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(isUploadParam)
   const [rxForm, setRxForm] = useState({
-    name: "Suresh K.",
-    mobile: "+91 98450 12345",
+    name: customer?.name || "",
+    mobile: customer?.mobile || "",
     fileName: "Dr_Sharma_Prescription_Aug2026.pdf",
     notes: "Doctor advised routine checkup for sugar & thyroid."
   })
@@ -225,22 +211,46 @@ function BookingWizardContent() {
   const [selectedDate, setSelectedDate] = useState("2026-08-28")
   const [selectedSlot, setSelectedSlot] = useState("07:00 AM - 08:00 AM (Fasting Preferred)")
   const [patientData, setPatientData] = useState({
-    fullName: "Suresh K.",
-    mobile: "+91 98450 12345",
-    email: "suresh.k@example.com",
-    address: "12th Cross, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
+    fullName: isCustomerLoggedIn ? (customer?.name || "") : "",
+    mobile: isCustomerLoggedIn ? (customer?.mobile || "") : "",
+    email: isCustomerLoggedIn ? (customer?.email || "") : "",
+    address: "",
     pincode: "560038",
     city: "Bengaluru",
-    age: "42",
+    age: "35",
     gender: "Male" as const,
-    specialInstructions: "Please call 10 mins before arrival. Patients will fast 12 hours."
+    specialInstructions: "Please call 10 mins before arrival."
   })
 
   // Payment & Promo (Step 4)
-  const [referralCode, setReferralCode] = useState(initialRefParam || "AVM-SREERAM-C1")
+  const [referralCode, setReferralCode] = useState(initialRefParam || "")
   const [paymentType, setPaymentType] = useState<"Prepaid" | "Postpaid (Pay on Collection)">("Prepaid")
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Card" | "NetBanking" | "CashOnCollection">("UPI")
   const [bookingId, setBookingId] = useState("")
+
+  // Introducer / Referral Partner Info (Only displayed if referred or logged in with introducer)
+  const introducerInfo = useMemo(() => {
+    const code = initialRefParam || referralCode || (isCustomerLoggedIn && customer?.referralCode ? customer.referralCode : "")
+    if (!code) return null
+
+    const upper = code.toUpperCase()
+    if (upper.includes("SREERAM") || upper === "C1-SREERAM" || upper === "AVM-SREERAM-C1") {
+      return { name: "THURAKA SREERAM", role: "C1" }
+    }
+    if (upper.includes("SUDHEER") || upper === "C2-SUDHEER" || upper === "AVM-SUDHEER-C2") {
+      return { name: "SUDHEER REDDY", role: "C2" }
+    }
+    if (upper.includes("MAHENDRA") || upper === "C2-MAHENDRA" || upper === "AVM-MAHENDRA-C2") {
+      return { name: "SAI MAHENDRA", role: "C2" }
+    }
+    if (upper.includes("VISHNU") || upper === "C2-VISHNU" || upper === "AVM-VISHNU-C2") {
+      return { name: "VISHNU VARDHAN", role: "C2" }
+    }
+    if (isCustomerLoggedIn && customer?.referrerName) {
+      return { name: customer.referrerName.toUpperCase(), role: "CRA Partner" }
+    }
+    return { name: code, role: "Partner" }
+  }, [initialRefParam, referralCode, isCustomerLoggedIn, customer])
 
   // Pre-populate if query parameter passed
   useEffect(() => {
@@ -353,12 +363,12 @@ function BookingWizardContent() {
     const newBen: BeneficiaryMember = {
       id: `ben-${Date.now()}`,
       name: newBenData.name,
-      relation: newBenData.relation || "Other",
+      relation: newBenData.relation || "Self",
       age: newBenData.age,
       gender: newBenData.gender || "Male",
       mobile: patientData.mobile,
       address: newBenData.address || patientData.address,
-      selectedTestIds: []
+      selectedTestIds: beneficiaries.length === 0 ? [...selectedItemIds] : []
     }
     setBeneficiaries([...beneficiaries, newBen])
     setNewBenData({
@@ -404,7 +414,7 @@ function BookingWizardContent() {
 
   // Dynamic active items for Sidebar Summary based on current step
   const activeSummaryItems = useMemo(() => {
-    if (step === 1) {
+    if (step === 1 || allAssignedTestsList.length === 0) {
       return step1SelectedItems.map(item => ({ item, count: 1, totalPrice: item.price }))
     }
     // Group items by ID for steps 2-4
@@ -421,19 +431,19 @@ function BookingWizardContent() {
     return Array.from(map.values())
   }, [step, step1SelectedItems, allAssignedTestsList])
 
-  const totalItemCount = step === 1
+  const totalItemCount = (step === 1 || allAssignedTestsList.length === 0)
     ? step1SelectedItems.length
     : allAssignedTestsList.length
 
-  const subtotalMRP = step === 1
+  const subtotalMRP = (step === 1 || allAssignedTestsList.length === 0)
     ? step1SelectedItems.reduce((sum, item) => sum + item.mrp, 0)
     : allAssignedTestsList.reduce((sum, entry) => sum + entry.item.mrp, 0)
 
-  const catalogueDiscount = step === 1
+  const catalogueDiscount = (step === 1 || allAssignedTestsList.length === 0)
     ? step1SelectedItems.reduce((sum, item) => sum + item.discount, 0)
     : allAssignedTestsList.reduce((sum, entry) => sum + entry.item.discount, 0)
 
-  const realizedRevenue = step === 1
+  const realizedRevenue = (step === 1 || allAssignedTestsList.length === 0)
     ? step1SelectedItems.reduce((sum, item) => sum + item.price, 0)
     : allAssignedTestsList.reduce((sum, entry) => sum + entry.item.price, 0)
 
@@ -511,7 +521,8 @@ function BookingWizardContent() {
       discount: catalogueDiscount,
       realizedRevenue: realizedRevenue,
       homeCollectionFee: homeCollectionFee,
-      totalPayable: totalAmount
+      totalPayable: totalAmount,
+      isFamilyMember: isFamilyParam
     })
 
     if (paymentType === "Prepaid") {
@@ -616,15 +627,17 @@ function BookingWizardContent() {
 
                 {/* Left Content */}
                 <div className="space-y-2 relative z-10 flex-1 min-w-0">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] bg-white/15 border border-white/20 backdrop-blur-xs text-xs">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
-                      INTRODUCED BY
-                    </span>
-                    <span className="w-1 h-1 rounded-full bg-white/40" />
-                    <span className="text-xs font-bold text-white tracking-wide">
-                      THURAKA SREERAM (C1)
-                    </span>
-                  </div>
+                  {introducerInfo && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] bg-white/15 border border-white/20 backdrop-blur-xs text-xs">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                        INTRODUCED BY
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-white/40" />
+                      <span className="text-xs font-bold text-white tracking-wide">
+                        {introducerInfo.name} ({introducerInfo.role})
+                      </span>
+                    </div>
+                  )}
 
                   <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight">
                     Diagnostic Tests &amp; Preventive Profiles
@@ -912,9 +925,6 @@ function BookingWizardContent() {
                       <div className="space-y-1 pr-6">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-900 text-sm sm:text-base">Home Collection</h3>
-                          <span className="text-[10px] font-black bg-blue-50 text-[#1e3a8a] border border-blue-200 px-2 py-0.5 rounded-full">
-                            ₹150
-                          </span>
                         </div>
                         <p className="text-xs text-slate-500 leading-relaxed">
                           We&apos;ll collect samples from your doorstep. Same address? Only one collection fee.
@@ -943,9 +953,6 @@ function BookingWizardContent() {
                       <div className="space-y-1 pr-6">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-900 text-sm sm:text-base">Visit Lab Center</h3>
-                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                            FREE
-                          </span>
                         </div>
                         <p className="text-xs text-slate-500 leading-relaxed">
                           Visit any AVMLabs center near you. Fast, hygienic &amp; convenient.
@@ -999,123 +1006,125 @@ function BookingWizardContent() {
                     </button>
                   </div>
 
-                  {/* Beneficiary Cards List */}
-                  <div className="space-y-4">
-                    {beneficiaries.map((ben) => {
-                      const initials = ben.name.split(" ").map(n => n[0]).slice(0, 2).join("")
-                      const assignedCount = ben.selectedTestIds.length
-                      return (
-                        <div
-                          key={ben.id}
-                          className="bg-white rounded-[8px] border border-slate-200/90 p-5 space-y-3.5 shadow-2xs hover:shadow-xs transition-shadow"
-                        >
+                  {/* Beneficiary Cards List (Only rendered if beneficiaries exist) */}
+                  {beneficiaries.length > 0 && (
+                    <div className="space-y-4">
+                      {beneficiaries.map((ben) => {
+                        const initials = ben.name.split(" ").map(n => n[0]).slice(0, 2).join("")
+                        const assignedCount = ben.selectedTestIds.length
+                        return (
+                          <div
+                            key={ben.id}
+                            className="bg-white rounded-[8px] border border-slate-200/90 p-5 space-y-3.5 shadow-2xs hover:shadow-xs transition-shadow"
+                          >
 
-                          {/* Member Top Info Row */}
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-                                {initials}
-                              </div>
-
-                              <div className="space-y-0.5">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-bold text-slate-900 text-sm sm:text-base">{ben.name}</h4>
-                                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200 text-[10px] font-bold">
-                                    {ben.relation}
-                                  </span>
+                            {/* Member Top Info Row */}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                                  {initials}
                                 </div>
-                                <p className="text-xs text-slate-500 font-medium">
-                                  {ben.gender} • {ben.age} yrs • {ben.address}
-                                </p>
+
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-slate-900 text-sm sm:text-base">{ben.name}</h4>
+                                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200 text-[10px] font-bold">
+                                      {ben.relation}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-500 font-medium">
+                                    {ben.gender} • {ben.age} yrs • {ben.address}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
 
-                            {/* Right Actions: Test Count + Edit + Delete */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              <div className="text-right hidden sm:block pr-2">
-                                <div className="text-xs font-bold text-slate-900">{assignedCount} {assignedCount === 1 ? "Test" : "Tests"}</div>
-                                <div className="text-[10px] text-slate-400">Assigned</div>
-                              </div>
+                              {/* Right Actions: Test Count + Edit + Delete */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <div className="text-right hidden sm:block pr-2">
+                                  <div className="text-xs font-bold text-slate-900">{assignedCount} {assignedCount === 1 ? "Test" : "Tests"}</div>
+                                  <div className="text-[10px] text-slate-400">Assigned</div>
+                                </div>
 
-                              <button
-                                type="button"
-                                onClick={() => setEditingMember(ben)}
-                                className="p-1.5 rounded-[8px] border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
-                                title="Edit Member Details"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-
-                              {ben.relation !== "Self" && (
                                 <button
                                   type="button"
-                                  onClick={() => handleRemoveMember(ben.id)}
-                                  className="p-1.5 rounded-[8px] border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
-                                  title="Remove Member"
+                                  onClick={() => setEditingMember(ben)}
+                                  className="p-1.5 rounded-[8px] border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
+                                  title="Edit Member Details"
                                 >
-                                  <Trash2 className="h-4 w-4 text-rose-500" />
+                                  <Pencil className="h-4 w-4" />
                                 </button>
-                              )}
-                            </div>
-                          </div>
 
-                          {/* Member Assigned Tests Section */}
-                          <div className="pt-2 border-t border-slate-100 space-y-2">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                              Assigned Tests / Packages
-                            </span>
-
-                            <div className="flex flex-wrap items-center gap-2">
-                              {ben.selectedTestIds.map((tId) => {
-                                const foundTest = allAvailableItems.find(i => i.id === tId)
-                                if (!foundTest) return null
-                                return (
-                                  <span
-                                    key={tId}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#1e3a8a] text-white text-xs font-bold shadow-2xs group"
+                                {ben.relation !== "Self" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMember(ben.id)}
+                                    className="p-1.5 rounded-[8px] border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                    title="Remove Member"
                                   >
-                                    <Check className="h-3 w-3 text-white stroke-[2.5]" />
-                                    <span>{foundTest.name}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeMemberTest(ben.id, tId)}
-                                      className="ml-1 text-slate-300 hover:text-rose-300 cursor-pointer"
-                                      title="Remove from member"
-                                    >
-                                      ×
-                                    </button>
-                                  </span>
-                                )
-                              })}
-
-                              {/* Button to Add More Tests & Profiles for This Single Member */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setAssigningMemberId(ben.id)
-                                  setMemberAssignSearch("")
-                                }}
-                                className="px-3 py-1.5 rounded-[8px] border border-dashed border-blue-300 bg-blue-50/70 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                                <span>Assign Tests / Packages</span>
-                              </button>
+                                    <Trash2 className="h-4 w-4 text-rose-500" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
 
-                        </div>
-                      )
-                    })}
-                  </div>
+                            {/* Member Assigned Tests Section */}
+                            <div className="pt-2 border-t border-slate-100 space-y-2">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                                Assigned Tests / Packages
+                              </span>
+
+                              <div className="flex flex-wrap items-center gap-2">
+                                {ben.selectedTestIds.map((tId) => {
+                                  const foundTest = allAvailableItems.find(i => i.id === tId)
+                                  if (!foundTest) return null
+                                  return (
+                                    <span
+                                      key={tId}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#1e3a8a] text-white text-xs font-bold shadow-2xs group"
+                                    >
+                                      <Check className="h-3 w-3 text-white stroke-[2.5]" />
+                                      <span>{foundTest.name}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeMemberTest(ben.id, tId)}
+                                        className="ml-1 text-slate-300 hover:text-rose-300 cursor-pointer"
+                                        title="Remove from member"
+                                      >
+                                        ×
+                                      </button>
+                                    </span>
+                                  )
+                                })}
+
+                                {/* Button to Add More Tests & Profiles for This Single Member */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAssigningMemberId(ben.id)
+                                    setMemberAssignSearch("")
+                                  }}
+                                  className="px-3 py-1.5 rounded-[8px] border border-dashed border-blue-300 bg-blue-50/70 hover:bg-blue-100 text-[#1e3a8a] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                  <span>Assign Tests / Packages</span>
+                                </button>
+                              </div>
+                            </div>
+
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   {/* Add more family members or beneficiaries Dashed Card */}
-                  <div className="p-5 rounded-[8px] border-2 border-dashed border-blue-200 bg-blue-50/30 flex items-center justify-between gap-4">
+                  <div className="p-6 sm:p-8 rounded-[8px] border-2 border-dashed border-blue-200 bg-blue-50/40 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-[8px] bg-blue-100 text-[#1e3a8a] flex items-center justify-center shrink-0">
                         <Users className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 text-sm">Add more family members or beneficiaries</h4>
+                        <h4 className="font-bold text-slate-900 text-sm sm:text-base">Add more family members or beneficiaries</h4>
                         <p className="text-xs text-slate-500">You can add and assign tests to more members.</p>
                       </div>
                     </div>
@@ -1123,9 +1132,9 @@ function BookingWizardContent() {
                     <button
                       type="button"
                       onClick={() => setShowAddBeneficiary(true)}
-                      className="px-4 py-2 rounded-[8px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                      className="px-4 py-2 rounded-[8px] bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
                     >
-                      <Plus className="h-3.5 w-3.5 text-[#1e3a8a]" />
+                      <Plus className="h-3.5 w-3.5" />
                       <span>Add Member</span>
                     </button>
                   </div>
@@ -1144,7 +1153,13 @@ function BookingWizardContent() {
                     <div className="w-full sm:w-auto flex flex-col items-center sm:items-end gap-1">
                       <button
                         type="button"
-                        onClick={() => setStep(3)}
+                        onClick={() => {
+                          if (beneficiaries.length === 0) {
+                            setShowAddBeneficiary(true)
+                            return
+                          }
+                          setStep(3)
+                        }}
                         disabled={totalItemCount === 0}
                         className="w-full sm:w-auto py-3 px-7 rounded-[8px] bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1e3a8a] text-white font-bold text-xs sm:text-sm shadow-md transition-all inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                       >

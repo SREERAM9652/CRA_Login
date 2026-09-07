@@ -1,0 +1,72 @@
+{
+  "beneficiaries": [
+    {
+      "id": "ben-1",
+      "fullName": "Suresh M.",
+      "relation": "Self",
+      "age": 42,
+      "gender": "Male",
+      "address": "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+      "city": "Bengaluru",
+      "pincode": "560038",
+      "selectedTests": ["pkg-fullbody"]
+    },
+    {
+      "id": "ben-2",
+      "fullName": "Ramanathan M.",
+      "relation": "Father",
+      "age": 70,
+      "gender": "Male",
+      "address": "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+      "city": "Bengaluru",
+      "pincode": "560038",
+      "selectedTests": ["pkg-diabetes"]
+    },
+    {
+      "id": "ben-3",
+      "fullName": "Lakshmi M.",
+      "relation": "Mother",
+      "age": 65,
+      "gender": "Female",
+      "address": "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+      "city": "Bengaluru",
+      "pincode": "560038",
+      "selectedTests": ["pkg-senior"]
+    },
+    {
+      "id": "ben-4",
+      "fullName": "Priya S.",
+      "relation": "Wife",
+      "age": 39,
+      "gender": "Female",
+      "address": "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+      "city": "Bengaluru",
+      "pincode": "560038",
+      "selectedTests": ["pkg-women"]
+    }
+  ],
+  "prescriptions": [
+    {
+      "id": "RX-901",
+      "customerName": "Suresh M.",
+      "mobile": "+91 98451 99881",
+      "uploadedFileUrl": "/hero_diagnostic_lab.jpg",
+      "fileName": "Dr_Sharma_Prescription_Aug2026.pdf",
+      "notes": "Doctor advised 3-month follow up for fasting sugar and thyroid.",
+      "requestedAt": "Today, 09:30 AM",
+      "status": "Pending Review",
+      "recommendedTests": [
+        "HbA1c Glycated Hemoglobin",
+        "Fasting Blood Sugar",
+        "Thyroid Profile (TSH)"
+      ]
+    }
+  ],
+  "orgProfile": {
+    "orgName": "AVMLabs Clinical Diagnostic Network",
+    "tagline": "NABL Accredited • Precision Diagnostics Across India",
+    "supportPhone": "1800-208-9999",
+    "supportEmail": "support@avmlabs.com",
+    "headquarters": "AVM Towers, High-Tech City, Hyderabad - 500081"
+  }
+}

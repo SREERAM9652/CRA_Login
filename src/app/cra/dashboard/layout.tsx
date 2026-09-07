@@ -17,7 +17,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   User,
-  LogOut
+  LogOut,
+  ShieldAlert,
+  ArrowRight
 } from "lucide-react"
 
 import { ReferralShareModal } from "@/components/cra/ReferralShareModal"
@@ -28,7 +30,7 @@ export default function CRADashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { currentUser, orgProfile } = useWorkflowStore()
+  const { currentUser, orgProfile, customer } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true)
@@ -63,6 +65,59 @@ export default function CRADashboardLayout({
   const currentUserName = mounted ? currentUser.name : "THURAKA SREERAM"
   const avatarInitials = currentUserName.split(" ").map(n => n[0]).slice(0, 2).join("")
 
+  // Role-Based Guard: Customers cannot access CRA Portal unless converted/dual-role
+  const isCustomerOnly = mounted && currentUser.role === "customer" && !customer?.isConvertedToCRA && !currentUser.hasDualRole
+
+  if (isCustomerOnly) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/30 flex items-center justify-center p-4 font-sans">
+        <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200 inline-block">
+              Role Access Restricted
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 pt-1">
+              Customer Account Detected
+            </h1>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Based on role-based access rules: <strong>Customers cannot access the CRA Partner Portal</strong> directly.
+            </p>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 text-left text-xs space-y-2 text-slate-600">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
+              <span>💡 How to access the CRA Portal:</span>
+            </div>
+            <p className="text-[11.5px] leading-snug text-slate-600">
+              In your <strong>Customer Dashboard</strong>, share your referral link. When a referred customer books their first wellness test and completes payment, your account will automatically be elevated to a <strong>CRA Partner</strong> with Dual-Role access!
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Link
+              href="/customer/dashboard"
+              className="w-full py-3 px-4 rounded-xl bg-[#251b5c] hover:bg-[#1a1340] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Go to Customer Dashboard</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <Link
+              href="/login?role=cra"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Log in with an Authorized CRA Partner Account</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9fd] font-sans text-slate-800 selection:bg-blue-600 selection:text-white flex flex-col" suppressHydrationWarning>
       
@@ -74,9 +129,9 @@ export default function CRADashboardLayout({
         setDesktopOpen={setDesktopSidebarOpen}
       />
 
-      {/* Main Container (Padded left on desktop if open, 100% full width if closed) */}
+      {/* Main Container (Padded left: 256px when full sidebar open, 72px when slim icon rail) */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
-        desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0"
+        desktopSidebarOpen ? "lg:pl-64" : "lg:pl-[72px]"
       }`}>
         
         {/* Mobile Top Header (Shows Logo + Account User Pill + Hamburger Menu) */}

@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+flowchart TD
 
-First, run the development server:
+    A([New User]) --> B[Register as New Customer]
+    B --> C[Complete Customer Onboarding]
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    C --> D{Generate Referral Link / Code?}
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+    D -->|No| E[Continue as Normal Customer]
+    E --> F[Customer Dashboard]
+    F --> G[Book Tests / My Orders / Reports]
+    G --> D
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    D -->|Yes| H[Generate Referral Link / Referral Code]
+    H --> I[Share Referral with New Customer]
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    I --> J[New Customer Registers Using Referral]
+    J --> K[Referral Successfully Verified]
 
-## Learn More
+    K --> L[Referred Customer Books Tests]
+    L --> M[Calculate Test Price]
+    M --> N[Apply 10% Referral Discount]
+    N --> O[Proceed to Payment]
 
-To learn more about Next.js, take a look at the following resources:
+    O --> P{Payment Successful?}
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    P -->|No| Q[Payment Failed / Pending]
+    Q --> R[Original Customer Remains Customer]
+    R --> S{Try Payment Again?}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    S -->|Yes| O
+    S -->|No| T[Referral Process Not Completed]
+    T --> D
 
-## Deploy on Vercel
+    P -->|Yes| U[Payment Successfully Completed]
+    U --> V[Calculate Realized Revenue]
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    V --> W[Convert Original Customer to CRA]
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    W --> X[Same User Account]
+    X --> Y[Customer Role + CRA Role]
+
+    Y --> Z[CRA Dashboard]
+
+    Z --> Z1[Make a Profile]
+    Z --> Z2[Refer New Customer]
+    Z --> Z3[My Customers]
+    Z --> Z4[My Bookings]
+    Z --> Z5[Earnings / Wallet / Ledger]
+    Z --> Z6[Test Prices / Price Estimator]
+
+    Y --> AA[Customer Dashboard / Customer Features]
+
+    AA --> AA1[Book Tests]
+    AA --> AA2[My Orders]
+    AA --> AA3[Reports]
+    AA --> AA4[Customer Booking History]
+
+    Z --> AB[Calculate 30% CRA Incentive]
+    AB --> AC[Credit Incentive to CRA Wallet / Ledger]
+
+    AC --> AD{Refer Another New Customer?}
+
+    AD -->|Yes| H
+    AD -->|No| AE[Continue as CRA + Customer]
+
+    AE --> AF{New Referral?}
+    AF -->|Yes| H
+    AF -->|No| AG([End])

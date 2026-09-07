@@ -25,15 +25,22 @@ export default function CustomerLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { customer, logoutCustomer } = useWorkflowStore()
+  const { customer, logoutCustomer, currentUser } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const desktopDropdownRef = useRef<HTMLDivElement>(null)
   const mobileDropdownRef = useRef<HTMLDivElement>(null)
 
-  const customerName = customer?.name || "Suresh M."
-  const avatarInitials = customerName.split(" ").map(n => n[0]).slice(0, 2).join("")
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isCRAPartner = mounted ? Boolean(currentUser?.role === "c1" || currentUser?.role === "c2" || customer?.isConvertedToCRA || currentUser?.hasDualRole) : false
+
+  const customerName = mounted ? (customer?.name || currentUser?.name || "Patient") : "Patient"
+  const avatarInitials = customerName.split(" ").filter(Boolean).map(n => n[0]).slice(0, 2).join("").toUpperCase() || "PT"
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -81,10 +88,12 @@ export default function CustomerLayout({
         desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0"
       }`}>
         
+
+        
         {/* ======================================================================= */}
         {/* MOBILE TOP HEADER (CLEAN & FLEXIBLE FOR ALL MOBILE SCREENS)              */}
         {/* ======================================================================= */}
-        <header className="lg:hidden w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <header className="lg:hidden w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -112,6 +121,7 @@ export default function CustomerLayout({
               className="h-9 w-9 rounded-full bg-[#1e3a8a] hover:bg-[#172554] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 cursor-pointer transition-all active:scale-95"
               aria-label="Patient Profile Menu"
               aria-expanded={profileDropdownOpen}
+              suppressHydrationWarning
             >
               {avatarInitials}
             </button>
@@ -121,12 +131,12 @@ export default function CustomerLayout({
               <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-2.5 z-50 animate-in fade-in-50 zoom-in-95 duration-150">
                 <div className="p-3 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-xl border border-slate-100 mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-sm shadow-xs ring-2 ring-blue-900/15 shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-sm shadow-xs ring-2 ring-blue-900/15 shrink-0" suppressHydrationWarning>
                       {avatarInitials}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-bold text-slate-900 text-xs sm:text-sm truncate">{customerName}</div>
-                      <div className="text-[11px] text-slate-500 truncate">{customer?.mobile || "+91 98765 43210"}</div>
+                      <div className="font-bold text-slate-900 text-xs sm:text-sm truncate" suppressHydrationWarning>{customerName}</div>
+                      <div className="text-[11px] text-slate-500 truncate" suppressHydrationWarning>{customer?.mobile || "+91 98765 43210"}</div>
                     </div>
                   </div>
                 </div>
@@ -177,7 +187,7 @@ export default function CustomerLayout({
         {/* ======================================================================= */}
         {/* DESKTOP TOP HEADER BAR (FLEXIBLE STICKY HEADER WITH PROFILE BUTTON)     */}
         {/* ======================================================================= */}
-        <header className="hidden lg:flex h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 items-center justify-between sticky top-0 z-30 shadow-xs">
+        <header className="hidden lg:flex h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 items-center justify-between sticky top-0 z-40 shadow-xs">
           <div className="flex items-center gap-2 shrink-0">
             {/* Desktop Sidebar Close/Open Toggle Button */}
             <button
@@ -208,7 +218,7 @@ export default function CustomerLayout({
               aria-expanded={profileDropdownOpen}
               aria-label="Patient Profile Menu"
             >
-              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0 group-hover:ring-blue-900/30 transition-all">
+              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0 group-hover:ring-blue-900/30 transition-all" suppressHydrationWarning>
                 {avatarInitials}
               </div>
             </button>
@@ -218,12 +228,12 @@ export default function CustomerLayout({
               <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-2.5 z-50 animate-in fade-in-50 zoom-in-95 duration-150">
                 <div className="p-3 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-xl border border-slate-100 mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-sm shadow-xs ring-2 ring-blue-900/15 shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-sm shadow-xs ring-2 ring-blue-900/15 shrink-0" suppressHydrationWarning>
                       {avatarInitials}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-bold text-slate-900 text-xs sm:text-sm truncate">{customerName}</div>
-                      <div className="text-[11px] text-slate-500 truncate">{customer?.mobile || "+91 98765 43210"}</div>
+                      <div className="font-bold text-slate-900 text-xs sm:text-sm truncate" suppressHydrationWarning>{customerName}</div>
+                      <div className="text-[11px] text-slate-500 truncate" suppressHydrationWarning>{customer?.mobile || "+91 98765 43210"}</div>
                     </div>
                   </div>
                 </div>

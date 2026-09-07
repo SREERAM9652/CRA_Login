@@ -9,7 +9,7 @@ import { Sparkles, RefreshCw, Smartphone, Monitor, ChevronRight } from "lucide-r
 export default function PrototypeNavBar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { switchRole, resetDemo, currentUser } = useWorkflowStore()
+  const { switchRole, resetDemo, currentUser, setCustomerReferral } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -43,10 +43,12 @@ export default function PrototypeNavBar() {
         router.push("/cra/dashboard")
         break
       case "customer-ref":
+        setCustomerReferral(true, "AVM-SREERAM-C1", "THURAKA SREERAM")
         switchRole("customer")
         router.push("/customer/dashboard?referred=true")
         break
       case "customer-reg":
+        setCustomerReferral(false)
         switchRole("customer")
         router.push("/customer/dashboard?referred=false")
         break

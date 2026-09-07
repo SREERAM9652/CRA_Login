@@ -1,6 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import {
+  getAccountsFromJSON,
+  getC1FromJSON,
+  getC2ListFromJSON,
+  getDefaultCustomerFromJSON,
+  getBeneficiariesFromJSON,
+  getPrescriptionsFromJSON,
+  getOrgProfileFromJSON,
+  findAccountByCredentials
+} from "@/lib/data-service"
 
 export interface CRAUser {
   id: string
@@ -12,6 +22,8 @@ export interface CRAUser {
   city?: string
   c1Id?: string // ID of parent / introducer
   c1Name?: string // Name of parent / introducer
+  isConvertedFromCustomer?: boolean
+  hasDualRole?: boolean
 }
 
 export interface LoginResult {
@@ -59,6 +71,11 @@ export interface CustomerProfile {
   walletBalance: number
   cashbackEarned: number
   activeCoupons: string[]
+  generatedReferralCode?: string
+  hasGeneratedReferral?: boolean
+  isConvertedToCRA?: boolean
+  hasDualRole?: boolean
+  craCode?: string
 }
 
 export interface CustomerOrder {
@@ -80,6 +97,7 @@ export interface CustomerOrder {
   creatorName: string
   c1Id?: string          // Parent C1/C2 if created by sub-partner
   c1Name?: string
+  isFamilyMember?: boolean // True if booked for CRA's family: 20% customer discount + 30% CRA direct earning
   createdAt: string
   paidAt?: string
   paymentMethod?: string
@@ -308,135 +326,6 @@ export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
   }
 ]
 
-export const DEFAULT_BENEFICIARIES: Beneficiary[] = [
-  {
-    id: "ben-1",
-    fullName: "Suresh M.",
-    relation: "Self",
-    age: 42,
-    gender: "Male",
-    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
-    city: "Bengaluru",
-    pincode: "560038",
-    selectedTests: ["pkg-fullbody"]
-  },
-  {
-    id: "ben-2",
-    fullName: "Ramanathan M.",
-    relation: "Father",
-    age: 70,
-    gender: "Male",
-    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
-    city: "Bengaluru",
-    pincode: "560038",
-    selectedTests: ["pkg-diabetes"]
-  },
-  {
-    id: "ben-3",
-    fullName: "Lakshmi M.",
-    relation: "Mother",
-    age: 65,
-    gender: "Female",
-    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
-    city: "Bengaluru",
-    pincode: "560038",
-    selectedTests: ["pkg-senior"]
-  },
-  {
-    id: "ben-4",
-    fullName: "Priya S.",
-    relation: "Wife",
-    age: 39,
-    gender: "Female",
-    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
-    city: "Bengaluru",
-    pincode: "560038",
-    selectedTests: ["pkg-women"]
-  }
-]
-
-export const DEFAULT_PRESCRIPTIONS: PrescriptionRequest[] = [
-  {
-    id: "RX-901",
-    customerName: "Suresh M.",
-    mobile: "+91 98450 12345",
-    uploadedFileUrl: "/hero_diagnostic_lab.jpg",
-    fileName: "Dr_Sharma_Prescription_Aug2026.pdf",
-    notes: "Doctor advised 3-month follow up for fasting sugar and thyroid.",
-    requestedAt: "Today, 09:30 AM",
-    status: "Pending Review",
-    recommendedTests: ["HbA1c Glycated Hemoglobin", "Fasting Blood Sugar", "Thyroid Profile (TSH)"]
-  }
-]
-
-export const DEFAULT_CUSTOMER: CustomerProfile = {
-  id: "CUST-981",
-  name: "Suresh M.",
-  mobile: "+91 98450 12345",
-  email: "suresh.m@example.com",
-  isReferred: true,
-  referralCode: "AVM-SREERAM-C1",
-  referrerName: "THURAKA SREERAM",
-  walletBalance: 350,
-  cashbackEarned: 150,
-  activeCoupons: ["WELLNESS20", "HEALTH100"]
-}
-
-// -------------------------------------------------------------
-// 4 REAL PERSONA ACCOUNTS CONFIGURED FOR 2-LEVEL REAL WORLD FLOW
-// -------------------------------------------------------------
-
-// 1. THURAKA SREERAM (C1 - Primary CRA Partner)
-export const DEFAULT_C1: CRAUser = {
-  id: "C1-SREERAM",
-  role: "c1",
-  name: "THURAKA SREERAM",
-  mobile: "+91 98450 12345",
-  email: "sreeram.thuraka@avmlabs.com",
-  code: "AVM-SREERAM-C1",
-  city: "Hyderabad"
-}
-
-// 2, 3, 4: SUB-PARTNERS
-export const DEFAULT_C2_LIST: CRAUser[] = [
-  // 2. SUDHEER REDDY (C2 under Sreeram)
-  {
-    id: "C2-SUDHEER",
-    role: "c2",
-    name: "SUDHEER REDDY",
-    mobile: "+91 98860 54321",
-    email: "sudheer.reddy@avmlabs.com",
-    code: "AVM-SUDHEER-C2",
-    city: "Bengaluru",
-    c1Id: "C1-SREERAM",
-    c1Name: "THURAKA SREERAM"
-  },
-  // 3. SAI MAHENDRA (C2 under Sreeram & Introducer of Vishnu)
-  {
-    id: "C2-MAHENDRA",
-    role: "c2",
-    name: "SAI MAHENDRA",
-    mobile: "+91 97400 98765",
-    email: "sai.mahendra@avmlabs.com",
-    code: "AVM-MAHENDRA-C2",
-    city: "Pune",
-    c1Id: "C1-SREERAM",
-    c1Name: "THURAKA SREERAM"
-  },
-  // 4. VISHNU (C2 introduced by Sai Mahendra)
-  {
-    id: "C2-VISHNU",
-    role: "c2",
-    name: "VISHNU VARDHAN",
-    mobile: "+91 98220 77112",
-    email: "vishnu.vardhan@avmlabs.com",
-    code: "AVM-VISHNU-C2",
-    city: "Vijayawada",
-    c1Id: "C2-MAHENDRA",
-    c1Name: "SAI MAHENDRA"
-  }
-]
-
 export interface SystemAccount {
   id: string
   role: "c1" | "c2" | "customer"
@@ -450,86 +339,22 @@ export interface SystemAccount {
   targetDashboard: string
   description: string
   badgeColor: string
+  city?: string
+  introducer?: {
+    id: string
+    name: string
+    code: string
+  } | null
   aliases?: string[]
 }
 
-export const SYSTEM_ACCOUNTS: SystemAccount[] = [
-  {
-    id: "C1-SREERAM",
-    role: "c1",
-    personaKey: "sreeram",
-    name: "THURAKA SREERAM",
-    roleTitle: "Primary CRA Super-Partner (C1)",
-    code: "AVM-SREERAM-C1",
-    mobile: "9845012345",
-    email: "sreeram.thuraka@avmlabs.com",
-    password: "sreeram@123",
-    targetDashboard: "/cra/dashboard",
-    description: "Top Root Partner • 30% Direct Commission + 10% 2nd-Level Override from Sub-Partners",
-    badgeColor: "bg-purple-100 text-[#382685] border-purple-200",
-    aliases: ["sreeram", "c1", "+91 98450 12345", "98450 12345"]
-  },
-  {
-    id: "C2-SUDHEER",
-    role: "c2",
-    personaKey: "sudheer",
-    name: "SUDHEER REDDY",
-    roleTitle: "Tier-2 Sub-Partner (C2)",
-    code: "AVM-SUDHEER-C2",
-    mobile: "9886054321",
-    email: "sudheer.reddy@avmlabs.com",
-    password: "sudheer@123",
-    targetDashboard: "/cra/dashboard",
-    description: "Introduced by Thuraka Sreeram • 30% Direct Commission on Diagnostic Bookings",
-    badgeColor: "bg-blue-100 text-[#2F5FDE] border-blue-200",
-    aliases: ["sudheer", "+91 98860 54321", "98860 54321"]
-  },
-  {
-    id: "C2-MAHENDRA",
-    role: "c2",
-    personaKey: "mahendra",
-    name: "SAI MAHENDRA",
-    roleTitle: "Tier-2 Partner & Introducer (C2)",
-    code: "AVM-MAHENDRA-C2",
-    mobile: "9740098765",
-    email: "sai.mahendra@avmlabs.com",
-    password: "mahendra@123",
-    targetDashboard: "/cra/dashboard",
-    description: "Introduced by Sreeram & Introducer of Vishnu • 30% Direct + 10% Sub-Partner Override",
-    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    aliases: ["mahendra", "9877011223", "+91 97400 98765", "97400 98765"]
-  },
-  {
-    id: "C2-VISHNU",
-    role: "c2",
-    personaKey: "vishnu",
-    name: "VISHNU VARDHAN",
-    roleTitle: "Tier-3 Partner (C2 Sub)",
-    code: "AVM-VISHNU-C2",
-    mobile: "9822077112",
-    email: "vishnu.vardhan@avmlabs.com",
-    password: "vishnu@123",
-    targetDashboard: "/cra/dashboard",
-    description: "Introduced by Sai Mahendra • 30% Direct Commission (Overrides stop at Mahendra)",
-    badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-    aliases: ["vishnu", "9866033445", "+91 98220 77112", "98220 77112"]
-  },
-  {
-    id: "CUST-981",
-    role: "customer",
-    personaKey: "customer",
-    name: "Suresh M.",
-    roleTitle: "Patient / Health Customer",
-    code: "CUST-SURESH",
-    mobile: "9845012345",
-    email: "suresh.m@example.com",
-    password: "customer@123",
-    targetDashboard: "/customer/dashboard",
-    description: "Customer Health Portal • Book Diagnostic Packages, Home Sample Collection & View Reports",
-    badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
-    aliases: ["suresh", "customer", "patient"]
-  }
-]
+// Dynamically loaded from JSON datasets (no hardcoding in file)
+export const DEFAULT_BENEFICIARIES: Beneficiary[] = getBeneficiariesFromJSON() as Beneficiary[]
+export const DEFAULT_PRESCRIPTIONS: PrescriptionRequest[] = getPrescriptionsFromJSON() as PrescriptionRequest[]
+export const DEFAULT_CUSTOMER: CustomerProfile = getDefaultCustomerFromJSON() as CustomerProfile
+export const DEFAULT_C1: CRAUser = getC1FromJSON() as CRAUser
+export const DEFAULT_C2_LIST: CRAUser[] = getC2ListFromJSON() as CRAUser[]
+export const SYSTEM_ACCOUNTS: SystemAccount[] = getAccountsFromJSON() as SystemAccount[]
 
 export const ALL_DEMO_ACCOUNTS = [
   DEFAULT_C1,
@@ -1136,9 +961,17 @@ function loadState(): WorkflowState {
     if (data) {
       const parsed = JSON.parse(data)
       if (parsed.currentUser && parsed.c1 && parsed.c2List) {
+        const loadedCustomer = parsed.customer || DEFAULT_CUSTOMER
+        // Flowchart D -> E: If Referral Code not already generated, automatically generate it!
+        if (!loadedCustomer.generatedReferralCode) {
+          const clean = (loadedCustomer.name || "USER").replace(/[^A-Za-z]/g, "").slice(0, 6).toUpperCase() || "USER"
+          loadedCustomer.generatedReferralCode = `REF-${clean}-10`
+          loadedCustomer.hasGeneratedReferral = true
+        }
+
         return {
           ...parsed,
-          customer: parsed.customer || DEFAULT_CUSTOMER,
+          customer: loadedCustomer,
           isCustomerLoggedIn: parsed.isCustomerLoggedIn ?? false,
           beneficiaries: parsed.beneficiaries || DEFAULT_BENEFICIARIES,
           prescriptionRequests: parsed.prescriptionRequests || DEFAULT_PRESCRIPTIONS,
@@ -1239,26 +1072,62 @@ export function useWorkflowStore() {
       newUser = DEFAULT_C2_LIST[2] // Vishnu
     } else if (roleOrPersona === "c2") {
       if (customC2Id) {
-        newUser = state.c2List.find(c => c.id === customC2Id) || DEFAULT_C2_LIST[0]
+        newUser = globalState.c2List.find(c => c.id === customC2Id) || DEFAULT_C2_LIST[0]
       } else {
         newUser = DEFAULT_C2_LIST[0]
       }
     } else {
-      newUser = {
-        id: "CUST-981",
-        role: "customer",
-        name: state.customer?.name || "Suresh M.",
-        mobile: state.customer?.mobile || "+91 98450 12345",
-        email: state.customer?.email || "suresh.m@example.com",
-        code: "CUST-SURESH",
-        city: "Bengaluru"
+      const prevCraUser = (globalState.currentUser?.role === "c1" || globalState.currentUser?.role === "c2") ? globalState.currentUser : null
+      let updatedCustomer = globalState.customer
+      if (prevCraUser) {
+        const isSreeram = prevCraUser.id === "C1-SREERAM" || prevCraUser.name?.toUpperCase().includes("SREERAM") || !prevCraUser.c1Name
+        const hasReferrer = isSreeram ? false : Boolean(prevCraUser.c1Name)
+        const referrerName = hasReferrer ? prevCraUser.c1Name : undefined
+        const referralCode = hasReferrer ? (prevCraUser.c1Id === "C1-SREERAM" ? "AVM-SREERAM-C1" : "AVM-MAHENDRA-C2") : undefined
+        const clean = (prevCraUser.name || "USER").replace(/[^A-Za-z]/g, "").slice(0, 7).toUpperCase() || "USER"
+        updatedCustomer = {
+          ...globalState.customer,
+          id: `CUST-${prevCraUser.id}`,
+          name: prevCraUser.name,
+          mobile: prevCraUser.mobile,
+          email: prevCraUser.email,
+          isReferred: hasReferrer,
+          referrerName: referrerName,
+          referralCode: referralCode,
+          isConvertedToCRA: true,
+          hasDualRole: true,
+          craCode: prevCraUser.code,
+          hasGeneratedReferral: true,
+          generatedReferralCode: prevCraUser.code || `REF-${clean}-10`
+        }
       }
+
+      newUser = {
+        id: updatedCustomer?.id || "CUST-981",
+        role: "customer",
+        name: updatedCustomer?.name || "Suresh M.",
+        mobile: updatedCustomer?.mobile || "+91 98451 99881",
+        email: updatedCustomer?.email || "suresh.m@example.com",
+        code: updatedCustomer?.craCode || "CUST-SURESH",
+        city: "Bengaluru",
+        isConvertedFromCustomer: updatedCustomer?.isConvertedToCRA || false,
+        hasDualRole: updatedCustomer?.hasDualRole || false
+      }
+
+      const newState: WorkflowState = {
+        ...globalState,
+        customer: updatedCustomer,
+        currentUser: newUser,
+        isCustomerLoggedIn: true
+      }
+      updateGlobalState(newState)
+      return
     }
 
-    const newState = {
-      ...state,
+    const newState: WorkflowState = {
+      ...globalState,
       currentUser: newUser,
-      isCustomerLoggedIn: roleOrPersona === "customer" ? true : state.isCustomerLoggedIn
+      isCustomerLoggedIn: false
     }
     updateGlobalState(newState)
   }
@@ -1270,8 +1139,8 @@ export function useWorkflowStore() {
       id: `ben-${Date.now().toString().slice(-4)}`
     }
     const newState = {
-      ...state,
-      beneficiaries: [...state.beneficiaries, newBen]
+      ...globalState,
+      beneficiaries: [...globalState.beneficiaries, newBen]
     }
     updateGlobalState(newState)
     return newBen
@@ -1279,16 +1148,16 @@ export function useWorkflowStore() {
 
   const updateBeneficiary = (id: string, updated: Partial<Beneficiary>) => {
     const newState = {
-      ...state,
-      beneficiaries: state.beneficiaries.map(b => b.id === id ? { ...b, ...updated } : b)
+      ...globalState,
+      beneficiaries: globalState.beneficiaries.map(b => b.id === id ? { ...b, ...updated } : b)
     }
     updateGlobalState(newState)
   }
 
   const removeBeneficiary = (id: string) => {
     const newState = {
-      ...state,
-      beneficiaries: state.beneficiaries.filter(b => b.id !== id)
+      ...globalState,
+      beneficiaries: globalState.beneficiaries.filter(b => b.id !== id)
     }
     updateGlobalState(newState)
   }
@@ -1311,8 +1180,8 @@ export function useWorkflowStore() {
       recommendedTests: ["Fasting Blood Sugar", "HbA1c", "Thyroid Profile (TSH)"]
     }
     const newState = {
-      ...state,
-      prescriptionRequests: [newReq, ...state.prescriptionRequests]
+      ...globalState,
+      prescriptionRequests: [newReq, ...globalState.prescriptionRequests]
     }
     updateGlobalState(newState)
     return newReq
@@ -1320,13 +1189,13 @@ export function useWorkflowStore() {
 
   // Set customer referral status (Referred with 20% discount vs Regular)
   const setCustomerReferral = (isReferred: boolean, code?: string, referrerName?: string) => {
-    const newState = {
-      ...state,
+    const newState: WorkflowState = {
+      ...globalState,
       customer: {
-        ...state.customer,
+        ...globalState.customer,
         isReferred,
-        referralCode: isReferred ? (code || "AVM-RAMESH-C1") : undefined,
-        referrerName: isReferred ? (referrerName || "Ramesh Gupta") : undefined
+        referralCode: isReferred ? (code || "AVM-SREERAM-C1") : undefined,
+        referrerName: isReferred ? (referrerName || "THURAKA SREERAM") : undefined
       }
     }
     updateGlobalState(newState)
@@ -1334,25 +1203,59 @@ export function useWorkflowStore() {
 
   // Customer Login / Logout State
   const loginCustomer = (profile?: Partial<CustomerProfile>) => {
-    const updatedCustomer = profile ? { ...state.customer, ...profile } : state.customer
+    const rawCustomer: CustomerProfile = profile 
+      ? { 
+          ...globalState.customer, 
+          ...profile,
+          isReferred: profile.isReferred !== undefined ? profile.isReferred : globalState.customer.isReferred,
+          referrerName: profile.referrerName !== undefined ? profile.referrerName : (profile.isReferred === false ? undefined : globalState.customer.referrerName),
+          referralCode: profile.referralCode !== undefined ? profile.referralCode : (profile.isReferred === false ? undefined : globalState.customer.referralCode)
+        } 
+      : globalState.customer
+
+    const cleanLetters = (rawCustomer.name || "USER").replace(/[^A-Za-z]/g, "").slice(0, 7).toUpperCase() || "USER"
+    const autoRefCode = rawCustomer.generatedReferralCode || `REF-${cleanLetters}-10`
+    const updatedCustomer: CustomerProfile = {
+      ...rawCustomer,
+      hasGeneratedReferral: true,
+      generatedReferralCode: autoRefCode
+    }
+
+    const newCustomerUser: CRAUser = {
+      id: updatedCustomer.id || "CUST-981",
+      role: "customer",
+      name: updatedCustomer.name || "Customer",
+      mobile: updatedCustomer.mobile || "+91 98451 99881",
+      email: updatedCustomer.email || "customer@example.com",
+      code: updatedCustomer.craCode || `CUST-${cleanLetters}`,
+      city: "Bengaluru",
+      isConvertedFromCustomer: updatedCustomer.isConvertedToCRA || false,
+      hasDualRole: updatedCustomer.hasDualRole || false
+    }
+
     const newState: WorkflowState = {
-      ...state,
+      ...globalState,
       isCustomerLoggedIn: true,
-      customer: updatedCustomer
+      customer: updatedCustomer,
+      currentUser: newCustomerUser
     }
     updateGlobalState(newState)
   }
 
   const logoutCustomer = () => {
     const newState: WorkflowState = {
-      ...state,
+      ...globalState,
       isCustomerLoggedIn: false
     }
     updateGlobalState(newState)
   }
 
   // Unified credential-based login: maps identifier and password to the correct user & dashboard
-  const loginWithCredentials = (identifier: string, _password?: string): LoginResult => {
+  const loginWithCredentials = (
+    identifier: string,
+    _password?: string,
+    portalType: "customer" | "cra" = "customer"
+  ): LoginResult => {
     const rawTrimmed = (identifier || "").trim()
     const cleanId = rawTrimmed.toLowerCase()
     const cleanDigits = rawTrimmed.replace(/[\s\-()]/g, "").replace(/^(\+91|91|0)/, "")
@@ -1360,114 +1263,334 @@ export function useWorkflowStore() {
     if (!rawTrimmed) {
       return {
         success: false,
-        targetUrl: "/login",
+        targetUrl: portalType === "cra" ? "/login?role=cra" : "/login",
         role: "customer",
         accountName: "",
-        user: state.currentUser,
-        error: "Please enter your Mobile Number, Email ID, or CRA ID."
+        user: globalState.currentUser,
+        error: portalType === "cra"
+          ? "Please enter your Mobile Number or CRA ID."
+          : "Please enter your Mobile Number or Email ID."
       }
     }
 
-    // 1. Check exact or alias match in SYSTEM_ACCOUNTS
-    const matchedSystemAccount = SYSTEM_ACCOUNTS.find((acc) => {
+    // =========================================================================
+    // 1. CRA PARTNER PORTAL LOGIN (Strict role validation: Customers blocked)
+    // =========================================================================
+    if (portalType === "cra") {
+      // Reject obvious customer identities
+      const isKnownCustomer =
+        cleanId === "suresh" ||
+        cleanId === "suresh m" ||
+        cleanId === "cust-suresh" ||
+        cleanId === "cust-981" ||
+        cleanId === "suresh.m@example.com" ||
+        cleanId === "customer" ||
+        cleanId === "patient"
+
+      if (isKnownCustomer) {
+        return {
+          success: false,
+          targetUrl: "/login?role=cra",
+          role: "customer",
+          accountName: "Customer Account",
+          user: globalState.currentUser,
+          error: "Access Denied: You do not have access to the CRA Partner Dashboard. Customer accounts cannot access the CRA Partner Portal. Please use Customer Login."
+        }
+      }
+
+      // Check exact match in SYSTEM_ACCOUNTS for CRA Partners (C1 or C2)
+      const matchedCraAccount = SYSTEM_ACCOUNTS.find((acc) => {
+        if (acc.role !== "c1" && acc.role !== "c2") return false
+        const codeMatch = acc.code.toLowerCase() === cleanId
+        const emailMatch = acc.email.toLowerCase() === cleanId
+        const mobileMatch = cleanDigits.length === 10 && acc.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+        const personaMatch = acc.personaKey === cleanId
+        const idMatch = acc.id.toLowerCase() === cleanId
+        const aliasMatch = acc.aliases?.some(
+          (a) =>
+            a.toLowerCase() === cleanId ||
+            (cleanDigits.length === 10 && a.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10))
+        )
+        return codeMatch || emailMatch || mobileMatch || personaMatch || idMatch || aliasMatch
+      })
+
+      if (matchedCraAccount) {
+        switchRole(matchedCraAccount.personaKey as any)
+        return {
+          success: true,
+          targetUrl: "/cra/dashboard",
+          role: matchedCraAccount.role,
+          accountName: matchedCraAccount.name,
+          user: globalState.currentUser,
+          message: `Authenticated as ${matchedCraAccount.name} (${matchedCraAccount.roleTitle}). Opening Partner Dashboard...`
+        }
+      }
+
+      // Check dynamic C2 list
+      const matchedCustomC2 = globalState.c2List.find((c2) => {
+        const idMatch = c2.id.toLowerCase() === cleanId
+        const codeMatch = c2.code.toLowerCase() === cleanId
+        const nameMatch = c2.name.toLowerCase() === cleanId
+        const emailMatch = c2.email?.toLowerCase() === cleanId
+        const mobileMatch = cleanDigits.length === 10 && c2.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+        return idMatch || codeMatch || nameMatch || emailMatch || mobileMatch
+      })
+
+      if (matchedCustomC2) {
+        switchRole("c2", matchedCustomC2.id)
+        return {
+          success: true,
+          targetUrl: "/cra/dashboard",
+          role: "c2",
+          accountName: matchedCustomC2.name,
+          user: matchedCustomC2,
+          message: `Welcome back, ${matchedCustomC2.name}! Opening Partner Dashboard...`
+        }
+      }
+
+      // Check converted customer who earned CRA status via referral
+      if (
+        globalState.customer?.isConvertedToCRA &&
+        ((cleanDigits.length === 10 && globalState.customer.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)) ||
+          globalState.customer.email?.toLowerCase() === cleanId ||
+          globalState.customer.referralCode?.toLowerCase() === cleanId)
+      ) {
+        switchRole("c1")
+        return {
+          success: true,
+          targetUrl: "/cra/dashboard",
+          role: "c1",
+          accountName: globalState.customer.name,
+          user: globalState.currentUser,
+          message: `Welcome back CRA Partner ${globalState.customer.name}! Opening Partner Dashboard...`
+        }
+      }
+
+      // Check standard CRA pattern (e.g. AVM-XXXX-C1 or AVM-XXXX-C2)
+      if (/^AVM-[A-Za-z0-9-]+$/i.test(rawTrimmed)) {
+        switchRole("c1")
+        return {
+          success: true,
+          targetUrl: "/cra/dashboard",
+          role: "c1",
+          accountName: globalState.c1.name,
+          user: globalState.c1,
+          message: `CRA Partner ID verified. Opening Partner Dashboard...`
+        }
+      }
+
+      // If it doesn't match an authorized CRA partner, DENY ACCESS!
+      return {
+        success: false,
+        targetUrl: "/login?role=cra",
+        role: "customer",
+        accountName: "",
+        user: globalState.currentUser,
+        error: "Access Denied: You do not have access to the CRA Partner Dashboard. Only authorized CRA Partners (C1/C2) can access this portal. Please use Customer Login."
+      }
+    }
+
+    // =========================================================================
+    // 2. CUSTOMER PORTAL LOGIN (Always opens Customer Dashboard)
+    // =========================================================================
+
+    // A. Check if a CRA Partner is logging into Customer Portal (Dual Role access)
+    const matchedCraForCustomerPortal = SYSTEM_ACCOUNTS.find((acc) => {
+      if (acc.role !== "c1" && acc.role !== "c2") return false
       const codeMatch = acc.code.toLowerCase() === cleanId
       const emailMatch = acc.email.toLowerCase() === cleanId
-      const mobileMatch = acc.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+      const mobileMatch = cleanDigits.length === 10 && acc.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
       const personaMatch = acc.personaKey === cleanId
       const idMatch = acc.id.toLowerCase() === cleanId
       const aliasMatch = acc.aliases?.some(
         (a) =>
           a.toLowerCase() === cleanId ||
-          a.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
+          (cleanDigits.length === 10 && a.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10))
       )
       return codeMatch || emailMatch || mobileMatch || personaMatch || idMatch || aliasMatch
     })
 
-    if (matchedSystemAccount) {
-      if (matchedSystemAccount.role === "c1" || matchedSystemAccount.role === "c2") {
-        switchRole(matchedSystemAccount.personaKey as any)
-        return {
-          success: true,
-          targetUrl: "/cra/dashboard",
-          role: matchedSystemAccount.role,
-          accountName: matchedSystemAccount.name,
-          user: state.currentUser,
-          message: `Authenticated as ${matchedSystemAccount.name} (${matchedSystemAccount.roleTitle}). Opening Partner Dashboard...`
-        }
+    if (matchedCraForCustomerPortal) {
+      const craUser = globalState.c2List.find((c) => c.id === matchedCraForCustomerPortal.id) ||
+        DEFAULT_C2_LIST.find((c) => c.id === matchedCraForCustomerPortal.id) ||
+        (matchedCraForCustomerPortal.id === DEFAULT_C1.id ? DEFAULT_C1 : null)
+
+      // C1 (Sreeram) is the root partner and has NO referrer
+      const isSreeram = 
+        matchedCraForCustomerPortal.id === "C1-SREERAM" ||
+        matchedCraForCustomerPortal.personaKey === "sreeram" ||
+        matchedCraForCustomerPortal.name.toUpperCase().includes("SREERAM") ||
+        !craUser?.c1Name
+
+      const hasReferrer = isSreeram ? false : Boolean(craUser && craUser.c1Name)
+      const referrerName = hasReferrer ? craUser?.c1Name : undefined
+      const referralCode = hasReferrer ? (craUser?.c1Id === "C1-SREERAM" ? "AVM-SREERAM-C1" : "AVM-MAHENDRA-C2") : undefined
+
+      const cleanLetters = matchedCraForCustomerPortal.name.replace(/[^A-Za-z]/g, "").slice(0, 7).toUpperCase() || "USER"
+      const autoRefCode = matchedCraForCustomerPortal.code || `REF-${cleanLetters}-10`
+
+      const updatedCustomer: CustomerProfile = {
+        ...globalState.customer,
+        id: `CUST-${matchedCraForCustomerPortal.id}`,
+        name: matchedCraForCustomerPortal.name,
+        mobile: matchedCraForCustomerPortal.mobile.startsWith("+") ? matchedCraForCustomerPortal.mobile : `+91 ${matchedCraForCustomerPortal.mobile}`,
+        email: matchedCraForCustomerPortal.email,
+        isReferred: hasReferrer,
+        referrerName: referrerName,
+        referralCode: referralCode,
+        isConvertedToCRA: true,
+        hasDualRole: true,
+        craCode: matchedCraForCustomerPortal.code,
+        hasGeneratedReferral: true,
+        generatedReferralCode: autoRefCode
       }
 
-      if (matchedSystemAccount.role === "customer") {
-        loginCustomer({
-          name: matchedSystemAccount.name,
-          mobile: matchedSystemAccount.mobile,
-          email: matchedSystemAccount.email
-        })
-        switchRole("customer")
-        return {
-          success: true,
-          targetUrl: "/customer/dashboard",
-          role: "customer",
-          accountName: matchedSystemAccount.name,
-          user: state.customer,
-          message: `Welcome ${matchedSystemAccount.name}! Opening Customer Dashboard...`
-        }
+      const newCustomerUser: CRAUser = {
+        id: updatedCustomer.id,
+        role: "customer",
+        name: updatedCustomer.name,
+        mobile: updatedCustomer.mobile,
+        email: updatedCustomer.email,
+        code: updatedCustomer.craCode || "CUST-USER",
+        city: "Bengaluru",
+        isConvertedFromCustomer: true,
+        hasDualRole: true
       }
-    }
 
-    // 2. Check if identifier matches any custom C2 Partner created dynamically in state.c2List
-    const matchedCustomC2 = state.c2List.find((c2) => {
-      const codeMatch = c2.code.toLowerCase() === cleanId
-      const emailMatch = c2.email.toLowerCase() === cleanId
-      const mobileMatch = c2.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)
-      const idMatch = c2.id.toLowerCase() === cleanId
-      return codeMatch || emailMatch || mobileMatch || idMatch
-    })
+      const newState: WorkflowState = {
+        ...globalState,
+        customer: updatedCustomer,
+        currentUser: newCustomerUser,
+        isCustomerLoggedIn: true
+      }
+      updateGlobalState(newState)
 
-    if (matchedCustomC2) {
-      switchRole("c2", matchedCustomC2.id)
       return {
         success: true,
-        targetUrl: "/cra/dashboard",
-        role: "c2",
-        accountName: matchedCustomC2.name,
-        user: matchedCustomC2,
-        message: `Welcome back, ${matchedCustomC2.name}! Opening Partner Dashboard...`
+        targetUrl: "/customer/dashboard",
+        role: "customer",
+        accountName: matchedCraForCustomerPortal.name,
+        user: updatedCustomer,
+        message: `Welcome ${matchedCraForCustomerPortal.name}! Opening Customer Dashboard...`
       }
     }
 
-    // 4. CRA ID Pattern fallback (e.g. AVM-XXXX-C1 or AVM-XXXX-C2)
-    if (/^AVM-[A-Za-z0-9-]+$/i.test(rawTrimmed)) {
-      switchRole("c1")
+    // B. Check if matched to configured customer account (e.g. Suresh M.)
+    const matchedCustomer = SYSTEM_ACCOUNTS.find(
+      (acc) =>
+        acc.role === "customer" &&
+        (acc.code.toLowerCase() === cleanId ||
+          acc.email.toLowerCase() === cleanId ||
+          (cleanDigits.length === 10 && acc.mobile.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10)) ||
+          acc.id.toLowerCase() === cleanId ||
+          acc.aliases?.some(
+            (a) =>
+              a.toLowerCase() === cleanId ||
+              (cleanDigits.length === 10 && a.replace(/\D/g, "").slice(-10) === cleanDigits.slice(-10))
+          ))
+    )
+
+    if (matchedCustomer) {
+      const updatedCustomer: CustomerProfile = {
+        ...globalState.customer,
+        id: matchedCustomer.id,
+        name: matchedCustomer.name,
+        mobile: matchedCustomer.mobile.startsWith("+") ? matchedCustomer.mobile : `+91 ${matchedCustomer.mobile}`,
+        email: matchedCustomer.email,
+        isReferred: true,
+        referrerName: "THURAKA SREERAM",
+        referralCode: "AVM-SREERAM-C1",
+        hasDualRole: false,
+        isConvertedToCRA: false,
+        hasGeneratedReferral: true,
+        generatedReferralCode: "REF-SURESH-10"
+      }
+
+      const newCustomerUser: CRAUser = {
+        id: updatedCustomer.id,
+        role: "customer",
+        name: updatedCustomer.name,
+        mobile: updatedCustomer.mobile,
+        email: updatedCustomer.email,
+        code: "CUST-SURESH",
+        city: "Bengaluru",
+        isConvertedFromCustomer: false,
+        hasDualRole: false
+      }
+
+      const newState: WorkflowState = {
+        ...globalState,
+        customer: updatedCustomer,
+        currentUser: newCustomerUser,
+        isCustomerLoggedIn: true
+      }
+      updateGlobalState(newState)
+
       return {
         success: true,
-        targetUrl: "/cra/dashboard",
-        role: "c1",
-        accountName: state.c1.name,
-        user: state.c1,
-        message: `CRA Partner ID verified. Opening Partner Dashboard...`
+        targetUrl: "/customer/dashboard",
+        role: "customer",
+        accountName: matchedCustomer.name,
+        user: updatedCustomer,
+        message: `Welcome ${matchedCustomer.name}! Opening Customer Dashboard...`
       }
     }
 
-    // 5. Default Patient / Customer authentication
-    const customerDisplayName = rawTrimmed.includes("@")
-      ? rawTrimmed.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-      : cleanDigits.length === 10
-        ? `Patient (${cleanDigits.slice(-4)})`
-        : rawTrimmed
+    // C. Any customer email or mobile number
+    const isSreeramEmail = cleanId.startsWith("sreeram") || cleanId.includes("sreeram")
+    const customerDisplayName = isSreeramEmail
+      ? "THURAKA SREERAM"
+      : rawTrimmed.includes("@")
+        ? rawTrimmed.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : cleanDigits.length === 10
+          ? `Patient (${cleanDigits.slice(-4)})`
+          : rawTrimmed
 
-    loginCustomer({
-      name: customerDisplayName || "Suresh M.",
-      mobile: cleanDigits.length === 10 ? `+91 ${cleanDigits}` : state.customer?.mobile || "+91 98450 12345",
-      email: rawTrimmed.includes("@") ? rawTrimmed : state.customer?.email || "suresh.m@example.com"
-    })
-    switchRole("customer")
+    const cleanLetters = (customerDisplayName || "USER").replace(/[^A-Za-z]/g, "").slice(0, 7).toUpperCase() || "USER"
+    const autoRefCode = isSreeramEmail ? "AVM-SREERAM-C1" : `REF-${cleanLetters}-10`
+
+    const updatedCustomer: CustomerProfile = {
+      ...globalState.customer,
+      id: isSreeramEmail ? "CUST-C1-SREERAM" : `CUST-${Date.now().toString().slice(-4)}`,
+      name: customerDisplayName,
+      mobile: cleanDigits.length === 10 ? `+91 ${cleanDigits}` : isSreeramEmail ? "+91 98450 12345" : "+91 98451 99881",
+      email: rawTrimmed.includes("@") ? rawTrimmed : isSreeramEmail ? "sreeram.thuraka@avmlabs.com" : "customer@example.com",
+      isReferred: false,
+      referrerName: undefined,
+      referralCode: undefined,
+      hasDualRole: isSreeramEmail,
+      isConvertedToCRA: isSreeramEmail,
+      craCode: isSreeramEmail ? "AVM-SREERAM-C1" : undefined,
+      hasGeneratedReferral: true,
+      generatedReferralCode: autoRefCode
+    }
+
+    const newCustomerUser: CRAUser = {
+      id: updatedCustomer.id,
+      role: "customer",
+      name: updatedCustomer.name,
+      mobile: updatedCustomer.mobile,
+      email: updatedCustomer.email,
+      code: isSreeramEmail ? "AVM-SREERAM-C1" : `CUST-${cleanLetters}`,
+      city: "Bengaluru",
+      isConvertedFromCustomer: isSreeramEmail,
+      hasDualRole: isSreeramEmail
+    }
+
+    const newState: WorkflowState = {
+      ...globalState,
+      customer: updatedCustomer,
+      currentUser: newCustomerUser,
+      isCustomerLoggedIn: true
+    }
+    updateGlobalState(newState)
 
     return {
       success: true,
       targetUrl: "/customer/dashboard",
       role: "customer",
-      accountName: customerDisplayName || "Suresh M.",
-      user: state.customer,
+      accountName: customerDisplayName,
+      user: updatedCustomer,
       message: `Welcome ${customerDisplayName}! Opening Customer Dashboard...`
     }
   }
@@ -1537,6 +1660,14 @@ export function useWorkflowStore() {
     realizedRevenue: number
     homeCollectionFee: number
     totalPayable: number
+    isFamilyMember?: boolean
+    collectionAddress?: string
+    collectionSlot?: string
+    beneficiariesSummary?: {
+      name: string
+      relation: string
+      tests: string[]
+    }[]
   }) => {
     const orderNum = `AVM-${Math.floor(1000 + Math.random() * 9000)}`
     const orderId = `ORD-${Date.now().toString().slice(-5)}`
@@ -1560,6 +1691,10 @@ export function useWorkflowStore() {
       creatorName: state.currentUser.name,
       c1Id: state.currentUser.role === "c2" ? (state.currentUser.c1Id || state.c1.id) : undefined,
       c1Name: state.currentUser.role === "c2" ? (state.currentUser.c1Name || state.c1.name) : undefined,
+      isFamilyMember: data.isFamilyMember,
+      collectionAddress: data.collectionAddress,
+      collectionSlot: data.collectionSlot,
+      beneficiariesSummary: data.beneficiariesSummary,
       createdAt: "Just now"
     }
 
@@ -1833,29 +1968,103 @@ export function useWorkflowStore() {
     return req
   }
 
-  // Upgrade Normal Customer to Active CRA Partner
-  const upgradeCustomerToCRA = (orgData?: Partial<CRAOrgProfile>) => {
-    const shortCode = `AVM-${state.customer.name.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "USER"}-${Math.floor(100 + Math.random() * 900)}`
-    const newCRA: CRAUser = {
-      id: `CRA-${Date.now().toString().slice(-5)}`,
-      role: "c1",
-      name: state.customer.name,
-      mobile: state.customer.mobile,
-      email: state.customer.email,
-      code: shortCode,
-      city: "Bengaluru"
-    }
+  // Generate Customer Referral Code (Flowchart D -> H)
+  const generateCustomerReferralCode = () => {
+    const customerName = state.customer?.name || "Suresh M."
+    const cleanLetters = customerName.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "USER"
+    const refCode = `REF-${cleanLetters}-10`
 
-    const updatedOrg = orgData ? { ...state.orgProfile, ...orgData } : state.orgProfile
+    const updatedCustomer: CustomerProfile = {
+      ...state.customer,
+      hasGeneratedReferral: true,
+      generatedReferralCode: refCode
+    }
 
     const newState: WorkflowState = {
       ...state,
-      currentUser: newCRA,
-      orgProfile: updatedOrg,
-      c1: newCRA
+      customer: updatedCustomer
     }
     updateGlobalState(newState)
-    return newCRA
+    return refCode
+  }
+
+  // Upgrade / Convert Normal Customer to Active CRA Partner (Flowchart W -> X -> Y -> Z -> AB -> AC)
+  const convertCustomerToCRA = (orderAmount: number = 1000) => {
+    const customerName = state.customer?.name || "Suresh M."
+    const cleanLetters = customerName.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "USER"
+    const shortCode = `AVM-${cleanLetters}-${Math.floor(100 + Math.random() * 900)}`
+    const newCRAId = `C2-CONV-${Date.now().toString().slice(-4)}`
+
+    // Flowchart: Realized Revenue after 10% Referral Discount
+    const referralDiscount = Math.round(orderAmount * 0.10)
+    const realizedRevenue = orderAmount - referralDiscount
+    const craIncentive = Math.round(realizedRevenue * 0.30) // 30% CRA Incentive
+
+    const updatedCustomer: CustomerProfile = {
+      ...state.customer,
+      isConvertedToCRA: true,
+      hasDualRole: true,
+      craCode: shortCode,
+      hasGeneratedReferral: true,
+      generatedReferralCode: state.customer.generatedReferralCode || `REF-${cleanLetters}-10`
+    }
+
+    const convertedCRA: CRAUser = {
+      id: newCRAId,
+      role: "c2",
+      name: customerName,
+      mobile: state.customer?.mobile || "9845012345",
+      email: state.customer?.email || "suresh.m@example.com",
+      code: shortCode,
+      city: "Bengaluru",
+      c1Id: state.c1.id,
+      c1Name: state.c1.name,
+      isConvertedFromCustomer: true,
+      hasDualRole: true
+    }
+
+    const newTransaction: WalletTransaction = {
+      id: `tx-conv-${Date.now().toString().slice(-4)}`,
+      userId: newCRAId,
+      userRole: "c2",
+      orderId: `ord-ref-${Date.now().toString().slice(-4)}`,
+      orderNumber: `ORD-${Date.now().toString().slice(-5)}`,
+      customerName: `Referred Patient (${customerName}'s Referral)`,
+      profileName: "Master Health Checkup (10% Referral Discount applied)",
+      orderAmount: orderAmount,
+      realizedRevenue: realizedRevenue,
+      incentiveRate: 0.30,
+      incentiveAmount: craIncentive,
+      type: "Direct 30% Incentive",
+      date: "Just now",
+      status: "Credited to Wallet"
+    }
+
+    const newLiveEvent: LiveActivityEvent = {
+      id: `evt-${Date.now()}`,
+      type: "incentive_credited",
+      title: `🎉 ${customerName} converted to CRA Partner!`,
+      subtitle: `30% Direct Incentive (₹${craIncentive}) credited on referred customer test booking.`,
+      amount: craIncentive,
+      timestamp: "Just now",
+      isLive: true
+    }
+
+    const newState: WorkflowState = {
+      ...state,
+      customer: updatedCustomer,
+      currentUser: convertedCRA,
+      c2List: [convertedCRA, ...state.c2List.filter((c) => c.id !== newCRAId)],
+      transactions: [newTransaction, ...state.transactions],
+      liveEvents: [newLiveEvent, ...state.liveEvents]
+    }
+    updateGlobalState(newState)
+    return convertedCRA
+  }
+
+  // Upgrade Normal Customer to Active CRA Partner
+  const upgradeCustomerToCRA = (orgData?: Partial<CRAOrgProfile>) => {
+    return convertCustomerToCRA(1000)
   }
 
   return {
@@ -1879,6 +2088,8 @@ export function useWorkflowStore() {
     deleteCustomProfile,
     updateOrgProfile,
     requestWalletWithdrawal,
-    upgradeCustomerToCRA
+    upgradeCustomerToCRA,
+    convertCustomerToCRA,
+    generateCustomerReferralCode
   }
 }

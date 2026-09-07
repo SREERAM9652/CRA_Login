@@ -6,19 +6,20 @@ import { useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
 import { HEALTH_PACKAGES } from "@/lib/mock-data"
 import { CRA_TESTS } from "@/lib/cra-tests"
-import { 
+import {
   Bell,
   User,
   Share2,
   Search,
-  CheckCircle2, 
-  Calendar, 
-  Clock, 
-  Home, 
-  Upload, 
-  Download, 
-  Sparkles, 
-  Phone, 
+  CheckCircle2,
+  Calendar,
+  Clock,
+  Home,
+  Upload,
+  Download,
+  Sparkles,
+  Crown,
+  Phone,
   Activity,
   Heart,
   ArrowRight,
@@ -38,7 +39,8 @@ import {
   FlaskConical,
   X,
   Package,
-  ClipboardList
+  ClipboardList,
+  AlertCircle
 } from "lucide-react"
 
 export interface CustomerTestItem {
@@ -55,14 +57,71 @@ export interface CustomerTestItem {
 
 export default function CustomerDashboardPage() {
   const router = useRouter()
-  const { 
-    customer, 
-    beneficiaries, 
-    addBeneficiary, 
-    removeBeneficiary, 
-    prescriptionRequests, 
-    addPrescriptionRequest 
+  const [refParam, setRefParam] = useState<string | null>(null)
+
+  const {
+    customer,
+    beneficiaries,
+    addBeneficiary,
+    removeBeneficiary,
+    prescriptionRequests,
+    addPrescriptionRequest,
+    currentUser,
+    generateCustomerReferralCode,
+    convertCustomerToCRA
   } = useWorkflowStore()
+
+  const [copiedReferral, setCopiedReferral] = useState(false)
+  const [simulatingConversion, setSimulatingConversion] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("referred")
+      setRefParam(p)
+    }
+  }, [])
+
+  const isConverted = mounted ? Boolean(customer?.isConvertedToCRA) : false
+  const referralCode = mounted ? (customer?.generatedReferralCode || "REF-SURESH-10") : "REF-SURESH-10"
+  const craCode = mounted ? (customer?.craCode || "AVM-SURESH-CRA") : "AVM-SURESH-CRA"
+
+  // Determine effective referrer name for this customer / dual-role user
+  const effectiveReferrerName = useMemo(() => {
+    // If URL query param explicitly marks referred=false
+    if (refParam === "false") return null
+    if (refParam === "true") {
+      return customer?.referrerName || "THURAKA SREERAM"
+    }
+
+    // If current customer is C1 (Sreeram) or named THURAKA SREERAM, he has no introducer/referrer!
+    const isSreeram =
+      customer?.name?.toUpperCase().includes("SREERAM") ||
+      currentUser?.id === "C1-SREERAM" ||
+      (currentUser?.role === "c1" && !currentUser?.c1Name)
+
+    if (isSreeram) {
+      return null
+    }
+
+    // If current user is a C2 CRA user with an introducer/c1Name
+    if (currentUser?.role === "c2" && currentUser?.c1Name) {
+      return currentUser.c1Name
+    }
+
+    // Check customer profile in store
+    if (customer?.isReferred && customer?.referrerName && customer.referrerName.trim()) {
+      // Prevent self-referral (user being referred by themselves)
+      if (customer.referrerName.trim().toUpperCase() !== customer.name?.trim().toUpperCase()) {
+        return customer.referrerName
+      }
+    }
+
+    return null
+  }, [customer, currentUser, refParam])
+
+  const showReferralBanner = mounted && Boolean(effectiveReferrerName)
 
   // Full Catalog of 100+ tests matching CRA standard
   const allCatalogItems = useMemo<CustomerTestItem[]>(() => {
@@ -103,7 +162,7 @@ export default function CustomerDashboardPage() {
 
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
-  
+
   const [selectedReportModal, setSelectedReportModal] = useState<any>(null)
 
   // SEARCH DROPDOWN STATE & LOGIC (Inline auto-suggest dropdown)
@@ -236,7 +295,7 @@ export default function CustomerDashboardPage() {
   // Filtered packages on dashboard
   const filteredPackages = RECOMMENDED_PACKAGES.filter(pkg => {
     const matchesSearch = pkg.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          pkg.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+      pkg.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
     if (activeCategory === "all") return matchesSearch
     if (activeCategory === "fullbody") return matchesSearch && pkg.category === "fullbody"
     if (activeCategory === "women") return matchesSearch && pkg.category === "women"
@@ -326,35 +385,242 @@ export default function CustomerDashboardPage() {
 
   return (
     <div className="space-y-4 font-sans">
-      
-      {/* ========================================================================= */}
-      {/* 1. TOP REFERRAL PROMO BANNER (CLASSIC HEALTHCARE PARTNER BANNER)           */}
-      {/* ========================================================================= */}
-      <div className="rounded-2xl bg-[#1e293b] p-3.5 sm:p-4 text-white shadow-xs border border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-blue-300 shrink-0">
-            <Share2 className="h-5 w-5" />
+
+      {/* 1. TOP BANNER: REFERRED BY CRA PARTNER CONTAINER (Only displayed if user is referred by someone) */}
+      {showReferralBanner && (
+        <div className="relative rounded-2xl bg-gradient-to-r from-[#071d49] via-[#0a3178] to-[#1253b8] p-3.5 sm:p-4 md:p-5 text-white shadow-xl shadow-blue-950/20 border border-blue-400/25 overflow-hidden min-h-[110px] flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+          
+          {/* Family Banner Image - Seamlessly blended into royal blue background, hiding cursive text */}
+          <div className="absolute inset-y-0 right-0 sm:right-[175px] md:right-[195px] lg:right-[210px] flex items-center pointer-events-none select-none z-0 opacity-25 sm:opacity-90 md:opacity-100 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/banner.png?v=6"
+              alt="Healthy Families"
+              className="h-full w-auto object-contain"
+              style={{
+                maskImage: "linear-gradient(to right, transparent 0%, transparent 35%, black 48%, black 85%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to right, transparent 0%, transparent 35%, black 48%, black 85%, transparent 100%)"
+              }}
+            />
           </div>
-          <div className="space-y-0.5">
-            <h2 className="text-sm sm:text-base font-bold text-white">
-              Referred by {customer?.referrerName || "THURAKA SREERAM"}
-            </h2>
-            <p className="text-xs text-slate-300 font-normal">
-              Special partner pricing applied across all diagnostic tests &amp; wellness packages.
-            </p>
+
+          {/* Ambient Lighting & Soft Glows */}
+          <div className="absolute -top-12 left-1/4 w-72 h-36 bg-sky-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-10 right-1/4 w-60 h-32 bg-blue-300/15 rounded-full blur-xl pointer-events-none" />
+
+          {/* Left: Referral details - transparent background color REMOVED completely */}
+          <div className="relative z-10 flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-cyan-300 shrink-0 backdrop-blur-md shadow-inner ring-4 ring-white/5">
+              <Share2 className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-cyan-300" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <div className="text-[10.5px] sm:text-[11px] font-semibold text-sky-200 uppercase tracking-wider">
+                Referred by
+              </div>
+              <div className="flex items-center flex-wrap gap-2">
+                <h2 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-white uppercase truncate drop-shadow-xs">
+                  {effectiveReferrerName}
+                </h2>
+                <Crown className="h-4 w-4 text-amber-400 fill-amber-400 shrink-0" />
+                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-amber-950 text-[9.5px] font-black uppercase tracking-wider shadow-xs">
+                  CRA PARTNER
+                </span>
+              </div>
+              <p className="text-xs sm:text-[12.5px] text-blue-100 font-medium leading-normal drop-shadow-xs max-w-xl">
+                Special partner pricing applied across all diagnostic tests &amp; wellness packages.
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Primary Call to Action Button */}
+          <div className="relative z-10 w-full sm:w-auto flex items-center justify-end shrink-0 pt-1 sm:pt-0">
+            <button
+              type="button"
+              onClick={() => router.push("/booking")}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0066ff] to-[#004ce6] hover:from-[#0057e6] hover:to-[#003ec7] active:scale-98 text-white font-extrabold text-xs sm:text-sm inline-flex items-center justify-center shadow-lg shadow-blue-950/30 hover:shadow-blue-900/50 border border-white/20 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <span>Select Tests &amp; Profiles</span>
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => router.push("/booking")}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <FlaskConical className="h-3.5 w-3.5 text-white" />
-            <span>Select Tests &amp; Profiles ({allCatalogItems.length}+)</span>
-            <ArrowRight className="h-3.5 w-3.5 text-white" />
-          </button>
+      {/* ========================================================================= */}
+      {/* FLOWCHART: CUSTOMER-TO-CRA REFERRAL & DUAL-ROLE CONVERSION HUB           */}
+      {/* ========================================================================= */}
+      <div id="referral-hub" className="rounded-2xl border border-indigo-100 bg-white p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-[#251b5c]/10 text-[#251b5c] flex items-center justify-center font-bold shrink-0">
+              <Share2 className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                  Refer Customers &amp; Become a CRA Partner
+                </h3>
+                {isConverted ? (
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Active CRA Dual-Role
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                    Referral Program
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                Share wellness: Referred customers get <strong>10% Referral Discount</strong>. <strong>ONLY when a referred customer&apos;s payment is successfully completed</strong>, you earn <strong>30% CRA Incentive</strong> and unlock the CRA Partner Portal! If unpaid or payment fails, no incentive is earned and you remain a customer.
+              </p>
+            </div>
+          </div>
+
+          {isConverted && (
+            <Link
+              href="/cra/dashboard"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#251b5c] to-[#382685] text-white font-bold text-xs shadow-xs hover:opacity-95 transition-all inline-flex items-center gap-1.5 shrink-0"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              <span>Go to CRA Dashboard &rarr;</span>
+            </Link>
+          )}
+        </div>
+
+        {/* 2-Column Referral & Dual-Role Hub */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+          <div className="p-3.5 rounded-xl border transition-all bg-emerald-50/50 border-emerald-200 text-slate-800 space-y-2">
+            <div className="flex items-center justify-between font-bold pb-1 text-[11px] text-slate-500 uppercase tracking-wide border-b border-emerald-100">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Step 1: Referral Code &amp; Link</span>
+              </span>
+              <span className="text-emerald-700 font-extrabold text-[10px] bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                Auto-Generated
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block mb-0.5">YOUR REFERRAL CODE (10% DISCOUNT):</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-black text-xs sm:text-sm text-[#251b5c] bg-white px-2.5 py-1 rounded-lg border border-indigo-200/80 shadow-2xs">
+                    {referralCode}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(referralCode)
+                      setCopiedReferral(true)
+                      setTimeout(() => setCopiedReferral(false), 2000)
+                    }}
+                    className="text-[10.5px] font-bold px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 shadow-2xs cursor-pointer transition-colors"
+                  >
+                    {copiedReferral ? "Copied! ✓" : "Copy Code"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block mb-0.5">SHAREABLE REFERRAL LINK:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    readOnly
+                    value={`https://avmlabs.com/booking?ref=${referralCode}`}
+                    className="w-full bg-white/90 border border-slate-200 text-slate-600 font-mono text-[10px] px-2 py-1 rounded-lg truncate select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(`https://avmlabs.com/booking?ref=${referralCode}`)
+                      setCopiedReferral(true)
+                      setTimeout(() => setCopiedReferral(false), 2000)
+                    }}
+                    className="text-[10.5px] font-bold px-2.5 py-1 bg-[#251b5c] hover:bg-[#1a1340] text-white rounded-lg shadow-2xs cursor-pointer shrink-0 transition-colors"
+                  >
+                    Copy Link
+                  </button>
+                </div>
+              </div>
+              <p className="text-[10.5px] text-slate-500 leading-tight">
+                Automatically generated &amp; ready to share. Anyone using your link receives an instant 10% discount.
+              </p>
+            </div>
+          </div>
+
+          <div className={`p-3.5 rounded-xl border transition-all ${isConverted
+              ? "bg-purple-50/60 border-purple-200 text-slate-800"
+              : "bg-slate-50/70 border-slate-200 text-slate-600"
+            }`}>
+            <div className="flex items-center justify-between font-bold pb-1 text-[11px] text-slate-500 uppercase tracking-wide border-b border-slate-100">
+              <span>Dual-Role &amp; 30% Incentive Activation</span>
+              {isConverted ? (
+                <span className="text-purple-700 font-extrabold text-[10px] bg-purple-100 px-2 py-0.5 rounded-full">
+                  ✓ Active (Paid)
+                </span>
+              ) : (
+                <span className="text-amber-700 font-extrabold text-[10px] bg-amber-100 px-2 py-0.5 rounded-full">
+                  Customer Payment Required
+                </span>
+              )}
+            </div>
+
+            {isConverted ? (
+              <div className="space-y-2 pt-1 text-[11px]">
+                <div className="p-2.5 rounded-lg bg-white border border-purple-200 space-y-1">
+                  <div className="flex justify-between font-bold text-purple-900">
+                    <span>30% CRA Incentive Credited:</span>
+                    <span className="text-emerald-700 text-xs font-black">30%</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-500">
+                    Earned on realized revenue after 10% customer referral discount.
+                  </div>
+                  <div className="text-slate-600 font-mono text-[10.5px] pt-1 border-t border-slate-100">
+                    Assigned CRA Partner ID: <strong className="text-slate-900">{craCode}</strong>
+                  </div>
+                </div>
+
+                <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10.5px] font-semibold flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <span>Dual Access: Customer Role + CRA Portal Unlocked!</span>
+                </div>
+
+                <Link
+                  href="/cra/dashboard"
+                  className="w-full py-2 px-3 rounded-lg bg-[#251b5c] hover:bg-[#1a1340] text-white font-bold text-[11px] shadow-xs flex items-center justify-center gap-1 transition-all"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                  <span>Open CRA Partner Dashboard &rarr;</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1 text-[11px]">
+                <p className="text-slate-600 leading-snug">
+                  When a referred customer books tests and <strong>successfully completes payment</strong>, you earn <strong>30% CRA Incentive</strong> and your account is elevated to CRA Partner with Dual-Role access!
+                </p>
+
+                <div className="p-2 rounded-lg bg-white border border-slate-200/80 space-y-0.5 text-[10.5px]">
+                  <div className="font-bold text-slate-800">Flowchart Rule:</div>
+                  <div className="text-slate-500">• 30% Incentive credited <strong>ONLY IF customer completes payment</strong>.</div>
+                  <div className="text-slate-500">• If unpaid / pending, you remain a customer with 0% incentive.</div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={simulatingConversion}
+                  onClick={() => {
+                    setSimulatingConversion(true)
+                    setTimeout(() => {
+                      convertCustomerToCRA(1000)
+                      setSimulatingConversion(false)
+                    }, 600)
+                  }}
+                  className="w-full py-2 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 transition-all"
+                >
+                  {simulatingConversion ? "Verifying Customer Payment..." : "⚡ Simulate Referred Customer Order & Payment"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -362,47 +628,49 @@ export default function CustomerDashboardPage() {
       {/* 2. MAIN 2-COLUMN BALANCED DASHBOARD GRID (8 COLS LEFT, 4 COLS RIGHT)       */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
+
         {/* ======================================================================= */}
         {/* LEFT COLUMN (LG:COL-SPAN-8): SEARCH & RECOMMENDED PACKAGES              */}
         {/* ======================================================================= */}
         <div className="lg:col-span-8 space-y-3.5">
-          
+
           {/* Search Bar with Auto-suggest Dropdown */}
-          <div ref={searchContainerRef} className="relative z-30">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onFocus={() => setIsSearchOpen(true)}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setIsSearchOpen(true)
-              }}
-              placeholder="Search 100+ tests &amp; profiles (e.g. Full Body, Thyroid, CBC, Lipid)..."
-              className="w-full pl-10 pr-24 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 shadow-2xs"
-            />
-            {searchQuery && (
+          <div ref={searchContainerRef} className="relative z-20">
+            <div className="relative flex items-center w-full bg-white rounded-2xl border-2 border-slate-200/90 hover:border-indigo-300 focus-within:border-[#251b5c] focus-within:ring-4 focus-within:ring-[#251b5c]/10 shadow-xs transition-all">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#251b5c] pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onFocus={() => setIsSearchOpen(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setIsSearchOpen(true)
+                }}
+                placeholder="Search 100+ tests &amp; profiles (e.g. Full Body, Thyroid, CBC, Lipid)..."
+                className="w-full pl-11 pr-28 py-3 text-xs sm:text-sm bg-transparent text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setIsSearchOpen(false)
+                  }}
+                  className="absolute right-24 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer transition-colors"
+                  title="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => {
-                  setSearchQuery("")
-                  setIsSearchOpen(false)
-                }}
-                className="absolute right-20 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
-                title="Clear search"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#251b5c] to-[#31237a] hover:from-[#1b1344] hover:to-[#251b5c] text-white font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 shadow-xs transition-all active:scale-98"
               >
-                <X className="h-3.5 w-3.5" />
+                <FlaskConical className="h-3.5 w-3.5 text-cyan-300" />
+                <span>Browse</span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer inline-flex items-center gap-1 transition-colors"
-            >
-              <FlaskConical className="h-3 w-3 text-slate-300" />
-              <span>Browse</span>
-            </button>
+            </div>
 
             {/* Inline Search Dropdown Results */}
             {isSearchOpen && (
@@ -413,33 +681,30 @@ export default function CustomerDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setSearchTab("all")}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                        searchTab === "all"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${searchTab === "all"
                           ? "bg-slate-900 text-white"
                           : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       All ({allCatalogItems.length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setSearchTab("packages")}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                        searchTab === "packages"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${searchTab === "packages"
                           ? "bg-slate-900 text-white"
                           : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Packages (12)
                     </button>
                     <button
                       type="button"
                       onClick={() => setSearchTab("tests")}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                        searchTab === "tests"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${searchTab === "tests"
                           ? "bg-slate-900 text-white"
                           : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Tests (90+)
                     </button>
@@ -536,11 +801,10 @@ export default function CustomerDashboardPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
-                    isActive
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${isActive
                       ? "bg-slate-900 text-white"
                       : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <Icon className={`h-3.5 w-3.5 ${isActive ? "text-white" : "text-slate-400"}`} />
                   <span>{cat.label}</span>
@@ -593,39 +857,39 @@ export default function CustomerDashboardPage() {
                       </span>
                     </div>
 
-                      {/* Clean 1-Line Info */}
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-                        <span className="font-semibold text-slate-700">{pkg.parameters}</span>
-                        <span>•</span>
-                        <span>Fasting Required</span>
-                        <span>•</span>
-                        <span>Home Pickup</span>
-                      </div>
+                    {/* Clean 1-Line Info */}
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                      <span className="font-semibold text-slate-700">{pkg.parameters}</span>
+                      <span>•</span>
+                      <span>Fasting Required</span>
+                      <span>•</span>
+                      <span>Home Pickup</span>
                     </div>
-
-                    {/* Bottom: Price + Action Button */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-base sm:text-lg font-black text-slate-900">
-                          ₹{pkg.discountedPrice.toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-xs text-slate-400 line-through">
-                          ₹{pkg.originalPrice.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleBookNow(pkg.id)}
-                        className="px-3.5 py-1.5 rounded-lg bg-[#1e3a8a] hover:bg-[#1d4ed8] text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
-                      >
-                        <span>Book Now</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-
                   </div>
-                ))}
+
+                  {/* Bottom: Price + Action Button */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-base sm:text-lg font-black text-slate-900">
+                        ₹{pkg.discountedPrice.toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-xs text-slate-400 line-through">
+                        ₹{pkg.originalPrice.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleBookNow(pkg.id)}
+                      className="px-3.5 py-1.5 rounded-lg bg-[#1e3a8a] hover:bg-[#1d4ed8] text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                    >
+                      <span>Book Now</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                </div>
+              ))}
             </div>
 
           </div>
@@ -636,7 +900,7 @@ export default function CustomerDashboardPage() {
         {/* RIGHT COLUMN (LG:COL-SPAN-4): WIDGETS (REPORTS, BENEFICIARIES, RX)       */}
         {/* ======================================================================= */}
         <div className="lg:col-span-4 space-y-3.5 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto no-scrollbar">
-          
+
 
           {/* 1. Verified Pathology Reports Widget */}
           <div className="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2.5 shadow-xs">
@@ -923,11 +1187,10 @@ export default function CustomerDashboardPage() {
                       key={g}
                       type="button"
                       onClick={() => setBenForm({ ...benForm, gender: g as any })}
-                      className={`py-2 rounded-xl border text-center font-bold cursor-pointer ${
-                        benForm.gender === g
+                      className={`py-2 rounded-xl border text-center font-bold cursor-pointer ${benForm.gender === g
                           ? "bg-[#2F5FDE] text-white border-[#2F5FDE]"
                           : "bg-white text-slate-700 border-slate-200"
-                      }`}
+                        }`}
                     >
                       {g}
                     </button>

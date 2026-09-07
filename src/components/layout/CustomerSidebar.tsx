@@ -1,5 +1,5 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
@@ -32,7 +32,21 @@ export function CustomerSidebar({
 }: CustomerSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { customer, logoutCustomer } = useWorkflowStore()
+  const { customer, logoutCustomer, currentUser } = useWorkflowStore()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isCRAPartner = mounted 
+    ? Boolean(currentUser?.role === "c1" || currentUser?.role === "c2" || customer?.isConvertedToCRA || currentUser?.hasDualRole)
+    : false
+  const customerName = mounted ? (customer?.name || currentUser?.name || "Patient") : "Patient"
+  const customerId = mounted
+    ? (customer?.id?.replace(/^CUST-/, "AVM-PT-") || (currentUser?.role === "c1" ? "AVM-CRA-C1" : currentUser?.role === "c2" ? currentUser.code : "AVM-PT-981"))
+    : "AVM-PT-981"
+  const walletBalance = mounted ? (customer?.walletBalance ?? 350) : 350
 
   const handleLogout = () => {
     logoutCustomer()
@@ -46,12 +60,13 @@ export function CustomerSidebar({
     { name: "Digital Lab Reports", href: "/customer/dashboard/reports", icon: FileText },
   ]
 
-  const customerName = customer?.name || "Suresh M."
   const avatarInitials = customerName
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .slice(0, 2)
     .join("")
+    .toUpperCase() || "PT"
 
   const closeMobile = () => {
     if (setMobileOpen) setMobileOpen(false)
@@ -127,8 +142,8 @@ export function CustomerSidebar({
                 <Wallet className="h-4 w-4 text-slate-400" />
                 <div className="flex items-center justify-between w-full">
                   <span>Wallet &amp; Cashback</span>
-                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[5px] border border-emerald-200">
-                    ₹{customer?.walletBalance || 350}
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[5px] border border-emerald-200" suppressHydrationWarning>
+                    ₹{walletBalance}
                   </span>
                 </div>
               </Link>
@@ -143,13 +158,26 @@ export function CustomerSidebar({
                 <HelpCircle className={`h-4 w-4 shrink-0 ${pathname === "/customer/dashboard/help" ? "text-sky-200 stroke-[2.5]" : "text-slate-400"}`} />
                 <span>Help &amp; FAQs</span>
               </Link>
-              <Link
-                href="/cra"
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 transition-colors mt-2"
-              >
-                <Sparkles className="h-4 w-4 text-amber-500" />
-                <span>Become a CRA Partner</span>
-              </Link>
+              {isCRAPartner ? (
+                <Link
+                  href="/cra/dashboard"
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 transition-all shadow-xs mt-2"
+                >
+                  <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+                  <div className="flex items-center justify-between w-full min-w-0">
+                    <span className="truncate">CRA Partner Dashboard</span>
+                    <span className="text-[9.5px] bg-white/20 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1">&rarr;</span>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  href="/customer/dashboard#referral-hub"
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 transition-colors mt-2"
+                >
+                  <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span>Refer &amp; Become a CRA</span>
+                </Link>
+              )}
             </nav>
           </div>
         </div>
@@ -158,12 +186,14 @@ export function CustomerSidebar({
         <div className="p-3.5 border-t border-slate-100 bg-slate-50/90">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0">
+              <div className="h-9 w-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-900/15 shrink-0" suppressHydrationWarning>
                 {avatarInitials}
               </div>
               <div className="truncate">
-                <p className="text-xs font-bold text-slate-900 truncate">{customerName}</p>
-                <p className="text-[10px] text-slate-500 font-mono">#AVM-PT-981</p>
+                <p className="text-xs font-bold text-slate-900 truncate" suppressHydrationWarning>{customerName}</p>
+                <p className="text-[10px] text-slate-500 font-mono" suppressHydrationWarning>
+                  #{customerId}
+                </p>
               </div>
             </div>
             <button
@@ -218,7 +248,7 @@ export function CustomerSidebar({
                 <div className="min-w-0">
                   <div className="font-bold text-xs text-slate-900 truncate">{customerName}</div>
                   <div className="text-[10px] font-semibold text-purple-700 mt-0.5">
-                    Patient #{customer?.id || "AVM-PT-981"}
+                    Member #{customer?.id?.replace(/^CUST-/, "AVM-PT-") || (currentUser?.role === "c1" ? "AVM-CRA-C1" : currentUser?.role === "c2" ? currentUser.code : "AVM-PT-981")}
                   </div>
                 </div>
               </div>
@@ -276,7 +306,7 @@ export function CustomerSidebar({
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-semibold bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     <Wallet className="h-4 w-4 text-emerald-600" />
-                    <span>Wallet &amp; Coupons (₹{customer?.walletBalance || 350})</span>
+                    <span>Wallet &amp; Coupons (₹{walletBalance})</span>
                   </Link>
 
                   <Link
@@ -292,14 +322,28 @@ export function CustomerSidebar({
                     <span>Help &amp; FAQs</span>
                   </Link>
 
-                  <Link
-                    href="/cra"
-                    onClick={closeMobile}
-                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 mt-2"
-                  >
-                    <Sparkles className="h-4 w-4 text-amber-500" />
-                    <span>CRA Partner Portal</span>
-                  </Link>
+                  {isCRAPartner ? (
+                    <Link
+                      href="/cra/dashboard"
+                      onClick={closeMobile}
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#251b5c] to-[#382685] hover:opacity-95 transition-all shadow-xs mt-2"
+                    >
+                      <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+                      <div className="flex items-center justify-between w-full min-w-0">
+                        <span className="truncate">CRA Partner Dashboard</span>
+                        <span className="text-[9.5px] bg-white/20 px-1.5 py-0.5 rounded font-mono shrink-0 ml-1">&rarr;</span>
+                      </div>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/customer/dashboard#referral-hub"
+                      onClick={closeMobile}
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-[5px] text-xs font-bold text-[#1e3a8a] bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/70 mt-2"
+                    >
+                      <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span>Refer &amp; Become a CRA</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

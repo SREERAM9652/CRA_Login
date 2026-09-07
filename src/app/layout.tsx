@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Roboto, Caveat, Alex_Brush } from "next/font/google";
+import { NavigationLoader } from "@/components/ui/NavigationLoader";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -41,7 +43,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${roboto.variable} ${caveat.variable} ${alexBrush.variable} font-sans h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Suspense fallback={null}>
+          <NavigationLoader />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

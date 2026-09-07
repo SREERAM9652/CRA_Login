@@ -1,0 +1,217 @@
+{
+  "systemAccounts": [
+    {
+      "id": "C1-SREERAM",
+      "role": "c1",
+      "personaKey": "sreeram",
+      "name": "THURAKA SREERAM",
+      "roleTitle": "Primary CRA Super-Partner (C1)",
+      "code": "AVM-SREERAM-C1",
+      "mobile": "9845012345",
+      "email": "sreeram.thuraka@avmlabs.com",
+      "password": "sreeram@123",
+      "targetDashboard": "/cra/dashboard",
+      "description": "Top Root Partner • 30% Direct Commission + 10% 2nd-Level Override from Sub-Partners",
+      "badgeColor": "bg-purple-100 text-[#382685] border-purple-200",
+      "city": "Hyderabad",
+      "introducer": null,
+      "aliases": [
+        "sreeram",
+        "sreeram thuraka",
+        "thuraka sreeram",
+        "sreeram.thuraka@avmlabs.com",
+        "sreeram@avmlabs.com",
+        "sreeram@gmail.com",
+        "c1",
+        "c1-sreeram",
+        "+91 98450 12345",
+        "98450 12345",
+        "9845012345"
+      ]
+    },
+    {
+      "id": "C2-SUDHEER",
+      "role": "c2",
+      "personaKey": "sudheer",
+      "name": "SUDHEER REDDY",
+      "roleTitle": "Tier-2 Sub-Partner (C2)",
+      "code": "AVM-SUDHEER-C2",
+      "mobile": "9886054321",
+      "email": "sudheer.reddy@avmlabs.com",
+      "password": "sudheer@123",
+      "targetDashboard": "/cra/dashboard",
+      "description": "Introduced by Thuraka Sreeram • 30% Direct Commission on Diagnostic Bookings",
+      "badgeColor": "bg-blue-100 text-[#2F5FDE] border-blue-200",
+      "city": "Bengaluru",
+      "introducer": {
+        "id": "C1-SREERAM",
+        "name": "THURAKA SREERAM",
+        "code": "AVM-SREERAM-C1"
+      },
+      "aliases": [
+        "sudheer",
+        "sudheer reddy",
+        "sudheer.reddy@avmlabs.com",
+        "sudheer@avmlabs.com",
+        "sudheer@gmail.com",
+        "c2-sudheer",
+        "+91 98860 54321",
+        "98860 54321",
+        "9886054321"
+      ]
+    },
+    {
+      "id": "C2-MAHENDRA",
+      "role": "c2",
+      "personaKey": "mahendra",
+      "name": "SAI MAHENDRA",
+      "roleTitle": "Tier-2 Partner & Introducer (C2)",
+      "code": "AVM-MAHENDRA-C2",
+      "mobile": "9740098765",
+      "email": "sai.mahendra@avmlabs.com",
+      "password": "mahendra@123",
+      "targetDashboard": "/cra/dashboard",
+      "description": "Introduced by Sreeram & Introducer of Vishnu • 30% Direct + 10% Sub-Partner Override",
+      "badgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "city": "Pune",
+      "introducer": {
+        "id": "C1-SREERAM",
+        "name": "THURAKA SREERAM",
+        "code": "AVM-SREERAM-C1"
+      },
+      "aliases": [
+        "mahendra",
+        "sai mahendra",
+        "sai.mahendra@avmlabs.com",
+        "mahendra@avmlabs.com",
+        "mahendra@gmail.com",
+        "c2-mahendra",
+        "+91 97400 98765",
+        "97400 98765",
+        "9740098765",
+        "9877011223"
+      ]
+    },
+    {
+      "id": "C2-VISHNU",
+      "role": "c2",
+      "personaKey": "vishnu",
+      "name": "VISHNU VARDHAN",
+      "roleTitle": "Tier-3 Partner (C2 Sub)",
+      "code": "AVM-VISHNU-C2",
+      "mobile": "9822077112",
+      "email": "vishnu.vardhan@avmlabs.com",
+      "password": "vishnu@123",
+      "targetDashboard": "/cra/dashboard",
+      "description": "Introduced by Sai Mahendra • 30% Direct Commission (Overrides stop at Mahendra)",
+      "badgeColor": "bg-amber-100 text-amber-800 border-amber-200",
+      "city": "Vijayawada",
+      "introducer": {
+        "id": "C2-MAHENDRA",
+        "name": "SAI MAHENDRA",
+        "code": "AVM-MAHENDRA-C2"
+      },
+      "aliases": [
+        "vishnu",
+        "vishnu vardhan",
+        "vishnu.vardhan@avmlabs.com",
+        "vishnu@avmlabs.com",
+        "vishnu@gmail.com",
+        "c2-vishnu",
+        "+91 98220 77112",
+        "98220 77112",
+        "9822077112",
+        "9866033445"
+      ]
+    },
+    {
+      "id": "CUST-981",
+      "role": "customer",
+      "personaKey": "customer",
+      "name": "Suresh M.",
+      "roleTitle": "Patient / Health Customer",
+      "code": "CUST-SURESH",
+      "mobile": "9845199881",
+      "email": "suresh.m@example.com",
+      "password": "customer@123",
+      "targetDashboard": "/customer/dashboard",
+      "description": "Customer Health Portal • Book Diagnostic Packages, Home Sample Collection & View Reports",
+      "badgeColor": "bg-teal-100 text-teal-800 border-teal-200",
+      "city": "Bengaluru",
+      "introducer": {
+        "id": "C1-SREERAM",
+        "name": "THURAKA SREERAM",
+        "code": "AVM-SREERAM-C1"
+      },
+      "aliases": [
+        "suresh",
+        "suresh m",
+        "cust-suresh",
+        "cust-981",
+        "customer",
+        "patient",
+        "+91 98451 99881",
+        "98451 99881",
+        "9845199881"
+      ]
+    }
+  ],
+  "c1": {
+    "id": "C1-SREERAM",
+    "role": "c1",
+    "name": "THURAKA SREERAM",
+    "mobile": "+91 98450 12345",
+    "email": "sreeram.thuraka@avmlabs.com",
+    "code": "AVM-SREERAM-C1",
+    "city": "Hyderabad"
+  },
+  "c2List": [
+    {
+      "id": "C2-SUDHEER",
+      "role": "c2",
+      "name": "SUDHEER REDDY",
+      "mobile": "+91 98860 54321",
+      "email": "sudheer.reddy@avmlabs.com",
+      "code": "AVM-SUDHEER-C2",
+      "city": "Bengaluru",
+      "c1Id": "C1-SREERAM",
+      "c1Name": "THURAKA SREERAM"
+    },
+    {
+      "id": "C2-MAHENDRA",
+      "role": "c2",
+      "name": "SAI MAHENDRA",
+      "mobile": "+91 97400 98765",
+      "email": "sai.mahendra@avmlabs.com",
+      "code": "AVM-MAHENDRA-C2",
+      "city": "Pune",
+      "c1Id": "C1-SREERAM",
+      "c1Name": "THURAKA SREERAM"
+    },
+    {
+      "id": "C2-VISHNU",
+      "role": "c2",
+      "name": "VISHNU VARDHAN",
+      "mobile": "+91 98220 77112",
+      "email": "vishnu.vardhan@avmlabs.com",
+      "code": "AVM-VISHNU-C2",
+      "city": "Vijayawada",
+      "c1Id": "C2-MAHENDRA",
+      "c1Name": "SAI MAHENDRA"
+    }
+  ],
+  "defaultCustomer": {
+    "id": "CUST-981",
+    "name": "Suresh M.",
+    "mobile": "+91 98451 99881",
+    "email": "suresh.m@example.com",
+    "isReferred": true,
+    "referralCode": "AVM-SREERAM-C1",
+    "referrerName": "THURAKA SREERAM",
+    "walletBalance": 350,
+    "cashbackEarned": 150,
+    "activeCoupons": ["WELLNESS20", "HEALTH100"],
+    "hasGeneratedReferral": true,
+    "generatedReferralCode": "REF-SURESH-10"
+  }
+}

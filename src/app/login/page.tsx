@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWorkflowStore } from "@/lib/workflow-store"
+import { AVMLoader } from "@/components/ui/AVMLoader"
 import {
   User,
   Users,
@@ -22,11 +23,11 @@ import {
   Zap,
   KeyRound,
   X,
-  Network,
   Crown,
   Sparkles,
   UserPlus,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from "lucide-react"
 
 export default function LoginPage() {
@@ -60,6 +61,7 @@ export default function LoginPage() {
 
   const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({})
   const [touched, setTouched] = useState<{ identifier?: boolean; password?: boolean }>({})
+  const [accessDeniedMessage, setAccessDeniedMessage] = useState<string | null>(null)
   const identifierInputRef = useRef<HTMLInputElement>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
 
@@ -71,6 +73,7 @@ export default function LoginPage() {
       name: "THURAKA SREERAM",
       roleLabel: "Primary CRA Partner (C1)",
       code: "AVM-SREERAM-C1",
+      email: "sreeram.thuraka@avmlabs.com",
       mobile: "9845012345",
       password: "sreeram@123",
       tagline: "Top Regional Super-Partner",
@@ -85,6 +88,7 @@ export default function LoginPage() {
       name: "SUDHEER REDDY",
       roleLabel: "Tier-2 Sub Partner (C2)",
       code: "AVM-SUDHEER-C2",
+      email: "sudheer.reddy@avmlabs.com",
       mobile: "9886054321",
       password: "sudheer@123",
       tagline: "Introduced by Thuraka Sreeram",
@@ -99,6 +103,7 @@ export default function LoginPage() {
       name: "SAI MAHENDRA",
       roleLabel: "Tier-2 Partner & Introducer",
       code: "AVM-MAHENDRA-C2",
+      email: "sai.mahendra@avmlabs.com",
       mobile: "9877011223",
       password: "mahendra@123",
       tagline: "Direct Partner & Sub-Agency Builder",
@@ -113,6 +118,7 @@ export default function LoginPage() {
       name: "VISHNU VARDHAN",
       roleLabel: "Tier-3 Partner (C2 Sub)",
       code: "AVM-VISHNU-C2",
+      email: "vishnu.vardhan@avmlabs.com",
       mobile: "9866033445",
       password: "vishnu@123",
       tagline: "Introduced by Sai Mahendra",
@@ -139,7 +145,14 @@ export default function LoginPage() {
       if (!emailRegex.test(trimmed)) {
         return "Please enter a valid email address (e.g. name@example.com)."
       }
+      if (isCra && trimmed.toLowerCase() === "suresh.m@example.com") {
+        return "Customer account detected. Customer cannot access CRA Portal."
+      }
       return ""
+    }
+
+    if (isCra && ["suresh", "cust-suresh", "cust-981", "customer", "patient"].includes(trimmed.toLowerCase())) {
+      return "Customer account detected. Customers cannot access CRA Portal."
     }
 
     if (/^AVM-[A-Za-z0-9-]+$/i.test(trimmed) || ["sreeram", "sudheer", "mahendra", "vishnu"].includes(trimmed.toLowerCase())) {
@@ -185,6 +198,9 @@ export default function LoginPage() {
 
   const handleIdentifierChange = (val: string) => {
     setIdentifier(val)
+    if (accessDeniedMessage) {
+      setAccessDeniedMessage(null)
+    }
     if (touched.identifier) {
       setErrors((prev) => ({ ...prev, identifier: validateIdentifier(val, role) }))
     }
@@ -214,6 +230,7 @@ export default function LoginPage() {
     setTouched({})
     setIdentifier("")
     setPassword("")
+    setAccessDeniedMessage(null)
   }
 
   const detectedAccountType = (() => {
@@ -221,7 +238,7 @@ export default function LoginPage() {
     if (!trimmed) return null
     if (trimmed.startsWith("avm-")) return "cra"
     const digits = trimmed.replace(/\D/g, "").slice(-10)
-    if (CRA_MEMBERS.some((m) => m.mobile === digits || m.code.toLowerCase() === trimmed || m.id === trimmed)) {
+    if (CRA_MEMBERS.some((m) => m.mobile === digits || m.code.toLowerCase() === trimmed || m.id === trimmed || m.email.toLowerCase() === trimmed)) {
       return "cra"
     }
     if (trimmed.includes("@")) return "customer"
@@ -230,6 +247,7 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    setAccessDeniedMessage(null)
 
     const idError = validateIdentifier(identifier, role)
     const passError = validatePassword(password)
@@ -248,27 +266,45 @@ export default function LoginPage() {
 
     setLoading(true)
 
-    setTimeout(() => {
-      setLoading(false)
-      const cleanId = identifier.trim()
-      const result = loginWithCredentials(cleanId, password)
+    const cleanId = identifier.trim()
+    const result = loginWithCredentials(cleanId, password, role)
 
+    if (role === "cra") {
       if (result && result.success) {
-        router.push(result.targetUrl)
+        setAccessDeniedMessage(null)
+        window.location.href = result.targetUrl
       } else {
-        router.push(role === "cra" ? "/cra/dashboard" : "/customer/dashboard")
+        // CRA Login failed: turn off loader and display access denied error
+        setLoading(false)
+        const errorMsg = result?.error || "Access Denied: You do not have access to the CRA Partner Dashboard. Customer accounts cannot access this portal. Please use Customer Login."
+        setAccessDeniedMessage(errorMsg)
+        setErrors((prev) => ({
+          ...prev,
+          identifier: "Customer account detected. CRA Dashboard access is restricted."
+        }))
+        identifierInputRef.current?.focus()
       }
-    }, 350)
+    } else {
+      setAccessDeniedMessage(null)
+      const target = (result && result.success && result.targetUrl) ? result.targetUrl : "/customer/dashboard"
+      window.location.href = target
+    }
   }
 
   const handleQuickRegister = () => {
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      loginCustomer({ name: "New Registered Patient", mobile: identifier || "+91 98450 12345" })
-      switchRole("customer")
-      router.push("/customer/dashboard")
-    }, 350)
+    const displayName = identifier?.includes("@")
+      ? identifier.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      : "New Registered Patient"
+    loginCustomer({
+      name: displayName,
+      mobile: identifier?.includes("@") ? "+91 98451 99881" : identifier || "+91 98451 99881",
+      email: identifier?.includes("@") ? identifier : "patient@example.com",
+      isReferred: false,
+      referrerName: undefined,
+      referralCode: undefined
+    })
+    window.location.href = "/customer/dashboard"
   }
 
   const handleOtpChange = (index: number, val: string) => {
@@ -285,21 +321,24 @@ export default function LoginPage() {
   const handleFastDemoLogin = (targetPersona?: "sreeram" | "sudheer" | "mahendra" | "vishnu" | "customer") => {
     setLoading(true)
     setIsDemoModalOpen(false)
-    setTimeout(() => {
-      setLoading(false)
-      if (targetPersona === "customer" || (!targetPersona && role === "customer")) {
-        loginCustomer({ name: "Suresh M.", mobile: "+91 98450 12345" })
-        switchRole("customer")
-        router.push("/customer/dashboard")
-      } else {
-        switchRole(targetPersona || "sreeram")
-        router.push("/cra/dashboard")
-      }
-    }, 250)
+    if (targetPersona === "customer" || (!targetPersona && role === "customer")) {
+      loginCustomer({
+        name: "Suresh M.",
+        mobile: "+91 98451 99881",
+        email: "suresh.m@example.com",
+        isReferred: true,
+        referrerName: "THURAKA SREERAM",
+        referralCode: "AVM-SREERAM-C1"
+      })
+      window.location.href = "/customer/dashboard"
+    } else {
+      switchRole(targetPersona || "sreeram")
+      window.location.href = "/cra/dashboard"
+    }
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] lg:h-screen w-full bg-gradient-to-br from-[#f8f9fd] via-[#f1f3fa] to-[#eaf0fc] flex flex-col justify-between font-sans text-slate-800 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden select-none selection:bg-[#382685] selection:text-white">
+    <div className="min-h-screen min-h-[100dvh] lg:h-screen w-full bg-gradient-to-br from-[#f8f9fd] via-[#f1f3fa] to-[#eaf0fc] flex flex-col justify-between font-sans text-slate-800 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden select-text selection:bg-[#382685] selection:text-white">
 
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img
@@ -442,17 +481,57 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Title / Subtitle Header on Top */}
+            {role === "customer" ? (
+              <div className="text-center space-y-0.5">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                  Welcome to AVMLabs
+                </h1>
+                <p className="text-xs text-slate-500 font-medium">
+                  Book wellness tests and manage your reports
+                </p>
+              </div>
+            ) : (
+              <div className="text-center space-y-0.5">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                  CRA Partner Login
+                </h1>
+                <p className="text-xs text-slate-500 font-medium">
+                  Access referral dashboard, team network &amp; wallet
+                </p>
+              </div>
+            )}
+
+            {/* Tab Switcher for Customer Login & CRA Login (Below Header) */}
+            <div className="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 shadow-inner">
+              <button
+                type="button"
+                onClick={() => handleRoleChange("customer")}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  role === "customer"
+                    ? "bg-[#251b5c] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                }`}
+              >
+                <User className={`h-3.5 w-3.5 ${role === "customer" ? "text-cyan-300" : "text-slate-500"}`} />
+                <span>Customer Login</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleChange("cra")}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  role === "cra"
+                    ? "bg-[#251b5c] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                }`}
+              >
+                <Crown className={`h-3.5 w-3.5 ${role === "cra" ? "text-amber-300" : "text-slate-500"}`} />
+                <span>CRA Login</span>
+              </button>
+            </div>
+
             {role === "customer" ? (
               <div className="space-y-3.5">
-                <div className="text-center space-y-0.5">
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-                    Welcome to AVMLabs
-                  </h1>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Book wellness tests and manage your reports
-                  </p>
-                </div>
-
                 <form onSubmit={handleLogin} noValidate className="space-y-3 pt-0.5">
                   <div className="space-y-0.5 text-left">
                     <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
@@ -538,7 +617,7 @@ export default function LoginPage() {
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#251b5c] via-[#31237a] to-[#251b5c] hover:from-[#1b1344] hover:to-[#251b5c] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#251b5c]/25 hover:shadow-lg hover:shadow-[#251b5c]/35 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99] mt-1"
                   >
                     {loading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="spinner-xs" />
                     ) : (
                       <span>Login</span>
                     )}
@@ -581,15 +660,6 @@ export default function LoginPage() {
               </div>
             ) : (
               <div className="space-y-3.5">
-                <div className="text-center space-y-0.5">
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-                    CRA Partner Login
-                  </h1>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Access referral dashboard, team network &amp; wallet
-                  </p>
-                </div>
-
                 <form onSubmit={handleLogin} noValidate className="space-y-2.5">
 
                   <div className="space-y-0.5 text-left">
@@ -659,13 +729,33 @@ export default function LoginPage() {
                     )}
                   </div>
 
+                  {accessDeniedMessage && (
+                    <div className="p-3 bg-rose-50 border border-rose-300 rounded-2xl text-left space-y-2 animate-in fade-in slide-in-from-top-1 shadow-2xs">
+                      <div className="flex items-center gap-2 text-rose-800 font-black text-xs">
+                        <ShieldAlert className="h-4.5 w-4.5 text-rose-600 shrink-0" />
+                        <span>Access Denied: CRA Portal Restricted</span>
+                      </div>
+                      <p className="text-[11px] text-rose-700 leading-snug font-medium">
+                        {accessDeniedMessage}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleRoleChange("customer")}
+                        className="w-full py-1.5 px-3 rounded-xl bg-white hover:bg-rose-100/50 text-[#251b5c] font-bold text-xs border border-rose-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <User className="h-3.5 w-3.5 text-[#251b5c]" />
+                        <span>Switch to Customer Login &rarr;</span>
+                      </button>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={loading}
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#251b5c] via-[#31237a] to-[#251b5c] hover:from-[#1b1344] hover:to-[#251b5c] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#251b5c]/25 hover:shadow-lg hover:shadow-[#251b5c]/35 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                   >
                     {loading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="spinner-xs" />
                     ) : (
                       <span>Sign In as CRA Partner</span>
                     )}
@@ -682,40 +772,6 @@ export default function LoginPage() {
                   </div>
                 </form>
 
-                <div className="pt-1.5 border-t border-slate-200/60 space-y-1">
-                  <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-400 text-center">
-                    QUICK DEMO PERSONA LOGINS
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleFastDemoLogin("sreeram")}
-                      className="p-1.5 rounded-lg bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/70 hover:border-indigo-300 text-left transition-all shadow-2xs cursor-pointer"
-                    >
-                      <div className="font-extrabold text-[10.5px] text-[#312e81]">Sreeram (C1)</div>
-                      <div className="text-[9px] text-slate-500 font-medium">Root Partner • 30%+10%</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleFastDemoLogin("sudheer")}
-                      className="p-1.5 rounded-lg bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/70 hover:border-blue-300 text-left transition-all shadow-2xs cursor-pointer"
-                    >
-                      <div className="font-extrabold text-[10.5px] text-[#1e40af]">Sudheer (C2)</div>
-                      <div className="text-[9px] text-slate-500 font-medium">Sub-Partner • 30%</div>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="pt-1.5 border-t border-slate-200/60 text-center flex flex-col items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleFastDemoLogin("sreeram")}
-                    className="text-[10.5px] text-amber-900 font-bold hover:underline bg-white/60 hover:bg-white/90 backdrop-blur-md px-3 py-0.5 rounded-full inline-flex items-center gap-1.5 cursor-pointer shadow-2xs border border-amber-200/80 transition-transform active:scale-98"
-                  >
-                    <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
-                    <span>Instant Demo as CRA (Thuraka Sreeram)</span>
-                  </button>
-                </div>
 
                 <div className="pt-1 text-center">
                   <button
@@ -749,7 +805,7 @@ export default function LoginPage() {
 
       {isDemoModalOpen && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150 border border-slate-200 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150 border border-slate-200 max-h-[90vh] overflow-y-auto select-text">
 
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
@@ -777,11 +833,11 @@ export default function LoginPage() {
               {CRA_MEMBERS.map((p) => (
                 <div
                   key={p.id}
-                  className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-[#251b5c] transition-all space-y-2 shadow-2xs"
+                  className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-[#251b5c] transition-all space-y-2 shadow-2xs select-text"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-black text-xs sm:text-sm text-slate-900">{p.name}</div>
+                      <div className="font-black text-xs sm:text-sm text-slate-900 select-text">{p.name}</div>
                       <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border mt-0.5 inline-block ${p.badgeColor}`}>
                         {p.roleLabel}
                       </span>
@@ -796,33 +852,22 @@ export default function LoginPage() {
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-slate-500 leading-snug">
+                  <p className="text-[11px] text-slate-500 leading-snug select-text">
                     {p.desc}
                   </p>
 
-                  <div className="pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-[10.5px] font-mono text-slate-700">
-                    <span>Code: <strong className="text-slate-900">{p.code}</strong></span>
-                    <span>Mobile: <strong className="text-slate-900">{p.mobile}</strong></span>
+                  <div className="pt-2 border-t border-slate-200/70 space-y-1.5 text-[10.5px] select-text">
+                    <div className="flex items-center justify-between font-mono">
+                      <span><span className="text-slate-400 font-sans">ID:</span> <strong className="text-slate-900 select-all cursor-text">{p.code}</strong></span>
+                      <span><span className="text-slate-400 font-sans">Mobile:</span> <strong className="text-slate-900 select-all cursor-text">{p.mobile}</strong></span>
+                    </div>
+                    <div className="flex items-center justify-between bg-white/80 px-2 py-1 rounded-lg border border-slate-200/60">
+                      <span className="truncate mr-2"><span className="text-slate-400">Email:</span> <strong className="text-slate-800 font-medium select-all cursor-text">{p.email}</strong></span>
+                      <span className="shrink-0"><span className="text-slate-400">Pass:</span> <strong className="text-[#251b5c] font-mono bg-purple-50 px-1 py-0.5 rounded border border-purple-100 font-bold select-all cursor-text">{p.password}</strong></span>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div className="bg-slate-950 text-white rounded-2xl p-3.5 border border-white/10 space-y-1.5 text-xs">
-              <div className="flex items-center justify-between text-blue-300 font-extrabold uppercase text-[10px]">
-                <span className="flex items-center gap-1.5">
-                  <Network className="h-3.5 w-3.5 text-cyan-300" />
-                  <span>2-Level Referral Commission Structure</span>
-                </span>
-                <span className="text-emerald-400 font-mono">30% Direct • 10% Override</span>
-              </div>
-              <div className="text-[11px] text-slate-300 flex items-center justify-between flex-wrap gap-1 pt-1 border-t border-white/10">
-                <span>👑 SREERAM</span>
-                <span className="text-cyan-400 font-bold font-mono">➔ 10%</span>
-                <span>🚀 SAI MAHENDRA</span>
-                <span className="text-cyan-400 font-bold font-mono">➔ 30%</span>
-                <span>🔬 VISHNU</span>
-              </div>
             </div>
 
           </div>

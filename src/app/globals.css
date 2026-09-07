@@ -14,6 +14,9 @@
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
+  --avm-navy: #1B2A75;
+  --avm-red: #ED3237;
+  --bg: #ffffff;
 }
 
 /* Global text selection color: classic bright blue */
@@ -176,18 +179,55 @@ body {
   max-width: 1680px !important;
 }
 
+/* Screen reader only utility */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
+
 /* Hide scrollbar utility */
 .scrollbar-hide::-webkit-scrollbar,
-.no-scrollbar::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar,
+.invisible-scroll::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+  background: transparent !important;
 }
 
 .scrollbar-hide,
-.no-scrollbar {
+.no-scrollbar,
+.invisible-scroll {
   -ms-overflow-style: none !important;  /* IE and Edge */
   scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Ultra-thin 3px sleek scrollbar for sidebar */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 3px !important;
+  height: 3px !important;
+  display: block !important;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45) !important;
+  border-radius: 9999px !important;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.75) !important;
+}
+.thin-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent !important;
 }
 
 @media print {
@@ -205,3 +245,69 @@ body {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   AVM Labs Custom Brand Conic Loader
+   ========================================================================== */
+.spinner,
+.avm-spinner {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--avm-red) 0deg,
+    var(--avm-navy) 300deg,
+    transparent 300deg 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+  animation: avm-spin 1.2s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.spinner-sm,
+.avm-spinner-sm {
+  width: 28px;
+  height: 28px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px));
+}
+
+.spinner-xs,
+.avm-spinner-xs {
+  width: 18px;
+  height: 18px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+}
+
+.spinner-lg,
+.avm-spinner-lg {
+  width: 96px;
+  height: 96px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+}
+
+@keyframes avm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .avm-spinner,
+  .avm-spinner-sm,
+  .avm-spinner-lg {
+    animation-duration: 2.5s;
+  }
+}
+
