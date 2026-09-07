@@ -100,8 +100,8 @@ export default function CRABeneficiariesPage() {
   }
 
   const handleBookForMember = (ben: Beneficiary) => {
-    // Direct checkout pre-selecting this beneficiary
-    router.push(`/booking?ref=${currentUser.code}&benName=${encodeURIComponent(ben.fullName)}&benId=${ben.id}`)
+    // Redirect to CRA Partner Portal Family Booking with this member pre-selected
+    router.push(`/cra/dashboard/add-lead?mode=family&benId=${ben.id}`)
   }
 
   return (

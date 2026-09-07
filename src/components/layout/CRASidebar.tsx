@@ -83,16 +83,16 @@ export function CRASidebar({
         desktopOpen ? "w-64" : "w-[72px]"
       }`}>
         {/* Desktop Header */}
-        <div className={`h-16 flex items-center border-b border-slate-100/90 bg-white transition-all ${
-          desktopOpen ? "px-4 justify-start" : "px-2 justify-center"
+        <div className={`flex items-center border-b border-slate-100/90 bg-white transition-all ${
+          desktopOpen ? "py-3.5 px-4 justify-center" : "h-16 px-2 justify-center"
         }`}>
           {desktopOpen ? (
-            <Link href="/cra/dashboard" className="inline-block hover:scale-102 transition-transform">
+            <Link href="/cra/dashboard" className="flex items-center justify-center w-full hover:scale-102 transition-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/avmlabs-logo.svg"
                 alt="AVMLabs Diagnostics"
-                className="h-14 w-auto max-w-[170px] object-contain"
+                className="h-[78px] w-auto max-w-[215px] object-contain mx-auto"
               />
             </Link>
           ) : (
@@ -279,13 +279,13 @@ export function CRASidebar({
 
           <div className="relative flex-1 flex flex-col max-w-[310px] w-full bg-white shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-slate-100 bg-white flex items-center justify-between">
-              <Link href="/cra/dashboard" onClick={closeMobile} className="inline-block">
+            <div className="py-3 px-4 border-b border-slate-100 bg-white flex items-center justify-between">
+              <Link href="/cra/dashboard" onClick={closeMobile} className="inline-flex items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/avmlabs-logo.svg"
                   alt="AVMLabs Diagnostics"
-                  className="h-10 w-auto max-w-[140px] object-contain"
+                  className="h-14 w-auto max-w-[170px] object-contain"
                 />
               </Link>
 

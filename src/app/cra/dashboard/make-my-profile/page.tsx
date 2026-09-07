@@ -116,7 +116,7 @@ export default function MakeMyProfilePage() {
 
   const [publishedViewMode, setPublishedViewMode] = useState<"compact" | "list">("compact")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState<number>(4)
+  const [pageSize, setPageSize] = useState<number>(3)
   const [isPageSizeDropdownOpen, setIsPageSizeDropdownOpen] = useState(false)
   const pageSizeDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -321,11 +321,11 @@ export default function MakeMyProfilePage() {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
             <span>Make My Profile</span>
             <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-100 text-[#382685] border border-purple-200">
-              Custom Diagnostic Bundler
+              Custom Health Package
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Select multiple AVM Labs tests to create a custom health profile under your brand.
+            Select multiple tests to create your own health package under your brand.
           </p>
         </div>
       </div>
@@ -334,22 +334,22 @@ export default function MakeMyProfilePage() {
         <div className="p-4 bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg animate-in fade-in flex items-center justify-between border border-emerald-400/30">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-300 shrink-0" />
-            <span>Custom health profile created successfully! Ready to share or order.</span>
+            <span>Health package created successfully! Ready to share or order.</span>
           </div>
         </div>
       )}
 
       {/* Main Two-Column Layout (Equal 50/50 containers on desktop) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         
         {/* Left 50% Column: Profile Builder Form */}
-        <form onSubmit={handleCreateProfile} className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-2xs space-y-4 flex flex-col justify-between">
+        <form onSubmit={handleCreateProfile} className="h-full bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs flex flex-col justify-between space-y-4">
           
-          <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+          <div className="border-b border-slate-100 pb-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-[#382685]" />
               <h2 className="font-black text-sm sm:text-base text-slate-900">
-                Create Custom Health Profile
+                Create Health Package
               </h2>
             </div>
             <span className="text-xs font-mono font-bold text-[#382685] bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
@@ -399,7 +399,7 @@ export default function MakeMyProfilePage() {
               <div className="relative" ref={categoryDropdownRef}>
                 <div className="flex items-center justify-between h-5 mb-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Health Category Focus
+                    Health Category
                   </label>
                 </div>
                 <button
@@ -476,10 +476,10 @@ export default function MakeMyProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  Select AVM Labs Tests to Include <span className="text-rose-500">*</span>
+                  Select Tests to Include <span className="text-rose-500">*</span>
                 </label>
                 <span className="text-[11px] text-slate-400">
-                  Choose individual pathology and clinical tests to package into your profile
+                  Choose tests to add into your health package
                 </span>
               </div>
               <span className="text-xs font-mono font-black text-[#382685] bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
@@ -668,29 +668,29 @@ export default function MakeMyProfilePage() {
 
           <button
             type="submit"
-            className="w-full h-12 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            className="w-full h-12 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer shrink-0"
           >
             <Sparkles className="h-4 w-4 text-cyan-300" />
-            <span>Create &amp; Save Custom Diagnostic Profile ({selectedCodes.length} Tests)</span>
+            <span>Save Health Package ({selectedCodes.length} Tests)</span>
           </button>
 
         </form>
 
-        {/* Right 50% Column: Commercial Breakdown & Active Custom Profiles */}
-        <div className="space-y-4 flex flex-col justify-between">
+        {/* Right 50% Column: Price & Your Earnings & Published Packages */}
+        <div className="h-full flex flex-col justify-between gap-4">
           
-          {/* Live Commercial Pricing Breakdown */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3.5 shadow-2xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          {/* Price & Your Earnings Card */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-2.5 shadow-2xs shrink-0">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2 font-bold text-xs sm:text-sm text-slate-900">
                 <Coins className="h-4 w-4 text-[#382685]" />
-                <span>Commercial &amp; Incentive Estimate</span>
+                <span>Price &amp; Your Earnings</span>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-500">
-                <span>Sum of Individual MRPs ({selectedCodes.length} tests):</span>
+                <span>Total Test Price (MRP):</span>
                 <span className="font-mono text-slate-800 font-medium">₹{totalMrp.toLocaleString("en-IN")}</span>
               </div>
 
@@ -699,21 +699,21 @@ export default function MakeMyProfilePage() {
                 <span className="font-mono">- ₹{totalDiscount.toLocaleString("en-IN")}</span>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-slate-900 font-bold">
-                <span>Final Realized Revenue (RR):</span>
+              <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 text-slate-900 font-bold">
+                <span>Customer Final Price:</span>
                 <span className="font-mono font-black text-sm text-slate-900">₹{realizedRevenue.toLocaleString("en-IN")}</span>
               </div>
 
               {/* Direct 30% Incentive Box */}
-              <div className="p-3.5 bg-gradient-to-br from-blue-50 to-indigo-50/80 rounded-2xl border border-blue-200/80 text-center space-y-0.5 mt-2">
+              <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50/80 rounded-2xl border border-blue-200/80 text-center space-y-0.5 mt-1.5">
                 <div className="text-[10.5px] uppercase font-bold text-blue-900">
                   Your 30% Direct Earning per Order
                 </div>
-                <div className="font-mono text-2xl font-black text-[#2F5FDE]">
+                <div className="font-mono text-xl sm:text-2xl font-black text-[#2F5FDE]">
                   +₹{directIncentive.toLocaleString("en-IN")}
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Earned when referred patients or customers book this profile
+                  Earned whenever a patient books this package
                 </div>
               </div>
             </div>
@@ -721,7 +721,7 @@ export default function MakeMyProfilePage() {
 
           {/* Active Custom Profiles Manager & Catalog */}
           {!mounted ? (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3.5 shadow-2xs animate-pulse">
+            <div className="flex-1 min-h-[320px] bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3.5 shadow-2xs animate-pulse">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="h-4 bg-slate-200 rounded w-1/3" />
                 <div className="h-6 bg-slate-100 rounded w-16" />
@@ -733,14 +733,14 @@ export default function MakeMyProfilePage() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-3.5 shadow-2xs" suppressHydrationWarning>
+            <div className="flex-1 min-h-0 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col justify-between space-y-3" suppressHydrationWarning>
               
               {/* Header: Title & Count badge */}
-              <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 shrink-0">
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-[#382685]" />
                   <h3 className="font-black text-xs sm:text-sm text-slate-900">
-                    Published Profiles
+                    My Health Packages
                   </h3>
                   <span className="font-mono text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-[#382685]" suppressHydrationWarning>
                     {customProfiles.length}
@@ -851,20 +851,20 @@ export default function MakeMyProfilePage() {
               )}
             </div>
 
-            {/* Scroll-contained List / Cards Container */}
-            <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+            {/* Clean Flex-1 Scrollable List Container */}
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 thin-scrollbar">
               {paginatedProfiles.length === 0 ? (
                 <div className="py-8 px-4 text-center rounded-2xl bg-slate-50/80 border border-dashed border-slate-200 space-y-2">
                   <Package className="h-8 w-8 text-slate-300 mx-auto" />
                   <div className="text-xs font-bold text-slate-700">
                     {publishedSearchQuery || publishedCategoryFilter !== "All"
-                      ? "No matching profiles found"
-                      : "No custom profiles published yet"}
+                      ? "No matching packages found"
+                      : "No health packages created yet"}
                   </div>
                   <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
                     {publishedSearchQuery || publishedCategoryFilter !== "All"
                       ? "Try searching with a different term or clear your category filter."
-                      : "Select tests on the left and click 'Create & Save' to publish your first branded bundle."}
+                      : "Select tests on the left and click 'Save Health Package' to create your first package."}
                   </p>
                   {(publishedSearchQuery || publishedCategoryFilter !== "All") && (
                     <button
@@ -880,12 +880,11 @@ export default function MakeMyProfilePage() {
                   )}
                 </div>
               ) : (
-                /* Dense List View Only */
-                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                <div className="space-y-2">
                   {paginatedProfiles.map((p) => (
                     <div
                       key={p.id}
-                      className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
+                      className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                     >
                       <div className="min-w-0 flex-1 flex items-center gap-2">
                         <div className="h-7 w-7 rounded-lg bg-purple-50 text-[#382685] flex items-center justify-center font-mono font-black text-[11px] shrink-0 border border-purple-100" title={`${p.selectedTestCodes.length} Tests`}>

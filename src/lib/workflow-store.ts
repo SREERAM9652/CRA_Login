@@ -1141,7 +1141,11 @@ function loadState(): WorkflowState {
           diagnosticCenterName: (parsed.orgProfile.diagnosticCenterName || "").replace(/XYZ\s*/gi, "").trim()
         } : DEFAULT_ORG_PROFILE
 
-        const sanitizedProfiles = (parsed.customProfiles || DEFAULT_CUSTOM_PROFILES).map((p: any) => ({
+        const rawProfiles = (parsed.customProfiles && Array.isArray(parsed.customProfiles) && parsed.customProfiles.length > 0)
+          ? parsed.customProfiles
+          : DEFAULT_CUSTOM_PROFILES
+
+        const sanitizedProfiles = rawProfiles.map((p: any) => ({
           ...p,
           brandOrOrgName: (p.brandOrOrgName || "Yoga & Wellness Center").replace(/XYZ\s*/gi, "").trim() || "Yoga & Wellness Center",
           profileTitle: (p.profileTitle || "").replace(/XYZ\s*/gi, "").trim()
@@ -1238,6 +1242,14 @@ export function useWorkflowStore() {
           beneficiaries: healed
         })
       }
+    }
+
+    // Self-healing: if customProfiles is empty or missing, restore defaults
+    if (!globalState.customProfiles || !Array.isArray(globalState.customProfiles) || globalState.customProfiles.length === 0) {
+      updateGlobalState({
+        ...globalState,
+        customProfiles: DEFAULT_CUSTOM_PROFILES
+      })
     }
 
     // Sync storage across browser tabs in real time
@@ -2133,27 +2145,35 @@ export function useWorkflowStore() {
       isLive: true
     }
 
+    const baseProfiles = (globalState.customProfiles && Array.isArray(globalState.customProfiles) && globalState.customProfiles.length > 0)
+      ? globalState.customProfiles
+      : DEFAULT_CUSTOM_PROFILES
+
     const newState = {
-      ...state,
-      customProfiles: [newProfile, ...state.customProfiles],
-      liveEvents: [liveEvent, ...state.liveEvents.slice(0, 10)]
+      ...globalState,
+      customProfiles: [newProfile, ...baseProfiles],
+      liveEvents: [liveEvent, ...globalState.liveEvents.slice(0, 10)]
     }
     updateGlobalState(newState)
     return newProfile
   }
 
   const deleteCustomProfile = (profileId: string) => {
+    const baseProfiles = (globalState.customProfiles && Array.isArray(globalState.customProfiles) && globalState.customProfiles.length > 0)
+      ? globalState.customProfiles
+      : DEFAULT_CUSTOM_PROFILES
+
     const newState = {
-      ...state,
-      customProfiles: state.customProfiles.filter(p => p.id !== profileId)
+      ...globalState,
+      customProfiles: baseProfiles.filter(p => p.id !== profileId)
     }
     updateGlobalState(newState)
   }
 
   const updateOrgProfile = (orgData: Partial<CRAOrgProfile>) => {
-    const updated = { ...state.orgProfile, ...orgData }
+    const updated = { ...globalState.orgProfile, ...orgData }
     const newState = {
-      ...state,
+      ...globalState,
       orgProfile: updated
     }
     updateGlobalState(newState)

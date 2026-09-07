@@ -54,6 +54,7 @@ function AddReferralContent() {
   const profileIdParam = searchParams.get("profileId")
   const itemsParam = searchParams.get("items")
   const modeParam = searchParams.get("mode")
+  const benIdParam = searchParams.get("benId")
   const initialMode = modeParam === "family" ? "family" : "referral"
 
   const { 
@@ -67,8 +68,18 @@ function AddReferralContent() {
   const isC1 = currentUser.role === "c1"
 
   const [bookingMode, setBookingMode] = useState<"referral" | "family">(initialMode)
-  const [selectedBenIds, setSelectedBenIds] = useState<string[]>(() => [beneficiaries[0]?.id || "ben-1"])
-  const [activeBenId, setActiveBenId] = useState<string>(() => beneficiaries[0]?.id || "ben-1")
+  const [selectedBenIds, setSelectedBenIds] = useState<string[]>(() => {
+    if (benIdParam && beneficiaries.some(b => b.id === benIdParam)) {
+      return [benIdParam]
+    }
+    return [beneficiaries[0]?.id || "ben-1"]
+  })
+  const [activeBenId, setActiveBenId] = useState<string>(() => {
+    if (benIdParam && beneficiaries.some(b => b.id === benIdParam)) {
+      return benIdParam
+    }
+    return beneficiaries[0]?.id || "ben-1"
+  })
   const [isBenDropdownOpen, setIsBenDropdownOpen] = useState(false)
   const benDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -163,15 +174,26 @@ function AddReferralContent() {
     return ["test-H6", "test-CUA"]
   })
 
-  // Sync mode changes from URL
+  // Sync mode and pre-selected beneficiary changes from URL
   useEffect(() => {
     const currentMode = searchParams.get("mode")
+    const currentBenId = searchParams.get("benId")
     if (currentMode === "family") {
       setBookingMode("family")
+      if (currentBenId && beneficiaries.some(b => b.id === currentBenId)) {
+        setSelectedBenIds([currentBenId])
+        setActiveBenId(currentBenId)
+        const foundBen = beneficiaries.find(b => b.id === currentBenId)
+        if (foundBen) {
+          if (foundBen.address) setCollectionAddress(foundBen.address)
+          if (foundBen.city) setCity(foundBen.city)
+          if (foundBen.pincode) setPincode(foundBen.pincode)
+        }
+      }
     } else if (currentMode === "referral") {
       setBookingMode("referral")
     }
-  }, [searchParams])
+  }, [searchParams, beneficiaries])
 
   // Sync selected tests/profiles from search params
   useEffect(() => {

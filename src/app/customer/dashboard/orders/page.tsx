@@ -13,8 +13,6 @@ import {
   Clock,
   Calendar,
   CheckCircle2,
-  Circle,
-  Truck,
   FlaskConical,
   FileCheck,
   User,
@@ -88,10 +86,6 @@ export default function CustomerOrdersAppointmentsPage() {
     })
   }, [orders, activeTab, patientFilter, searchQuery])
 
-  // Active highlighted order
-  const liveActiveOrder = useMemo(() => {
-    return orders.find(o => o.status !== "Report Released" && o.status !== "Cancelled") || orders[0]
-  }, [orders])
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
@@ -149,13 +143,6 @@ Thank you for choosing AVMLabs Diagnostics.
     showToast(`Invoice downloaded for ${order.orderNumber}`)
   }
 
-  const TRACKING_STEPS = [
-    { step: 1, label: "Order Placed", desc: "Confirmed" },
-    { step: 2, label: "Phlebo Assigned", desc: "Home visit" },
-    { step: 3, label: "Sample Collected", desc: "Cold sealed" },
-    { step: 4, label: "In Lab Analysis", desc: "Testing" },
-    { step: 5, label: "Report Released", desc: "Verified" }
-  ]
 
   return (
     <div className="space-y-4 font-sans pb-12 text-slate-800">
@@ -168,20 +155,12 @@ Thank you for choosing AVMLabs Diagnostics.
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 1. COMPACT CLASSIC HEADER                                                 */}
-      {/* ========================================================================= */}
       <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Orders &amp; Appointments
-              </h1>
-              <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
-                Live Status
-              </span>
-            </div>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              Orders &amp; Appointments
+            </h1>
             <p className="text-xs text-slate-500 font-normal">
               Track phlebotomist home visits, monitor sample analysis in lab, and view appointment history.
             </p>
@@ -197,113 +176,6 @@ Thank you for choosing AVMLabs Diagnostics.
             </Link>
           </div>
         </div>
-
-        {/* ======================================================================= */}
-        {/* COMPACT CLASSIC LIVE ORDER TRACKER (IF ACTIVE)                          */}
-        {/* ======================================================================= */}
-        {liveActiveOrder && (
-          <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">
-                  Active Order:
-                </span>
-                <span className="font-mono font-bold text-[#1e3a8a] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 text-[11px]">
-                  {liveActiveOrder.orderNumber}
-                </span>
-                <span className="text-slate-400">•</span>
-                <span className="text-[11px] text-slate-600 font-medium truncate max-w-[200px] sm:max-w-none">
-                  {liveActiveOrder.profileName}
-                </span>
-              </div>
-
-              <div className="text-[11px] text-slate-500 flex items-center gap-1">
-                <span>Est. Delivery:</span>
-                <strong className="text-slate-800 font-semibold">
-                  {liveActiveOrder.estimatedReportTime}
-                </strong>
-              </div>
-            </div>
-
-            {/* Stepper Strip - Compact & Clean */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-              {TRACKING_STEPS.map((step) => {
-                const isCompleted = step.step < liveActiveOrder.currentStep
-                const isCurrent = step.step === liveActiveOrder.currentStep
-                return (
-                  <div
-                    key={step.step}
-                    className={`p-2 rounded-lg border text-center transition-all ${
-                      isCurrent
-                        ? "bg-blue-50/80 border-blue-300 text-blue-900"
-                        : isCompleted
-                        ? "bg-slate-50 border-slate-200 text-slate-700"
-                        : "bg-white border-slate-100 text-slate-400"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-1 mb-0.5">
-                      {isCompleted ? (
-                        <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                      ) : isCurrent ? (
-                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                      ) : (
-                        <Circle className="h-2.5 w-2.5 text-slate-300" />
-                      )}
-                      <span className="text-[10px] font-bold">Step {step.step}</span>
-                    </div>
-                    <div className="text-[11px] font-semibold text-slate-900 truncate">
-                      {step.label}
-                    </div>
-                    <div className="text-[9.5px] text-slate-500 truncate">
-                      {step.desc}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Phlebotomist & Quick Action Bar */}
-            <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="h-7 w-7 rounded-md bg-white border border-slate-200 text-blue-700 flex items-center justify-center font-bold shrink-0">
-                  <Truck className="h-3.5 w-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold mr-1.5">Phlebotomist:</span>
-                  <span className="font-bold text-slate-900 text-xs">
-                    {liveActiveOrder.phlebotomist?.name || "AVMLabs Executive"}
-                  </span>
-                  <span className="text-slate-400 mx-1">•</span>
-                  <span className="text-[11px] text-slate-500 truncate">
-                    {liveActiveOrder.phlebotomist?.eta || "En-route to lab"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {liveActiveOrder.phlebotomist?.collectionOtp && (
-                  <div className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 font-bold text-[10.5px] flex items-center gap-1">
-                    <span>OTP:</span>
-                    <span className="font-mono text-slate-900 text-xs">
-                      {liveActiveOrder.phlebotomist.collectionOtp}
-                    </span>
-                  </div>
-                )}
-                {liveActiveOrder.testingDetail && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTestingOrder(liveActiveOrder)}
-                    className="h-7 px-2.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-300 font-semibold text-[11px] inline-flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <FlaskConical className="h-3 w-3 text-blue-600" />
-                    <span>View Testing Details</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ========================================================================= */}
