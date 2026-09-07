@@ -147,8 +147,8 @@ export interface CRACustomProfile {
   id: string
   craId: string
   craName: string
-  brandOrOrgName: string // e.g. "XYZ Yoga & Wellness Center"
-  profileTitle: string   // e.g. "XYZ Yoga Complete Detox & Vitality Profile"
+  brandOrOrgName: string // e.g. "Yoga & Wellness Center"
+  profileTitle: string   // e.g. "Yoga Complete Detox & Vitality Profile"
   description: string
   category: "Wellness & Preventive" | "Cardio-Diabetic" | "Women's Health" | "Senior Care" | "Custom Clinic Panel"
   selectedTestCodes: string[] // List of AVM Labs test codes included in this profile
@@ -162,8 +162,8 @@ export interface CRACustomProfile {
 }
 
 export interface CRAOrgProfile {
-  brandName: string // e.g. "XYZ Yoga & Wellness Center"
-  diagnosticCenterName: string // e.g. "XYZ Yoga & Diagnostic Center"
+  brandName: string // e.g. "Yoga & Wellness Center"
+  diagnosticCenterName: string // e.g. "Yoga & Diagnostic Center"
   category: "Doctor / Clinic" | "Hospital" | "Yoga & Wellness" | "Gym / Fitness" | "Diagnostic Consultant" | "Corporate / Other"
   tagline: string
   address: string
@@ -187,24 +187,23 @@ export interface WalletWithdrawalRequest {
   status: "Pending Processing" | "Approved & Disbursed"
 }
 
-// Discount logic is configurable (10%-30% range discussed, pending final business confirmation)
+// Confirmed Commercial Discount & CRA Incentive Policy
 export const CRA_DISCOUNT_CONFIG = {
-  customerDiscountPercent: 20, // 20% currently applied
-  minRangePercent: 10,
-  maxRangePercent: 30,
-  directIncentivePercent: 30,
-  teamOverridePercent: 10,
-  isPendingConfirmation: true
+  customerDiscountPercent: 20, // 20% common per test for every customer & family member (no special extra offer)
+  familyBookingOverridePercent: 10, // 10% override only for CRA on family bookings (since 20% customer discount is already given)
+  directIncentivePercent: 30,  // 30% direct cash incentive on normal customer referrals
+  teamOverridePercent: 10,    // 10% team override bonus on sub-partner sales
+  isPendingConfirmation: false
 }
 
 export const DEFAULT_ORG_PROFILE: CRAOrgProfile = {
-  brandName: "XYZ Yoga & Wellness Center",
-  diagnosticCenterName: "XYZ Yoga & Diagnostic Center",
-  category: "Yoga & Wellness",
-  tagline: "Holistic Health, Preventive Diagnostics & Daily Vitality (Powered by AVM Labs)",
-  address: "#108, Prana Wellness Avenue, Jubilee Hills, Hyderabad",
-  contactPhone: "+91 98450 12345",
-  isCustomProfileActive: true
+  brandName: "",
+  diagnosticCenterName: "",
+  category: "Doctor / Clinic",
+  tagline: "Certified Diagnostic Collection Center (Powered by AVM Labs)",
+  address: "",
+  contactPhone: "",
+  isCustomProfileActive: false
 }
 
 export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
@@ -212,8 +211,8 @@ export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
     id: "profile-yoga-vitality",
     craId: "C1-SREERAM",
     craName: "THURAKA SREERAM",
-    brandOrOrgName: "XYZ Yoga & Wellness Center",
-    profileTitle: "XYZ Yoga Complete Detox & Vitality Profile",
+    brandOrOrgName: "Yoga & Wellness Center",
+    profileTitle: "Yoga Complete Detox & Vitality Profile",
     description: "Curated diagnostic wellness panel designed for yoga practitioners to monitor metabolic rate, muscle recovery, cellular hydration and endocrine harmony.",
     category: "Wellness & Preventive",
     selectedTestCodes: ["H6", "FBS", "LIPID", "TSH", "VITD"],
@@ -326,6 +325,169 @@ export const DEFAULT_CUSTOM_PROFILES: CRACustomProfile[] = [
   }
 ]
 
+export const SUDHEER_BENEFICIARIES: Beneficiary[] = [
+  {
+    id: "ben-sudheer-1",
+    fullName: "Sudheer Reddy",
+    relation: "Self",
+    age: 38,
+    gender: "Male",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["test-H6", "test-CUA"]
+  },
+  {
+    id: "ben-sudheer-2",
+    fullName: "Ramanathan Reddy",
+    relation: "Father",
+    age: 68,
+    gender: "Male",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-diabetes"]
+  },
+  {
+    id: "ben-sudheer-3",
+    fullName: "Lakshmi Reddy",
+    relation: "Mother",
+    age: 63,
+    gender: "Female",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-senior"]
+  },
+  {
+    id: "ben-sudheer-4",
+    fullName: "Priya Reddy",
+    relation: "Wife",
+    age: 35,
+    gender: "Female",
+    address: "#42, 12th Cross, HAL 2nd Stage, Indiranagar",
+    city: "Bengaluru",
+    pincode: "560038",
+    selectedTests: ["pkg-women"]
+  }
+]
+
+export const SREERAM_BENEFICIARIES: Beneficiary[] = [
+  {
+    id: "ben-sreeram-1",
+    fullName: "Thuraka Sreeram",
+    relation: "Self",
+    age: 42,
+    gender: "Male",
+    address: "#18, Green Glen Layout, Bellandur",
+    city: "Hyderabad",
+    pincode: "500081",
+    selectedTests: ["test-H6", "test-CUA"]
+  },
+  {
+    id: "ben-sreeram-2",
+    fullName: "Venkata Subbaiah T.",
+    relation: "Father",
+    age: 72,
+    gender: "Male",
+    address: "#18, Green Glen Layout, Bellandur",
+    city: "Hyderabad",
+    pincode: "500081",
+    selectedTests: ["pkg-senior"]
+  },
+  {
+    id: "ben-sreeram-3",
+    fullName: "Savitri T.",
+    relation: "Mother",
+    age: 67,
+    gender: "Female",
+    address: "#18, Green Glen Layout, Bellandur",
+    city: "Hyderabad",
+    pincode: "500081",
+    selectedTests: ["pkg-diabetes"]
+  },
+  {
+    id: "ben-sreeram-4",
+    fullName: "Radhika T.",
+    relation: "Wife",
+    age: 38,
+    gender: "Female",
+    address: "#18, Green Glen Layout, Bellandur",
+    city: "Hyderabad",
+    pincode: "500081",
+    selectedTests: ["pkg-women"]
+  }
+]
+
+export const MAHENDRA_BENEFICIARIES: Beneficiary[] = [
+  {
+    id: "ben-mahendra-1",
+    fullName: "Sai Mahendra",
+    relation: "Self",
+    age: 36,
+    gender: "Male",
+    address: "#88, Koregaon Park",
+    city: "Pune",
+    pincode: "411001",
+    selectedTests: ["test-H6"]
+  },
+  {
+    id: "ben-mahendra-2",
+    fullName: "Venkatesh Rao",
+    relation: "Father",
+    age: 66,
+    gender: "Male",
+    address: "#88, Koregaon Park",
+    city: "Pune",
+    pincode: "411001",
+    selectedTests: ["pkg-senior"]
+  }
+]
+
+export const VISHNU_BENEFICIARIES: Beneficiary[] = [
+  {
+    id: "ben-vishnu-1",
+    fullName: "Vishnu Vardhan",
+    relation: "Self",
+    age: 32,
+    gender: "Male",
+    address: "#45, MG Road",
+    city: "Vijayawada",
+    pincode: "520002",
+    selectedTests: ["test-H6"]
+  },
+  {
+    id: "ben-vishnu-2",
+    fullName: "Srinivasa Rao",
+    relation: "Father",
+    age: 62,
+    gender: "Male",
+    address: "#45, MG Road",
+    city: "Vijayawada",
+    pincode: "520002",
+    selectedTests: ["pkg-senior"]
+  }
+]
+
+export function getPersonaBeneficiaries(user?: CRAUser | CustomerProfile | null): Beneficiary[] {
+  if (!user) return DEFAULT_BENEFICIARIES
+  const uId = (user.id || "").toLowerCase()
+  const uName = (user.name || "").toLowerCase()
+
+  if (uId.includes("sudheer") || uName.includes("sudheer")) {
+    return SUDHEER_BENEFICIARIES
+  }
+  if (uId.includes("sreeram") || uName.includes("sreeram")) {
+    return SREERAM_BENEFICIARIES
+  }
+  if (uId.includes("mahendra") || uName.includes("mahendra")) {
+    return MAHENDRA_BENEFICIARIES
+  }
+  if (uId.includes("vishnu") || uName.includes("vishnu")) {
+    return VISHNU_BENEFICIARIES
+  }
+  return DEFAULT_BENEFICIARIES
+}
 export interface SystemAccount {
   id: string
   role: "c1" | "c2" | "customer"
@@ -969,14 +1131,40 @@ function loadState(): WorkflowState {
           loadedCustomer.hasGeneratedReferral = true
         }
 
+        const rawBrand = (parsed.orgProfile?.brandName || "").replace(/XYZ\s*/gi, "").trim()
+        const brand = rawBrand === "Yoga & Wellness Center" ? "" : rawBrand
+
+        const sanitizedOrg = parsed.orgProfile ? {
+          ...parsed.orgProfile,
+          brandName: brand,
+          diagnosticCenterName: (parsed.orgProfile.diagnosticCenterName || "").replace(/XYZ\s*/gi, "").trim()
+        } : DEFAULT_ORG_PROFILE
+
+        const sanitizedProfiles = (parsed.customProfiles || DEFAULT_CUSTOM_PROFILES).map((p: any) => ({
+          ...p,
+          brandOrOrgName: (p.brandOrOrgName || "Yoga & Wellness Center").replace(/XYZ\s*/gi, "").trim() || "Yoga & Wellness Center",
+          profileTitle: (p.profileTitle || "").replace(/XYZ\s*/gi, "").trim()
+        }))
+
+        const loadedUser = parsed.currentUser || DEFAULT_C1
+        let loadedBeneficiaries = parsed.beneficiaries || getPersonaBeneficiaries(loadedUser)
+        
+        // Reconcile beneficiaries with current user
+        if (loadedUser && loadedUser.role !== "customer") {
+          const selfBen = loadedBeneficiaries.find((b: Beneficiary) => b.relation === "Self")
+          if (!selfBen || selfBen.fullName === "Suresh M." || (loadedUser.id === "C2-SUDHEER" && selfBen.fullName !== "Sudheer Reddy")) {
+            loadedBeneficiaries = getPersonaBeneficiaries(loadedUser)
+          }
+        }
+
         return {
           ...parsed,
           customer: loadedCustomer,
           isCustomerLoggedIn: parsed.isCustomerLoggedIn ?? false,
-          beneficiaries: parsed.beneficiaries || DEFAULT_BENEFICIARIES,
+          beneficiaries: loadedBeneficiaries,
           prescriptionRequests: parsed.prescriptionRequests || DEFAULT_PRESCRIPTIONS,
-          customProfiles: parsed.customProfiles || DEFAULT_CUSTOM_PROFILES,
-          orgProfile: parsed.orgProfile || DEFAULT_ORG_PROFILE,
+          customProfiles: sanitizedProfiles,
+          orgProfile: sanitizedOrg,
           withdrawalRequests: parsed.withdrawalRequests || []
         }
       }
@@ -1037,6 +1225,19 @@ export function useWorkflowStore() {
     }
 
     listeners.add(handleStateChange)
+
+    // Self-healing: if current user is CRA (like Sudheer Reddy) and beneficiaries has Suresh M., heal immediately
+    if (globalState.currentUser && globalState.currentUser.role !== "customer") {
+      const selfBen = globalState.beneficiaries.find(b => b.relation === "Self")
+      const isSudheer = globalState.currentUser.id === "C2-SUDHEER" || globalState.currentUser.name.toLowerCase().includes("sudheer")
+      if (selfBen && (selfBen.fullName === "Suresh M." || (isSudheer && selfBen.fullName !== "Sudheer Reddy"))) {
+        const healed = getPersonaBeneficiaries(globalState.currentUser)
+        updateGlobalState({
+          ...globalState,
+          beneficiaries: healed
+        })
+      }
+    }
 
     // Sync storage across browser tabs in real time
     const handleStorageChange = (e: StorageEvent) => {
@@ -1124,9 +1325,11 @@ export function useWorkflowStore() {
       return
     }
 
+    const personaBeneficiaries = getPersonaBeneficiaries(newUser)
     const newState: WorkflowState = {
       ...globalState,
       currentUser: newUser,
+      beneficiaries: personaBeneficiaries,
       isCustomerLoggedIn: false
     }
     updateGlobalState(newState)
@@ -1686,15 +1889,15 @@ export function useWorkflowStore() {
       homeCollectionFee: data.homeCollectionFee,
       totalPayable: data.totalPayable,
       status: "Payment Pending",
+      isFamilyMember: data.isFamilyMember ?? false,
+      collectionAddress: data.collectionAddress,
+      collectionSlot: data.collectionSlot,
+      beneficiariesSummary: data.beneficiariesSummary,
       createdByRole: state.currentUser.role === "c2" ? "c2" : "c1",
       creatorId: state.currentUser.id,
       creatorName: state.currentUser.name,
       c1Id: state.currentUser.role === "c2" ? (state.currentUser.c1Id || state.c1.id) : undefined,
       c1Name: state.currentUser.role === "c2" ? (state.currentUser.c1Name || state.c1.name) : undefined,
-      isFamilyMember: data.isFamilyMember,
-      collectionAddress: data.collectionAddress,
-      collectionSlot: data.collectionSlot,
-      beneficiariesSummary: data.beneficiariesSummary,
       createdAt: "Just now"
     }
 
@@ -1740,7 +1943,24 @@ export function useWorkflowStore() {
     const newTransactions: WalletTransaction[] = []
     const rr = order.realizedRevenue // e.g. 800
 
-    if (order.createdByRole === "c2") {
+    if (order.isFamilyMember) {
+      // CRA Family booking: Customer gets standard 20% discount, CRA earns full 30% direct earning
+      const directAmount = Math.round(rr * 0.30)
+      newTransactions.push({
+        id: `TXN-${Date.now()}-FAM`,
+        userId: order.creatorId,
+        userRole: order.createdByRole === "c2" ? "c2" : "c1",
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerName: `${order.customerName} (Family Booking)`,
+        realizedRevenue: rr,
+        incentiveRate: 0.30,
+        incentiveAmount: directAmount,
+        type: "Direct 30% Incentive",
+        date: paidTimestamp,
+        status: "Credited to Wallet"
+      })
+    } else if (order.createdByRole === "c2") {
       // 1. Direct Referrer gets 30% of Realised Revenue
       const directAmount = Math.round(rr * 0.30)
       newTransactions.push({
@@ -2067,8 +2287,22 @@ export function useWorkflowStore() {
     return convertCustomerToCRA(1000)
   }
 
+  // Ensure beneficiaries array returned always has Self aligned with active user
+  const alignedBeneficiaries = state.beneficiaries.map(b => {
+    if (b.relation === "Self" && state.currentUser && state.currentUser.role !== "customer") {
+      const isSudheer = state.currentUser.id === "C2-SUDHEER" || state.currentUser.name.toLowerCase().includes("sudheer")
+      const isSreeram = state.currentUser.id === "C1-SREERAM" || state.currentUser.name.toLowerCase().includes("sreeram")
+      const expectedName = isSudheer ? "Sudheer Reddy" : isSreeram ? "Thuraka Sreeram" : state.currentUser.name
+      if (b.fullName === "Suresh M." || (isSudheer && b.fullName !== "Sudheer Reddy")) {
+        return { ...b, fullName: expectedName }
+      }
+    }
+    return b
+  })
+
   return {
     ...state,
+    beneficiaries: alignedBeneficiaries,
     switchRole,
     resetDemo,
     introduceC2,

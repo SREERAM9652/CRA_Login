@@ -9,6 +9,8 @@ import {
   LayoutDashboard, 
   Users, 
   Users2,
+  UserPlus,
+  Network,
   ClipboardList,
   Wallet, 
   Sparkles, 
@@ -181,19 +183,19 @@ export default function CRADashboardLayout({
         {/* Desktop Top Header Bar (Sticky at top) */}
         <header className="hidden lg:flex h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 items-center justify-between sticky top-0 z-30 shadow-xs">
           
-          {/* Left: Sidebar Toggle + Search Input */}
+          {/* Left: Sidebar Collapse/Expand Toggle + Search Input */}
           <div className="flex items-center gap-3 max-w-md w-full">
             <button
               type="button"
               onClick={() => setDesktopSidebarOpen(!desktopSidebarOpen)}
-              className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-[#382685] hover:bg-slate-100 transition-colors cursor-pointer flex items-center justify-center group shrink-0"
-              title={desktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              aria-label={desktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-[#1e3a8a] hover:bg-slate-100 transition-all cursor-pointer flex items-center justify-center group shrink-0"
+              title={desktopSidebarOpen ? "Collapse sidebar into icon rail" : "Expand full sidebar"}
+              aria-label={desktopSidebarOpen ? "Collapse sidebar into icon rail" : "Expand full sidebar"}
             >
               {desktopSidebarOpen ? (
-                <PanelLeftClose className="h-5 w-5 group-hover:scale-105 transition-transform" />
+                <PanelLeftClose className="h-5 w-5 text-slate-500 group-hover:text-[#1e3a8a] group-hover:scale-105 transition-transform" />
               ) : (
-                <PanelLeftOpen className="h-5 w-5 text-[#382685] group-hover:scale-105 transition-transform" />
+                <PanelLeftOpen className="h-5 w-5 text-slate-600 group-hover:text-[#1e3a8a] group-hover:scale-105 transition-transform" />
               )}
             </button>
 
@@ -271,15 +273,15 @@ export default function CRADashboardLayout({
                       <span>CRA Dashboard</span>
                     </Link>
                     <Link
-                      href="/cra/dashboard/leads"
+                      href="/cra/dashboard/referrals"
                       onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                     >
-                      <Users className="h-4 w-4 text-[#1e3a8a]" />
+                      <ClipboardList className="h-4 w-4 text-[#1e3a8a]" />
                       <span>Lead Management</span>
                     </Link>
                     <Link
-                      href="/cra/dashboard/earnings"
+                      href="/cra/dashboard/wallet"
                       onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                     >
@@ -357,7 +359,7 @@ export default function CRADashboardLayout({
           className="flex flex-col items-center justify-center -mt-6 group active:scale-95 transition-transform"
         >
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#1e1b4b] via-[#251b5c] to-[#382685] text-white shadow-lg shadow-indigo-950/30 flex items-center justify-center border-2 border-white ring-4 ring-slate-100 group-hover:scale-105 transition-transform">
-            <Sparkles className="h-5 w-5 text-cyan-300 stroke-[2.5]" />
+            <UserPlus className="h-5 w-5 text-cyan-300 stroke-[2.5]" />
           </div>
           <span className="text-[10px] leading-none font-black text-[#251b5c] mt-1">
             + Refer
@@ -387,7 +389,7 @@ export default function CRADashboardLayout({
               : "text-slate-400 hover:text-slate-600"
           }`}
         >
-          <Users2 className={`h-5 w-5 ${pathname === "/cra/dashboard/network" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+          <Network className={`h-5 w-5 ${pathname === "/cra/dashboard/network" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
           <span className={`text-[10px] leading-none ${
             pathname === "/cra/dashboard/network"
               ? "font-extrabold text-[#251b5c]"

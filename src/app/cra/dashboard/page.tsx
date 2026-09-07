@@ -39,7 +39,6 @@ export default function CRADashboardOverview() {
   const [mounted, setMounted] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<"partner" | "personal">("partner")
 
   useEffect(() => {
     setMounted(true)
@@ -211,10 +210,6 @@ export default function CRADashboardOverview() {
           <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400">
             THIS MONTH PERFORMANCE
           </span>
-          <span className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
-            <Info className="h-3 w-3 text-slate-400" />
-            <span>10%–30% discount logic pending confirmation</span>
-          </span>
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -250,143 +245,61 @@ export default function CRADashboardOverview() {
         </div>
       </div>
 
-      {/* 5. Dual-Purpose Operations: Tab Segmented Grid */}
+      {/* 5. Operations Quick Actions Grid */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("partner")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "partner"
-                  ? "bg-[#251b5c] text-white shadow-xs"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              A. Partner &amp; Referral Operations
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("personal")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "personal"
-                  ? "bg-[#251b5c] text-white shadow-xs"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-              suppressHydrationWarning
-            >
-              B. Personal &amp; Family Care ({beneficiaryCount} Members)
-            </button>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {/* Refer a Customer */}
+          <Link
+            href="/cra/dashboard/add-lead"
+            className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#2F5FDE] flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Plus className="h-5 w-5 stroke-[2.5]" />
+            </div>
+            <div className="font-bold text-xs sm:text-sm text-slate-900">
+              Refer a Customer
+            </div>
+          </Link>
+
+          {/* My Customers / Leads */}
+          <Link
+            href="/cra/dashboard/referrals"
+            className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#2F5FDE] flex items-center justify-center group-hover:scale-105 transition-transform">
+              <List className="h-5 w-5 stroke-[2]" />
+            </div>
+            <div className="font-bold text-xs sm:text-sm text-slate-900">
+              My Leads &amp; Status
+            </div>
+          </Link>
+
+          {/* My Team Network */}
+          <Link
+            href="/cra/dashboard/network"
+            className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-purple-50 text-[#382685] flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Users className="h-5 w-5 stroke-[2]" />
+            </div>
+            <div className="font-bold text-xs sm:text-sm text-slate-900">
+              My Team (10% Bonus)
+            </div>
+          </Link>
+
+          {/* Earnings & Wallet */}
+          <Link
+            href="/cra/dashboard/wallet"
+            className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <CreditCard className="h-5 w-5 stroke-[2]" />
+            </div>
+            <div className="font-bold text-xs sm:text-sm text-slate-900">
+              Earnings Statement
+            </div>
+          </Link>
         </div>
-
-        {activeTab === "partner" ? (
-          /* Tab A: Partner Operations Grid */
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-in fade-in">
-            {/* Refer a Customer */}
-            <Link
-              href="/cra/dashboard/add-lead"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#2F5FDE] flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Plus className="h-5 w-5 stroke-[2.5]" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                Refer a Customer
-              </div>
-            </Link>
-
-            {/* My Customers / Leads */}
-            <Link
-              href="/cra/dashboard/referrals"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#2F5FDE] flex items-center justify-center group-hover:scale-105 transition-transform">
-                <List className="h-5 w-5 stroke-[2]" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                My Leads &amp; Status
-              </div>
-            </Link>
-
-            {/* My Team Network */}
-            <Link
-              href="/cra/dashboard/network"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-purple-50 text-[#382685] flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Users className="h-5 w-5 stroke-[2]" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                My Team (10% Bonus)
-              </div>
-            </Link>
-
-            {/* Earnings & Wallet */}
-            <Link
-              href="/cra/dashboard/wallet"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <CreditCard className="h-5 w-5 stroke-[2]" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                Earnings Statement
-              </div>
-            </Link>
-          </div>
-        ) : (
-          /* Tab B: Personal & Family Care Grid */
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 animate-in fade-in">
-            {/* Make My Profile / Bundler */}
-            <Link
-              href="/cra/dashboard/make-my-profile"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-purple-50 text-[#382685] flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Sparkles className="h-5 w-5 text-[#382685]" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                Make My Profile
-              </div>
-              <p className="text-[11px] text-slate-500">
-                Bundle multiple AVM tests into a custom profile for patients or family
-              </p>
-            </Link>
-
-            {/* Family Beneficiaries */}
-            <Link
-              href="/cra/dashboard/beneficiaries"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#2F5FDE] flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Users className="h-5 w-5" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                Family Beneficiaries ({beneficiaries.length})
-              </div>
-              <p className="text-[11px] text-slate-500">
-                Maintain family members &amp; select them when booking diagnostic tests
-              </p>
-            </Link>
-
-            {/* Book for Self or Family */}
-            <Link
-              href="/cra/dashboard/add-lead?mode=family"
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2 hover:border-slate-300 hover:shadow-xs transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Heart className="h-5 w-5" />
-              </div>
-              <div className="font-bold text-xs sm:text-sm text-slate-900">
-                Book Test for Family Member
-              </div>
-              <p className="text-[11px] text-slate-500">
-                20% discount applied automatically • Pay via Wallet balance or UPI
-              </p>
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* 6. Recent Activity */}
