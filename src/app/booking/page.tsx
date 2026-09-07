@@ -92,6 +92,7 @@ function BookingWizardContent() {
   const initialSearchParam = searchParams.get("search") || ""
   const initialRefParam = searchParams.get("ref") || ""
   const isUploadParam = searchParams.get("upload") === "prescription"
+  const isFamilyParam = searchParams.get("mode") === "family" || !!searchParams.get("benId")
 
   // Unified items list: 12 Curated Packages + 90+ Clinical Tests
   const allAvailableItems = useMemo<BookingItem[]>(() => {
@@ -511,7 +512,8 @@ function BookingWizardContent() {
       discount: catalogueDiscount,
       realizedRevenue: realizedRevenue,
       homeCollectionFee: homeCollectionFee,
-      totalPayable: totalAmount
+      totalPayable: totalAmount,
+      isFamilyMember: isFamilyParam
     })
 
     if (paymentType === "Prepaid") {

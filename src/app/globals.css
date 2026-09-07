@@ -176,18 +176,58 @@ body {
   max-width: 1680px !important;
 }
 
-/* Hide scrollbar utility */
+/* Clean invisible scrollbar utilities - smooth scrolling with no ugly OS bars */
 .scrollbar-hide::-webkit-scrollbar,
-.no-scrollbar::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar,
+.invisible-scroll::-webkit-scrollbar {
   display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
 }
 
 .scrollbar-hide,
-.no-scrollbar {
+.no-scrollbar,
+.invisible-scroll {
   -ms-overflow-style: none !important;  /* IE and Edge */
   scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Ultra-thin 3px sleek scrollbar for sidebar */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 3px !important;
+  height: 3px !important;
+  display: block !important;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45) !important;
+  border-radius: 9999px !important;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.75) !important;
+}
+.thin-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent !important;
+}
+
+/* Modern sleek slim global scrollbar for other desktop containers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
 }
 
 @media print {

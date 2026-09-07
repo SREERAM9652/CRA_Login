@@ -122,7 +122,7 @@ export default function CRABeneficiariesPage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Manage your personal family members • MakeMyTrip-style beneficiary selection for diagnostic tests &amp; custom profiles
+            Save your family member details here to easily book health tests for them anytime.
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function CRABeneficiariesPage() {
             className="h-10 px-4 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
-            <span>+ Add Family Member</span>
+            <span>Add Family Member</span>
           </button>
         </div>
       </div>
@@ -145,12 +145,17 @@ export default function CRABeneficiariesPage() {
         </div>
       )}
 
-      {/* Dual Context Notice Banner */}
+      {/* Family Booking Notice Banner */}
       <div className="p-4 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 border border-blue-200/80 rounded-2xl flex items-center justify-between gap-3 text-xs text-blue-950 font-medium">
         <div className="flex items-center gap-2.5">
           <Heart className="h-5 w-5 text-rose-500 shrink-0" />
-          <div>
-            <strong>CRA Personal Booking Privilege:</strong> Because you are a CRA, you can book diagnostic tests and custom profiles for your own family at 20% off, paid online or directly debited from your CRA Wallet balance!
+          <div className="space-y-0.5">
+            <div className="font-bold text-slate-900 text-xs sm:text-sm">
+              Family Test Booking Policy
+            </div>
+            <div className="text-xs text-slate-600">
+              Your family gets the standard <strong>20% discount</strong> on every test. As a partner, you earn your full <strong>30% direct earning</strong> credited to your wallet.
+            </div>
           </div>
         </div>
       </div>

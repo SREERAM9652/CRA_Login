@@ -77,7 +77,7 @@ export default function MakeMyProfilePage() {
   }, [])
 
   // Form State for creating a new custom profile
-  const [brandName, setBrandName] = useState(orgProfile?.brandName || "XYZ Yoga & Wellness Center")
+  const [brandName, setBrandName] = useState(orgProfile?.brandName && orgProfile.brandName !== "Yoga & Wellness Center" ? orgProfile.brandName : "")
   const [profileTitle, setProfileTitle] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<"Wellness & Preventive" | "Cardio-Diabetic" | "Women's Health" | "Senior Care" | "Custom Clinic Panel">("Wellness & Preventive")
@@ -98,7 +98,10 @@ export default function MakeMyProfilePage() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (orgProfile?.brandName && orgProfile.brandName !== "Yoga & Wellness Center") {
+      setBrandName(orgProfile.brandName.replace(/XYZ\s*/gi, "").trim())
+    }
+  }, [orgProfile?.brandName])
 
   // Share Modal State
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -108,9 +111,15 @@ export default function MakeMyProfilePage() {
   const [publishedSearchQuery, setPublishedSearchQuery] = useState("")
   const [publishedCategoryFilter, setPublishedCategoryFilter] = useState("All")
   const [publishedSortBy, setPublishedSortBy] = useState<"newest" | "earning_desc" | "price_asc" | "title_asc">("newest")
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const sortDropdownRef = useRef<HTMLDivElement>(null)
+
   const [publishedViewMode, setPublishedViewMode] = useState<"compact" | "list">("compact")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(4)
+  const [isPageSizeDropdownOpen, setIsPageSizeDropdownOpen] = useState(false)
+  const pageSizeDropdownRef = useRef<HTMLDivElement>(null)
+
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
   const [copiedProfileId, setCopiedProfileId] = useState<string | null>(null)
 
@@ -122,6 +131,12 @@ export default function MakeMyProfilePage() {
       }
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
         setIsCategoryDropdownOpen(false)
+      }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setIsSortDropdownOpen(false)
+      }
+      if (pageSizeDropdownRef.current && !pageSizeDropdownRef.current.contains(event.target as Node)) {
+        setIsPageSizeDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -310,18 +325,8 @@ export default function MakeMyProfilePage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Select multiple tests of AVM Labs to build a curated health profile under your brand • Can be ordered by your customers or booked for family members
+            Select multiple AVM Labs tests to create a custom health profile under your brand.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/cra/dashboard/beneficiaries"
-            className="h-10 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-colors"
-          >
-            <Users className="h-4 w-4 text-[#382685]" />
-            <span suppressHydrationWarning>Family Beneficiaries ({mounted ? beneficiaries.length : beneficiaries.length})</span>
-          </Link>
         </div>
       </div>
 
@@ -329,7 +334,7 @@ export default function MakeMyProfilePage() {
         <div className="p-4 bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg animate-in fade-in flex items-center justify-between border border-emerald-400/30">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-300 shrink-0" />
-            <span>Custom Diagnostic Profile created and published successfully! Ready to share or order.</span>
+            <span>Custom health profile created successfully! Ready to share or order.</span>
           </div>
         </div>
       )}
@@ -344,7 +349,7 @@ export default function MakeMyProfilePage() {
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-[#382685]" />
               <h2 className="font-black text-sm sm:text-base text-slate-900">
-                1. Curate &amp; Bundle AVM Labs Tests
+                Create Custom Health Profile
               </h2>
             </div>
             <span className="text-xs font-mono font-bold text-[#382685] bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
@@ -365,33 +370,38 @@ export default function MakeMyProfilePage() {
                   required
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="e.g. XYZ Yoga & Wellness Center, Dr. Sharma Clinic"
+                  placeholder="e.g. Dr. Sharma Clinic, City Healthcare, Life Wellness"
                   className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50/70 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Patients will see this as: <strong>{brandName.includes("Diagnostic") ? brandName : `${brandName} (Powered by AVM Labs)`}</strong>
+              <p className="text-[11px] text-slate-400 mt-1" suppressHydrationWarning>
+                Patients will see this as: <strong suppressHydrationWarning>{brandName ? (brandName.includes("Diagnostic") ? brandName : `${brandName} (Powered by AVM Labs)`) : "Your Brand Name (Powered by AVM Labs)"}</strong>
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Custom Profile Title <span className="text-slate-400 font-normal normal-case">(optional • auto-generated if blank)</span>
-                </label>
+                <div className="flex items-center justify-between h-5 mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Custom Profile Title
+                  </label>
+                  <span className="text-[11px] text-slate-400 font-normal">Optional</span>
+                </div>
                 <input
                   type="text"
                   value={profileTitle}
                   onChange={(e) => setProfileTitle(e.target.value)}
-                  placeholder="e.g. Complete Yoga Vitality & Detox Panel"
+                  placeholder="e.g. Complete Health Vitality (auto-generated if blank)"
                   className="w-full h-11 px-3.5 rounded-xl bg-slate-50/70 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#382685]"
                 />
               </div>
 
               <div className="relative" ref={categoryDropdownRef}>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Health Category Focus
-                </label>
+                <div className="flex items-center justify-between h-5 mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Health Category Focus
+                  </label>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
@@ -676,9 +686,6 @@ export default function MakeMyProfilePage() {
                 <Coins className="h-4 w-4 text-[#382685]" />
                 <span>Commercial &amp; Incentive Estimate</span>
               </div>
-              <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                {CRA_DISCOUNT_CONFIG.customerDiscountPercent}% Partner Discount
-              </span>
             </div>
 
             <div className="space-y-2 text-xs">
@@ -688,7 +695,7 @@ export default function MakeMyProfilePage() {
               </div>
 
               <div className="flex items-center justify-between text-emerald-700 font-semibold">
-                <span>Customer / Family Discount ({CRA_DISCOUNT_CONFIG.customerDiscountPercent}%):</span>
+                <span>Customer Discount ({CRA_DISCOUNT_CONFIG.customerDiscountPercent}%):</span>
                 <span className="font-mono">- ₹{totalDiscount.toLocaleString("en-IN")}</span>
               </div>
 
@@ -709,11 +716,6 @@ export default function MakeMyProfilePage() {
                   Earned when referred patients or customers book this profile
                 </div>
               </div>
-            </div>
-
-            <div className="p-2.5 bg-slate-50 rounded-xl text-[11px] text-slate-500 border border-slate-100 flex items-center gap-2">
-              <Info className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <span>Discount logic is configurable (10%–30% range discussed, pending final sign-off).</span>
             </div>
           </div>
 
@@ -772,18 +774,57 @@ export default function MakeMyProfilePage() {
                   )}
                 </div>
 
-                {/* Sort dropdown */}
-                <select
-                  value={publishedSortBy}
-                  onChange={(e: any) => setPublishedSortBy(e.target.value)}
-                  className="h-8 px-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#382685] cursor-pointer"
-                  title="Sort profiles"
-                >
-                  <option value="newest">Sort: Newest</option>
-                  <option value="earning_desc">Earning: High → Low</option>
-                  <option value="price_asc">Price: Low → High</option>
-                  <option value="title_asc">Title: A → Z</option>
-                </select>
+                {/* Custom Sort dropdown */}
+                <div className="relative shrink-0" ref={sortDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                    className={`h-8 px-2.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                      isSortDropdownOpen
+                        ? "bg-white border-[#382685] ring-2 ring-[#382685]/15 text-[#382685]"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>
+                      {publishedSortBy === "newest" && "Sort: Newest"}
+                      {publishedSortBy === "earning_desc" && "Earning: High → Low"}
+                      {publishedSortBy === "price_asc" && "Price: Low → High"}
+                      {publishedSortBy === "title_asc" && "Title: A → Z"}
+                    </span>
+                    <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isSortDropdownOpen ? "rotate-180 text-[#382685]" : ""}`} />
+                  </button>
+
+                  {isSortDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-1.5 w-44 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                      {[
+                        { val: "newest", label: "Sort: Newest" },
+                        { val: "earning_desc", label: "Earning: High → Low" },
+                        { val: "price_asc", label: "Price: Low → High" },
+                        { val: "title_asc", label: "Title: A → Z" },
+                      ].map((item) => {
+                        const isSelected = publishedSortBy === item.val
+                        return (
+                          <button
+                            key={item.val}
+                            type="button"
+                            onClick={() => {
+                              setPublishedSortBy(item.val as any)
+                              setIsSortDropdownOpen(false)
+                            }}
+                            className={`w-full px-2.5 py-1.5 rounded-xl flex items-center justify-between text-[11px] font-semibold transition-colors cursor-pointer text-left ${
+                              isSelected
+                                ? "bg-purple-50 text-[#382685] font-bold"
+                                : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span>{item.label}</span>
+                            {isSelected && <Check className="h-3.5 w-3.5 text-[#382685] stroke-[2.5]" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Category Pills */}
@@ -931,21 +972,50 @@ export default function MakeMyProfilePage() {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {/* Page Size selector */}
-                  <select
-                    value={pageSize}
-                    onChange={(e: any) => {
-                      setPageSize(Number(e.target.value))
-                      setCurrentPage(1)
-                    }}
-                    className="h-7 px-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[10.5px] font-bold text-slate-600 focus:outline-none cursor-pointer mr-1"
-                    title="Items per page"
-                  >
-                    <option value={4}>4 / page</option>
-                    <option value={8}>8 / page</option>
-                    <option value={12}>12 / page</option>
-                    <option value={-1}>All</option>
-                  </select>
+                  {/* Custom Page Size selector */}
+                  <div className="relative" ref={pageSizeDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsPageSizeDropdownOpen(!isPageSizeDropdownOpen)}
+                      className="h-7 px-2 rounded-lg bg-slate-50 border border-slate-200 text-[10.5px] font-bold text-slate-600 hover:bg-slate-100 hover:border-slate-300 flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Items per page"
+                    >
+                      <span>{pageSize === -1 ? "All" : `${pageSize} / page`}</span>
+                      <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${isPageSizeDropdownOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {isPageSizeDropdownOpen && (
+                      <div className="absolute bottom-full mb-1 right-0 w-28 bg-white rounded-xl border border-slate-200 shadow-lg p-1 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                        {[
+                          { val: 4, label: "4 / page" },
+                          { val: 8, label: "8 / page" },
+                          { val: 12, label: "12 / page" },
+                          { val: -1, label: "All" },
+                        ].map((opt) => {
+                          const isSelected = pageSize === opt.val
+                          return (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              onClick={() => {
+                                setPageSize(opt.val)
+                                setCurrentPage(1)
+                                setIsPageSizeDropdownOpen(false)
+                              }}
+                              className={`w-full px-2 py-1 rounded-lg text-[10.5px] font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                isSelected
+                                  ? "bg-purple-50 text-[#382685] font-bold"
+                                  : "text-slate-600 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                              {isSelected && <Check className="h-3 w-3 text-[#382685] stroke-[2.5]" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Previous / Next buttons */}
                   {pageSize !== -1 && totalPages > 1 && (
