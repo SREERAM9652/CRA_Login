@@ -103,8 +103,6 @@ export default function CRADashboardOverview() {
 
             <div className="text-[11px] text-blue-200 font-medium mt-0.5 flex items-center gap-2 flex-wrap truncate" suppressHydrationWarning>
               <span>Code: <strong className="font-mono text-white font-bold">{userCode}</strong></span>
-              <span>•</span>
-              <span className="text-slate-300">{orgProfile?.brandName || `${userCity}, India`}</span>
             </div>
           </div>
         </div>
@@ -124,7 +122,7 @@ export default function CRADashboardOverview() {
             className="px-3.5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 text-xs font-black inline-flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4 stroke-[3]" />
-            <span>+ Refer Lead</span>
+            <span>Refer Lead</span>
           </Link>
         </div>
       </div>
@@ -155,12 +153,6 @@ export default function CRADashboardOverview() {
               <h2 className="font-black text-sm text-slate-900">Referral Link &amp; Sharing</h2>
               <p className="text-[11px] text-slate-500">Every customer booking via this link earns you 30% direct cash incentive</p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
-              {CRA_DISCOUNT_CONFIG.customerDiscountPercent}% Discount Pre-Applied
-            </span>
           </div>
         </div>
 

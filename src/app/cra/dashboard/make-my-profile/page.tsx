@@ -188,11 +188,19 @@ export default function MakeMyProfilePage() {
 
   const handleCreateProfile = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!profileTitle.trim() || selectedCodes.length === 0) return
+
+    // Auto-generate title if user left it blank
+    const autoTitle = `${brandName ? `${brandName.replace(/& Wellness|Wellness|Center|Clinic/g, "").trim()} ` : ""}${category} Profile (${selectedCodes.length} Tests)`
+    const finalTitle = profileTitle.trim() || autoTitle
+
+    if (selectedCodes.length === 0) {
+      alert("Please select at least 1 test to bundle into your profile.")
+      return
+    }
 
     createCustomProfile({
-      brandOrOrgName: brandName,
-      profileTitle: profileTitle.trim(),
+      brandOrOrgName: brandName || "AVM Labs Partner",
+      profileTitle: finalTitle,
       description: description.trim() || `Custom health test profile curated by ${currentUser.name} (${brandName}) with AVM Labs.`,
       category,
       selectedTestCodes: selectedCodes,
@@ -212,7 +220,13 @@ export default function MakeMyProfilePage() {
     setSavedSuccess(true)
     setProfileTitle("")
     setDescription("")
-    setTimeout(() => setSavedSuccess(false), 3000)
+
+    // Reset filters and ensure page 1 so the newly created profile is immediately visible at the top!
+    setPublishedCategoryFilter("All")
+    setPublishedSearchQuery("")
+    setCurrentPage(1)
+
+    setTimeout(() => setSavedSuccess(false), 3500)
   }
 
   const handleOpenShare = (profile: any) => {
@@ -320,11 +334,11 @@ export default function MakeMyProfilePage() {
         </div>
       )}
 
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Two-Column Layout (Equal 50/50 containers on desktop) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
-        {/* Left 7 Columns: Profile Builder Form */}
-        <form onSubmit={handleCreateProfile} className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-2xs space-y-5">
+        {/* Left 50% Column: Profile Builder Form */}
+        <form onSubmit={handleCreateProfile} className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-2xs space-y-4 flex flex-col justify-between">
           
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -363,11 +377,10 @@ export default function MakeMyProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Custom Profile Title <span className="text-rose-500">*</span>
+                  Custom Profile Title <span className="text-slate-400 font-normal normal-case">(optional • auto-generated if blank)</span>
                 </label>
                 <input
                   type="text"
-                  required
                   value={profileTitle}
                   onChange={(e) => setProfileTitle(e.target.value)}
                   placeholder="e.g. Complete Yoga Vitality & Detox Panel"
@@ -653,8 +666,8 @@ export default function MakeMyProfilePage() {
 
         </form>
 
-        {/* Right 5 Columns: Commercial Breakdown & Active Custom Profiles */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Right 50% Column: Commercial Breakdown & Active Custom Profiles */}
+        <div className="space-y-4 flex flex-col justify-between">
           
           {/* Live Commercial Pricing Breakdown */}
           <div className="bg-white rounded-3xl border border-slate-200/90 p-5 space-y-3.5 shadow-2xs">
@@ -720,7 +733,7 @@ export default function MakeMyProfilePage() {
           ) : (
             <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 space-y-3.5 shadow-2xs" suppressHydrationWarning>
               
-              {/* Header: Title, Count badge & View Switcher */}
+              {/* Header: Title & Count badge */}
               <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-[#382685]" />
@@ -731,37 +744,7 @@ export default function MakeMyProfilePage() {
                     {customProfiles.length}
                   </span>
                 </div>
-
-              {/* View Toggle (Compact Cards vs Dense List) */}
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setPublishedViewMode("compact")}
-                  className={`h-7 px-2 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer ${
-                    publishedViewMode === "compact"
-                      ? "bg-white text-slate-900 shadow-2xs"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                  title="Card View (Compact)"
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Cards</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPublishedViewMode("list")}
-                  className={`h-7 px-2 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer ${
-                    publishedViewMode === "list"
-                      ? "bg-white text-slate-900 shadow-2xs"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                  title="Dense List View (Best for 10+ profiles)"
-                >
-                  <ListIcon className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">List</span>
-                </button>
               </div>
-            </div>
 
             {/* Quick Search & Sort Filter Bar */}
             <div className="space-y-2">
@@ -855,192 +838,86 @@ export default function MakeMyProfilePage() {
                     </button>
                   )}
                 </div>
-              ) : publishedViewMode === "compact" ? (
-                /* Compact Cards View */
-                paginatedProfiles.map((p) => (
-                  <div
-                    key={p.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs space-y-2 hover:border-slate-300 hover:shadow-xs transition-all"
-                  >
-                    {/* Header Row */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-purple-50 text-[#382685] border border-purple-200">
-                            {p.category}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-medium truncate">by {p.brandOrOrgName}</span>
+              ) : (
+                /* Dense List View Only */
+                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                  {paginatedProfiles.map((p) => (
+                    <div
+                      key={p.id}
+                      className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
+                    >
+                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-lg bg-purple-50 text-[#382685] flex items-center justify-center font-mono font-black text-[11px] shrink-0 border border-purple-100" title={`${p.selectedTestCodes.length} Tests`}>
+                          {p.selectedTestCodes.length}
                         </div>
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate" title={p.profileTitle}>
-                          {p.profileTitle}
-                        </h4>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <h4 className="font-bold text-slate-900 text-xs truncate max-w-[150px] sm:max-w-[220px]" title={p.profileTitle}>
+                              {p.profileTitle}
+                            </h4>
+                            <span className="px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase bg-purple-50 text-[#382685] border border-purple-100 rounded shrink-0">
+                              {p.category.split(" ")[0]}
+                            </span>
+                          </div>
+                          <div className="text-[10.5px] text-slate-400 font-medium truncate">
+                            <span className="font-mono font-bold text-slate-800">₹{p.discountedPrice}</span>{" "}
+                            <span className="line-through text-slate-300 font-mono text-[10px]">₹{p.totalMrp}</span> •{" "}
+                            <span className="text-emerald-700 font-bold font-mono bg-emerald-50 px-1 py-0.2 rounded">+₹{p.directIncentive} (30%)</span>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Quick Icons */}
-                      <div className="flex items-center gap-0.5 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/cra/dashboard/add-lead?mode=referral&profileId=${p.id}`)}
+                          className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Book for Customer"
+                        >
+                          <User className="h-3 w-3" />
+                          <span>Customer</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/cra/dashboard/add-lead?mode=family&profileId=${p.id}`)}
+                          className="h-7 px-2.5 rounded-lg bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Book for Family"
+                        >
+                          <Users className="h-3 w-3 text-cyan-300" />
+                          <span>Family</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => handleCopyProfileLink(p)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Copy direct referral booking link"
+                          className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Copy direct booking link"
                         >
                           {copiedProfileId === p.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
+
                         <button
                           type="button"
                           onClick={() => handleOpenShare(p)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-[#382685] hover:bg-purple-50 transition-colors cursor-pointer"
+                          className="h-7 w-7 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#382685] flex items-center justify-center transition-colors cursor-pointer"
                           title="Share Flyer & WhatsApp"
                         >
                           <Share2 className="h-3.5 w-3.5" />
                         </button>
+
                         <button
                           type="button"
                           onClick={() => deleteCustomProfile(p.id)}
-                          className="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete profile"
+                          className="h-7 w-7 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Delete Profile"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
-
-                    {/* Tests snippet & collapsible trigger */}
-                    <div className="flex items-center justify-between text-[11px] bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <FlaskConical className="h-3 w-3 text-[#382685] shrink-0" />
-                        <span className="font-bold text-slate-700 text-[10.5px]">{p.selectedTestCodes.length} Tests:</span>
-                        <span className="truncate text-slate-500 text-[10.5px]">{p.testNames.slice(0, 2).join(", ")}{p.testNames.length > 2 ? ` +${p.testNames.length - 2} more` : ""}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setExpandedProfileId(expandedProfileId === p.id ? null : p.id)}
-                        className="text-[10px] font-bold text-[#382685] hover:underline shrink-0 ml-1.5 flex items-center gap-0.5 cursor-pointer"
-                      >
-                        <span>{expandedProfileId === p.id ? "Hide" : "Details"}</span>
-                        {expandedProfileId === p.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                      </button>
-                    </div>
-
-                    {/* Expanded Drawer */}
-                    {expandedProfileId === p.id && (
-                      <div className="p-2 bg-purple-50/50 rounded-xl border border-purple-100 text-[10.5px] space-y-1.5 animate-in fade-in">
-                        <p className="text-slate-600 italic">{p.description}</p>
-                        <div className="flex flex-wrap gap-1 pt-0.5">
-                          {p.testNames.map((name, idx) => (
-                            <span key={idx} className="bg-white border border-purple-200/80 text-purple-950 px-1.5 py-0.5 rounded text-[9.5px] font-medium shadow-2xs">
-                              {name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Price & Earning inline */}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Pays:</span>
-                        <span className="font-mono font-black text-sm text-slate-900">₹{p.discountedPrice}</span>
-                        <span className="text-[10px] line-through text-slate-400 font-mono">₹{p.totalMrp}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Earn:</span>
-                        <span className="font-mono font-black text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-lg">
-                          +₹{p.directIncentive} (30%)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons: Customer & Family */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=referral&profileId=${p.id}`)}
-                        className="h-8 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-2xs transition-colors cursor-pointer"
-                        title="Book for customer"
-                      >
-                        <User className="h-3 w-3 text-emerald-100" />
-                        <span>Book Customer</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=family&profileId=${p.id}`)}
-                        className="h-8 px-2 rounded-xl bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-2xs transition-colors cursor-pointer"
-                        title="Book for family member"
-                      >
-                        <Users className="h-3 w-3 text-cyan-300" />
-                        <span>Book Family</span>
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                /* Dense List View (Super space-efficient for 30+ items) */
-                paginatedProfiles.map((p) => (
-                  <div
-                    key={p.id}
-                    className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex items-center justify-between gap-2.5 text-xs"
-                  >
-                    <div className="min-w-0 flex-1 flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-purple-50 text-[#382685] flex items-center justify-center font-mono font-black text-[11px] shrink-0 border border-purple-100">
-                        {p.selectedTestCodes.length}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <h4 className="font-bold text-slate-900 text-xs truncate max-w-[150px] sm:max-w-[200px]" title={p.profileTitle}>
-                            {p.profileTitle}
-                          </h4>
-                          <span className="px-1 py-0.2 text-[8px] font-extrabold uppercase bg-slate-100 text-slate-600 rounded shrink-0">
-                            {p.category.split(" ")[0]}
-                          </span>
-                        </div>
-                        <div className="text-[10.5px] text-slate-400 font-medium truncate">
-                          ₹{p.discountedPrice} <span className="line-through text-slate-300 font-mono">₹{p.totalMrp}</span> • <span className="text-emerald-600 font-bold font-mono">+₹{p.directIncentive}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=referral&profileId=${p.id}`)}
-                        className="h-7 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Book for Customer"
-                      >
-                        <User className="h-3 w-3" />
-                        <span className="hidden sm:inline">Customer</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/cra/dashboard/add-lead?mode=family&profileId=${p.id}`)}
-                        className="h-7 px-2 rounded-lg bg-[#251b5c] hover:bg-[#1e1b4b] text-white font-bold text-[10.5px] inline-flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Book for Family"
-                      >
-                        <Users className="h-3 w-3 text-cyan-300" />
-                        <span className="hidden sm:inline">Family</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleOpenShare(p)}
-                        className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-500 hover:text-[#382685] flex items-center justify-center transition-colors cursor-pointer"
-                        title="Share Flyer & Link"
-                      >
-                        <Share2 className="h-3 w-3" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => deleteCustomProfile(p.id)}
-                        className="h-7 w-7 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
-                        title="Delete Profile"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
 
