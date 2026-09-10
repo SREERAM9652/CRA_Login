@@ -87,8 +87,41 @@ export default function CustomerMakeMyProfilePage() {
   const [showShareModal, setShowShareModal] = useState<CRACustomProfile | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  // Builder Modal State
+  // Drawer Animation & Scroll Lock State (Slide-over Right Sidebar)
   const [isBuilderOpen, setIsBuilderOpen] = useState(false)
+
+  // Lock background scrolling while drawer is open
+  useEffect(() => {
+    if (isBuilderOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = "hidden"
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isBuilderOpen])
+
+  // Support ?action=create or ?create=true URL query
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("action") === "create" || params.get("create") === "true") {
+        setIsBuilderOpen(true)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isBuilderOpen) setIsBuilderOpen(false)
+        if (showShareModal) setShowShareModal(null)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isBuilderOpen, showShareModal])
+
   const [builderTitle, setBuilderTitle] = useState("")
   const [builderCategory, setBuilderCategory] = useState<"Wellness & Preventive" | "Cardio-Diabetic" | "Women's Health" | "Senior Care" | "Custom Clinic Panel">("Wellness & Preventive")
   const [builderDescription, setBuilderDescription] = useState("")
@@ -193,9 +226,12 @@ export default function CustomerMakeMyProfilePage() {
 
   // Filter & Sort Profiles for Main Catalog
   const categoriesList = useMemo(() => {
+    if (!mounted) {
+      return ["All", "Cardio-Diabetic", "Wellness & Preventive", "Women's Health", "Senior Care"]
+    }
     const cats = Array.from(new Set(customProfiles.map(p => p.category)))
     return ["All", ...cats]
-  }, [customProfiles])
+  }, [customProfiles, mounted])
 
   const filteredProfiles = useMemo(() => {
     return customProfiles
@@ -227,8 +263,12 @@ export default function CustomerMakeMyProfilePage() {
     return filteredProfiles.slice(start, start + pageSize)
   }, [filteredProfiles, currentPage, pageSize])
 
-  // Copy Link Handler
-  const handleCopyLink = (p: CRACustomProfile) => {
+  // Share & Copy Handlers
+  const handleOpenShareModal = (p: CRACustomProfile) => {
+    setShowShareModal(p)
+  }
+
+  const handleCopyShareLink = (p: CRACustomProfile) => {
     const url = typeof window !== "undefined"
       ? `${window.location.origin}/booking?profile=${p.id}`
       : `https://avmlabs.com/booking?profile=${p.id}`
@@ -270,6 +310,7 @@ export default function CustomerMakeMyProfilePage() {
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
+            id="btn-create-custom-profile"
             type="button"
             onClick={() => setIsBuilderOpen(true)}
             className="h-10 px-4 rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] hover:from-[#172554] hover:to-[#1d4ed8] text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md shadow-blue-950/15 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
@@ -306,14 +347,16 @@ export default function CustomerMakeMyProfilePage() {
       )}
 
       {/* Overview Stats Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center shrink-0">
             <Package className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Created Profiles</div>
-            <div className="text-xl font-black text-slate-900 font-mono" suppressHydrationWarning>{customProfiles.length}</div>
+            <div className="text-xl font-black text-slate-900 font-mono">
+              <span suppressHydrationWarning>{mounted ? customProfiles.length : "--"}</span>
+            </div>
           </div>
         </div>
 
@@ -336,16 +379,6 @@ export default function CustomerMakeMyProfilePage() {
             <div className="text-xl font-black text-emerald-700 font-mono">20% Flat OFF</div>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Home Pickup</div>
-            <div className="text-xs sm:text-sm font-bold text-slate-900">Certified Phlebotomists</div>
-          </div>
-        </div>
       </div>
 
       {/* Main Container: Created Profiles Catalog */}
@@ -359,8 +392,8 @@ export default function CustomerMakeMyProfilePage() {
               <h2 className="font-black text-sm sm:text-base text-slate-900">
                 Created Profiles &amp; Packages
               </h2>
-              <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200" suppressHydrationWarning>
-                {filteredProfiles.length} Available
+              <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200">
+                <span suppressHydrationWarning>{mounted ? `${filteredProfiles.length} Available` : "Available"}</span>
               </span>
             </div>
 
@@ -446,7 +479,9 @@ export default function CustomerMakeMyProfilePage() {
                       : "bg-slate-100/80 hover:bg-slate-200/70 text-slate-600"
                   }`}
                 >
-                  {cat === "All" ? `All Categories (${customProfiles.length})` : cat}
+                  <span suppressHydrationWarning>
+                    {cat === "All" ? (mounted ? `All Categories (${customProfiles.length})` : "All Categories") : cat}
+                  </span>
                 </button>
               )
             })}
@@ -502,25 +537,15 @@ export default function CustomerMakeMyProfilePage() {
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-[#1e3a8a] border border-blue-100">
                         {p.category}
                       </span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {isUserCreated && (
-                          <span className="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            Custom by You
-                          </span>
-                        )}
-                        <span className="text-[10px] font-mono font-bold text-slate-400">
-                          {p.selectedTestCodes.length} Tests
-                        </span>
-                      </div>
+                      <span className="text-[10px] font-mono font-bold text-slate-400">
+                        {p.selectedTestCodes.length} Tests
+                      </span>
                     </div>
 
                     <div>
                       <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug group-hover:text-blue-900 transition-colors">
                         {p.profileTitle}
                       </h3>
-                      <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mt-1">
-                        {p.description}
-                      </p>
                     </div>
 
                     {/* Included Tests Pill List */}
@@ -570,19 +595,15 @@ export default function CustomerMakeMyProfilePage() {
                         </div>
                       </div>
 
-                      {/* Share & Copy buttons */}
+                      {/* Share & Delete buttons */}
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => handleCopyLink(p)}
-                          className="h-8 w-8 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#1e3a8a] hover:border-slate-300 flex items-center justify-center transition-colors cursor-pointer"
-                          title="Copy Booking Link"
+                          onClick={() => handleOpenShareModal(p)}
+                          className="h-8 w-8 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#1e3a8a] hover:border-blue-300 hover:bg-blue-50/60 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Share Profile"
                         >
-                          {copiedProfileId === p.id ? (
-                            <Check className="h-3.5 w-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
+                          <Share2 className="h-3.5 w-3.5" />
                         </button>
 
                         {isUserCreated && (
@@ -632,11 +653,6 @@ export default function CustomerMakeMyProfilePage() {
                       <span className="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase tracking-wider bg-blue-50 text-[#1e3a8a] border border-blue-100">
                         {p.category}
                       </span>
-                      {isUserCreated && (
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          Custom by You
-                        </span>
-                      )}
                       <span className="text-[11px] font-mono font-bold text-slate-400">
                         {p.selectedTestCodes.length} Tests
                       </span>
@@ -645,9 +661,6 @@ export default function CustomerMakeMyProfilePage() {
                     <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">
                       {p.profileTitle}
                     </h3>
-                    <p className="text-xs text-slate-500 truncate max-w-2xl">
-                      {p.description}
-                    </p>
 
                     <div className="text-[11px] text-slate-600 flex items-center gap-1.5 pt-0.5">
                       <span className="font-bold">Tests:</span>
@@ -677,11 +690,11 @@ export default function CustomerMakeMyProfilePage() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => handleCopyLink(p)}
-                        className="h-9 w-9 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-blue-900 flex items-center justify-center transition-colors cursor-pointer"
-                        title="Copy direct booking link"
+                        onClick={() => handleOpenShareModal(p)}
+                        className="h-9 w-9 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-blue-50/60 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Share Profile"
                       >
-                        {copiedProfileId === p.id ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                        <Share2 className="h-4 w-4" />
                       </button>
 
                       {isUserCreated && (
@@ -712,7 +725,7 @@ export default function CustomerMakeMyProfilePage() {
         )}
 
         {/* Pagination Controls */}
-        {filteredProfiles.length > pageSize && (
+        {mounted && filteredProfiles.length > pageSize && (
           <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
             <div>
               Showing <strong className="font-mono text-slate-800">{paginatedProfiles.length}</strong> of{" "}
@@ -748,235 +761,336 @@ export default function CustomerMakeMyProfilePage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* CREATE CUSTOM PROFILE MODAL (Customer Test Package Builder)               */}
+      {/* SLIDE-OVER RIGHT SIDEBAR DRAWER: CREATE CUSTOM PROFILE                    */}
       {/* ========================================================================= */}
       {isBuilderOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-            
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-blue-100 text-[#1e3a8a] flex items-center justify-center">
-                  <Sparkles className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop with smooth blur and fade in */}
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs animate-drawer-fade-in transition-opacity"
+            onClick={() => setIsBuilderOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Slide-over Sidebar Container on the Right (Family Beneficiaries Style) */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 pointer-events-none">
+            <div
+              className="w-screen max-w-xl bg-white shadow-2xl flex flex-col border-l border-slate-200 pointer-events-auto sm:rounded-l-2xl animate-drawer-slide-in"
+            >
+              {/* Drawer Header */}
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-3 bg-gradient-to-r from-blue-50/80 via-white to-slate-50/60 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-[#1e3a8a] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Sparkles className="h-5 w-5 text-cyan-300 stroke-[2.2]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 leading-tight">
+                      Make My Profile Builder
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Bundle multiple lab tests into your custom health panel
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-black text-sm sm:text-base text-slate-900">
-                    Make My Profile Builder
-                  </h3>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    Bundle multiple lab tests into your custom health panel
-                  </p>
+
+                <button
+                  type="button"
+                  onClick={() => setIsBuilderOpen(false)}
+                  className="h-8 w-8 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  aria-label="Close drawer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Drawer Scrollable Body */}
+              <div className="p-5 overflow-y-auto space-y-4 flex-1 thin-scrollbar text-xs">
+                
+                {builderError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-between">
+                    <span>{builderError}</span>
+                    <button type="button" onClick={() => setBuilderError(null)} className="text-rose-500 hover:text-rose-800">×</button>
+                  </div>
+                )}
+
+                {/* Title & Category Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Profile Title <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={builderTitle}
+                      onChange={(e) => {
+                        setBuilderTitle(e.target.value)
+                        setBuilderError(null)
+                      }}
+                      placeholder="e.g. My Family Checkup, Parents Health Panel"
+                      className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={builderCategory}
+                      onChange={(e: any) => setBuilderCategory(e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 cursor-pointer"
+                    >
+                      <option value="Wellness & Preventive">Wellness &amp; Preventive</option>
+                      <option value="Cardio-Diabetic">Cardio-Diabetic</option>
+                      <option value="Women's Health">Women's Health</option>
+                      <option value="Senior Care">Senior Care</option>
+                      <option value="Custom Clinic Panel">Custom Routine Panel</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Test Search & Department Filters */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Select Tests to Bundle ({selectedCodes.length} selected):
+                    </label>
+                    <span className="text-[11px] font-mono font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded-full">
+                      Total MRP: ₹{builderTotalMrp}
+                    </span>
+                  </div>
+
+                  {/* Filter Department Pills */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+                    {["All", "Blood & CBC", "Diabetes & Glucose", "Thyroid & Hormones", "Lipid & Cardiology", "Liver & Kidney", "Vitamins & Urine"].map((dept) => (
+                      <button
+                        key={dept}
+                        type="button"
+                        onClick={() => setBuilderCategoryFilter(dept)}
+                        className={`px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                          builderCategoryFilter === dept
+                            ? "bg-[#1e3a8a] text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                        }`}
+                      >
+                        {dept}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search tests input */}
+                  <div className="relative">
+                    <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={builderSearch}
+                      onChange={(e) => setBuilderSearch(e.target.value)}
+                      placeholder="Search 100+ tests by name or code (e.g. Glucose, Thyroid, CBC, Lipid)..."
+                      className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    />
+                  </div>
+
+                  {/* Test Selection List (Scrollable) */}
+                  <div className="max-h-56 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 p-1 bg-slate-50/40 thin-scrollbar">
+                    {filteredBuilderTests.map((t) => {
+                      const isChecked = selectedCodes.includes(t.code)
+                      return (
+                        <div
+                          key={t.code}
+                          onClick={() => handleToggleTest(t.code)}
+                          className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
+                            isChecked ? "bg-blue-50/80 text-blue-950 font-bold" : "hover:bg-white text-slate-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}} // handled by parent onClick
+                              className="h-4 w-4 rounded text-[#1e3a8a] focus:ring-blue-500 cursor-pointer"
+                            />
+                            <span className="font-mono text-[10px] text-blue-800 bg-blue-100/70 px-1 py-0.5 rounded font-bold">
+                              {t.code}
+                            </span>
+                            <span className="truncate max-w-[240px] sm:max-w-xs font-medium text-slate-900">
+                              {t.name}
+                            </span>
+                          </div>
+
+                          <div className="font-mono font-bold text-slate-900 text-right shrink-0">
+                            ₹{t.mrp}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Selected Tests Chips */}
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/80 thin-scrollbar">
+                    {selectedTestsData.map((t) => (
+                      <span
+                        key={t.code}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-[10.5px] font-semibold text-blue-900"
+                      >
+                        <span className="font-mono text-[9.5px] font-bold">{t.code}</span>
+                        <span className="truncate max-w-[120px]">{t.name}</span>
+                        <span className="font-mono text-[#1e3a8a]">₹{t.mrp}</span>
+                        {selectedCodes.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleToggleTest(t.code)
+                            }}
+                            className="text-blue-400 hover:text-rose-600 font-bold ml-0.5 cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Calculation Summary */}
+                <div className="p-3.5 bg-gradient-to-br from-blue-50 to-indigo-50/70 rounded-2xl border border-blue-200/80 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Total Diagnostic Price (MRP):</span>
+                    <span className="font-mono font-medium text-slate-900">₹{builderTotalMrp.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-emerald-700 font-semibold">
+                    <span>Patient 20% Direct Discount:</span>
+                    <span className="font-mono">- ₹{builderDiscount.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1.5 border-t border-blue-200/60 text-slate-900 font-black text-sm">
+                    <span>Final Booking Price:</span>
+                    <span className="font-mono text-[#1e3a8a] text-base">₹{builderFinalPrice.toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Drawer Sticky Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2.5 shrink-0 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsBuilderOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveProfile(false)}
+                    className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-800 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                  >
+                    Save Profile Only
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveProfile(true)}
+                    className="px-4 py-2.5 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-950/15 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <CalendarCheck className="h-3.5 w-3.5 text-cyan-300" />
+                    <span>Save &amp; Book Now</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SHARE PROFILE MODAL                                                       */}
+      {/* ========================================================================= */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-blue-100 text-[#1e3a8a] flex items-center justify-center">
+                  <Share2 className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Share Health Profile</h3>
+                  <p className="text-[11px] text-slate-500">Share direct booking link with family or friends</p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsBuilderOpen(false)}
-                className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+                onClick={() => setShowShareModal(null)}
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 thin-scrollbar">
-              
-              {builderError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-between">
-                  <span>{builderError}</span>
-                  <button type="button" onClick={() => setBuilderError(null)} className="text-rose-500 hover:text-rose-800">×</button>
-                </div>
-              )}
-
-              {/* Title & Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Profile Title <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={builderTitle}
-                    onChange={(e) => {
-                      setBuilderTitle(e.target.value)
-                      setBuilderError(null)
-                    }}
-                    placeholder="e.g. My Family Checkup, Parents Health Panel"
-                    className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={builderCategory}
-                    onChange={(e: any) => setBuilderCategory(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 cursor-pointer"
-                  >
-                    <option value="Wellness & Preventive">Wellness &amp; Preventive</option>
-                    <option value="Cardio-Diabetic">Cardio-Diabetic</option>
-                    <option value="Women's Health">Women's Health</option>
-                    <option value="Senior Care">Senior Care</option>
-                    <option value="Custom Clinic Panel">Custom Routine Panel</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Test Search & Department Filters */}
-              <div className="space-y-2 pt-1 border-t border-slate-100">
+            <div className="p-5 space-y-4 text-xs">
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Select Tests to Bundle ({selectedCodes.length} selected):
-                  </label>
-                  <span className="text-[11px] font-mono font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded-full">
-                    Total MRP: ₹{builderTotalMrp}
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1e3a8a]">
+                    {showShareModal.category}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                    20% OFF
                   </span>
                 </div>
-
-                {/* Filter Department Pills */}
-                <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
-                  {["All", "Blood & CBC", "Diabetes & Glucose", "Thyroid & Hormones", "Lipid & Cardiology", "Liver & Kidney", "Vitamins & Urine"].map((dept) => (
-                    <button
-                      key={dept}
-                      type="button"
-                      onClick={() => setBuilderCategoryFilter(dept)}
-                      className={`px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                        builderCategoryFilter === dept
-                          ? "bg-[#1e3a8a] text-white"
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                      }`}
-                    >
-                      {dept}
-                    </button>
-                  ))}
+                <div className="font-bold text-slate-900 text-sm">{showShareModal.profileTitle}</div>
+                <div className="text-[11px] text-slate-600 flex items-center gap-2">
+                  <span className="font-mono font-black text-slate-900">₹{showShareModal.discountedPrice}</span>
+                  <span className="line-through text-slate-400 font-mono text-[10px]">₹{showShareModal.totalMrp}</span>
+                  <span>• {showShareModal.selectedTestCodes.length} Tests Bundled</span>
                 </div>
+              </div>
 
-                {/* Search tests input */}
-                <div className="relative">
-                  <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              {/* Copy Link Row */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  Direct Booking Link
+                </label>
+                <div className="flex items-center gap-1.5">
                   <input
                     type="text"
-                    value={builderSearch}
-                    onChange={(e) => setBuilderSearch(e.target.value)}
-                    placeholder="Search 100+ tests by name or code (e.g. Glucose, Thyroid, CBC, Lipid)..."
-                    className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    readOnly
+                    value={typeof window !== "undefined" ? `${window.location.origin}/booking?profile=${showShareModal.id}` : `https://avmlabs.com/booking?profile=${showShareModal.id}`}
+                    className="flex-1 h-9 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 select-all focus:outline-none"
                   />
-                </div>
-
-                {/* Test Selection List (Scrollable) */}
-                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 p-1 bg-slate-50/40">
-                  {filteredBuilderTests.map((t) => {
-                    const isChecked = selectedCodes.includes(t.code)
-                    return (
-                      <div
-                        key={t.code}
-                        onClick={() => handleToggleTest(t.code)}
-                        className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
-                          isChecked ? "bg-blue-50/70 text-blue-950 font-bold" : "hover:bg-white text-slate-700"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {}} // handled by parent onClick
-                            className="h-4 w-4 rounded text-[#1e3a8a] focus:ring-blue-500 cursor-pointer"
-                          />
-                          <span className="font-mono text-[10px] text-blue-800 bg-blue-100/70 px-1 py-0.5 rounded font-bold">
-                            {t.code}
-                          </span>
-                          <span className="truncate max-w-[280px] sm:max-w-md font-medium text-slate-900">
-                            {t.name}
-                          </span>
-                        </div>
-
-                        <div className="font-mono font-bold text-slate-900 text-right shrink-0">
-                          ₹{t.mrp}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Selected Tests Chips */}
-                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                  {selectedTestsData.map((t) => (
-                    <span
-                      key={t.code}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-[10.5px] font-semibold text-blue-900"
-                    >
-                      <span className="font-mono text-[9.5px] font-bold">{t.code}</span>
-                      <span className="truncate max-w-[120px]">{t.name}</span>
-                      <span className="font-mono text-[#1e3a8a]">₹{t.mrp}</span>
-                      {selectedCodes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleToggleTest(t.code)
-                          }}
-                          className="text-blue-400 hover:text-rose-600 font-bold ml-0.5 cursor-pointer"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </span>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyShareLink(showShareModal)}
+                    className="h-9 px-3.5 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
+                  >
+                    {copiedProfileId === showShareModal.id ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-300" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Price Calculation Summary */}
-              <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50/60 rounded-2xl border border-blue-200/80 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>Total Diagnostic Price (MRP):</span>
-                  <span className="font-mono font-medium text-slate-900">₹{builderTotalMrp.toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex items-center justify-between text-emerald-700 font-semibold">
-                  <span>Patient 20% Direct Discount:</span>
-                  <span className="font-mono">- ₹{builderDiscount.toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-blue-200/60 text-slate-900 font-black text-sm">
-                  <span>Final Booking Price:</span>
-                  <span className="font-mono text-[#1e3a8a] text-base">₹{builderFinalPrice.toLocaleString("en-IN")}</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Modal Footer Actions */}
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2.5 shrink-0 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsBuilderOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+              {/* Share via WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this custom health checkup package on AVM Labs: ${showShareModal.profileTitle} with ${showShareModal.selectedTestCodes.length} tests at ₹${showShareModal.discountedPrice} (20% OFF). Book here: ${typeof window !== "undefined" ? `${window.location.origin}/booking?profile=${showShareModal.id}` : `https://avmlabs.com/booking?profile=${showShareModal.id}`}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
-                Cancel
-              </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSaveProfile(false)}
-                  className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-800 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-                >
-                  Save Profile Only
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSaveProfile(true)}
-                  className="px-4 py-2 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-950/15 transition-all cursor-pointer"
-                >
-                  <CalendarCheck className="h-3.5 w-3.5 text-cyan-300" />
-                  <span>Save &amp; Book Now</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
+                <span>Share via WhatsApp</span>
+              </a>
             </div>
-
           </div>
         </div>
       )}

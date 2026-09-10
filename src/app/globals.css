@@ -357,3 +357,30 @@ body {
   }
 }
 
+/* Slide-over Right Sidebar Drawer Animations */
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-drawer-slide-in {
+  animation: drawerSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-fade-in {
+  animation: drawerFadeIn 0.22s ease-out forwards;
+}
+
