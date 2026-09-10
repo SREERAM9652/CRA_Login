@@ -165,6 +165,14 @@ export default function CustomerLayout({
                     <span>My Health Dashboard</span>
                   </Link>
                   <Link
+                    href="/customer/dashboard/make-my-profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                  >
+                    <Sparkles className="h-4 w-4 text-[#1e3a8a]" />
+                    <span>Make My Profile</span>
+                  </Link>
+                  <Link
                     href="/customer/dashboard/orders"
                     onClick={() => setProfileDropdownOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
@@ -260,6 +268,14 @@ export default function CustomerLayout({
                   >
                     <LayoutDashboard className="h-4 w-4 text-[#1e3a8a]" />
                     <span>My Health Dashboard</span>
+                  </Link>
+                  <Link
+                    href="/customer/dashboard/make-my-profile"
+                    onClick={() => setProfileDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                  >
+                    <Sparkles className="h-4 w-4 text-[#1e3a8a]" />
+                    <span>Make My Profile</span>
                   </Link>
                   <Link
                     href="/customer/dashboard/orders"

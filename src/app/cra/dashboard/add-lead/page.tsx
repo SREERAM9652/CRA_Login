@@ -7,26 +7,26 @@ import { useWorkflowStore, CRA_DISCOUNT_CONFIG, Beneficiary } from "@/lib/workfl
 import { HEALTH_PACKAGES } from "@/lib/mock-data"
 import { CRA_TESTS } from "@/lib/cra-tests"
 import { ReferralShareModal } from "@/components/cra/ReferralShareModal"
-import { 
-  Sparkles, 
-  Check, 
-  Copy, 
-  Share2, 
-  ArrowLeft, 
-  ArrowRight, 
-  Clock, 
-  User, 
-  Phone, 
-  MapPin, 
-  Package, 
-  Coins, 
-  CheckCircle2, 
-  ChevronDown, 
-  Search, 
-  FlaskConical, 
-  Users2, 
-  X, 
-  Plus, 
+import {
+  Sparkles,
+  Check,
+  Copy,
+  Share2,
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  User,
+  Phone,
+  MapPin,
+  Package,
+  Coins,
+  CheckCircle2,
+  ChevronDown,
+  Search,
+  FlaskConical,
+  Users2,
+  X,
+  Plus,
   Trash2,
   Smartphone,
   QrCode,
@@ -57,14 +57,14 @@ function AddReferralContent() {
   const benIdParam = searchParams.get("benId")
   const initialMode = modeParam === "family" ? "family" : "referral"
 
-  const { 
-    currentUser, 
-    createCustomerBooking, 
-    beneficiaries, 
-    customProfiles, 
-    orgProfile 
+  const {
+    currentUser,
+    createCustomerBooking,
+    beneficiaries,
+    customProfiles,
+    orgProfile
   } = useWorkflowStore()
-  
+
   const isC1 = currentUser.role === "c1"
 
   const [bookingMode, setBookingMode] = useState<"referral" | "family">(initialMode)
@@ -161,7 +161,7 @@ function AddReferralContent() {
   const [familyTestPickerMemberId, setFamilyTestPickerMemberId] = useState<string | null>(null)
   const [pickerSearchQuery, setPickerSearchQuery] = useState("")
   const [pickerActiveTab, setPickerActiveTab] = useState<"all" | "custom" | "packages" | "tests">("all")
-  
+
   // Match custom profile if navigated from Make My Profile
   const matchedCustomProfile = useMemo(() => {
     if (!profileIdParam) return null
@@ -205,7 +205,7 @@ function AddReferralContent() {
       setSelectedItemIds(currentItems.split(","))
     }
   }, [searchParams, customProfiles])
-  
+
   const [notes, setNotes] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -431,8 +431,8 @@ function AddReferralContent() {
       if (!fullName || !mobile || activeTests.length === 0) return
 
       const primaryItem = activeTests[0]
-      const compositeName = activeTests.length === 1 
-        ? primaryItem.name 
+      const compositeName = activeTests.length === 1
+        ? primaryItem.name
         : `${primaryItem.name} + ${activeTests.length - 1} more test${activeTests.length > 2 ? 's' : ''}`
 
       createCustomerBooking({
@@ -467,7 +467,7 @@ function AddReferralContent() {
 
   return (
     <div className="w-full font-sans space-y-5 pb-16">
-      
+
       {/* Top Breadcrumb & Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3.5">
         <div>
@@ -480,7 +480,7 @@ function AddReferralContent() {
             {bookingMode === "referral" ? "Refer a Customer" : "Book for Family Beneficiary"}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            {bookingMode === "referral" 
+            {bookingMode === "referral"
               ? "Log a new customer prospect • Select single or multiple tests • Earn 30% direct commission"
               : "Book diagnostic tests for family members • 20% discount pre-applied • Pay online or via wallet"}
           </p>
@@ -495,22 +495,20 @@ function AddReferralContent() {
               setFullName("")
               setMobile("")
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              bookingMode === "referral"
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${bookingMode === "referral"
                 ? "bg-[#251b5c] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
-            }`}
+              }`}
           >
             Refer a Customer
           </button>
           <button
             type="button"
             onClick={() => setBookingMode("family")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              bookingMode === "family"
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${bookingMode === "family"
                 ? "bg-[#251b5c] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
-            }`}
+              }`}
           >
             Family Beneficiary
           </button>
@@ -629,11 +627,11 @@ function AddReferralContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Form (7 cols) */}
           <form onSubmit={handleSubmit} className="lg:col-span-7 bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 space-y-6 shadow-2xs">
-            
+
             {bookingMode === "family" ? (
               /* Dedicated 3-Step Family Beneficiary Booking */
               <div className="space-y-6">
-                
+
                 {/* Step 1: Select Family Members */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -670,16 +668,14 @@ function AddReferralContent() {
                               setSelectedBenIds([...selectedBenIds, b.id])
                             }
                           }}
-                          className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                            isSelected
+                          className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${isSelected
                               ? "bg-purple-50/70 border-[#382685] shadow-xs"
                               : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
-                              isSelected ? "bg-[#382685] border-[#382685] text-white" : "border-slate-300 bg-white"
-                            }`}>
+                            <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-[#382685] border-[#382685] text-white" : "border-slate-300 bg-white"
+                              }`}>
                               {isSelected && <Check className="h-4 w-4 stroke-[3]" />}
                             </div>
                             <div className="min-w-0">
@@ -1028,17 +1024,16 @@ function AddReferralContent() {
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className={`w-full h-12 px-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer shadow-2xs ${
-                        isDropdownOpen 
-                          ? "bg-white border-[#382685] ring-2 ring-[#382685]/15 shadow-sm" 
+                      className={`w-full h-12 px-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer shadow-2xs ${isDropdownOpen
+                          ? "bg-white border-[#382685] ring-2 ring-[#382685]/15 shadow-sm"
                           : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 text-slate-700 text-xs sm:text-sm font-medium">
                         <Search className="h-4 w-4 text-[#382685] shrink-0" />
                         <span className="truncate font-semibold text-slate-800">
-                          {activeTests.length === 0 
-                            ? "Click to select tests, wellness profiles or custom bundles..." 
+                          {activeTests.length === 0
+                            ? "Click to select tests, wellness profiles or custom bundles..."
                             : `Selected: ${activeTests.slice(0, 2).map(i => i.name).join(", ")}${activeTests.length > 2 ? ` + ${activeTests.length - 2} more` : ""}`}
                         </span>
                       </div>
@@ -1053,7 +1048,7 @@ function AddReferralContent() {
                     {/* Multi-Select Dropdown Search Menu */}
                     {isDropdownOpen && (
                       <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[350px] flex flex-col">
-                        
+
                         {/* Search & Tabs Toolbar */}
                         <div className="p-3 border-b border-slate-100 bg-slate-50/90 space-y-2 shrink-0">
                           <div className="relative">
@@ -1082,36 +1077,32 @@ function AddReferralContent() {
                             <button
                               type="button"
                               onClick={() => setActiveTab("all")}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                                activeTab === "all" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                              }`}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === "all" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
                             >
                               All ({allAvailableItems.length})
                             </button>
                             <button
                               type="button"
                               onClick={() => setActiveTab("custom")}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                                activeTab === "custom" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                              }`}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === "custom" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
                             >
                               My Profiles ({customProfiles?.length || 0})
                             </button>
                             <button
                               type="button"
                               onClick={() => setActiveTab("packages")}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                                activeTab === "packages" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                              }`}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === "packages" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
                             >
                               Wellness (12)
                             </button>
                             <button
                               type="button"
                               onClick={() => setActiveTab("tests")}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                                activeTab === "tests" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                              }`}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === "tests" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
                             >
                               Clinical Tests (90+)
                             </button>
@@ -1136,14 +1127,12 @@ function AddReferralContent() {
                                 <div
                                   key={item.id}
                                   onClick={() => handleToggleItem(item.id)}
-                                  className={`px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2.5 text-xs transition-colors cursor-pointer ${
-                                    isSelected ? "bg-purple-50/90 border border-purple-200/80 text-purple-950 font-bold" : "hover:bg-slate-50 text-slate-700"
-                                  }`}
+                                  className={`px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2.5 text-xs transition-colors cursor-pointer ${isSelected ? "bg-purple-50/90 border border-purple-200/80 text-purple-950 font-bold" : "hover:bg-slate-50 text-slate-700"
+                                    }`}
                                 >
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
-                                      isSelected ? "bg-[#251b5c] border-[#251b5c] text-white" : "border-slate-300 bg-white"
-                                    }`}>
+                                    <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? "bg-[#251b5c] border-[#251b5c] text-white" : "border-slate-300 bg-white"
+                                      }`}>
                                       {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                                     </div>
                                     <div className="truncate">
@@ -1372,7 +1361,7 @@ function AddReferralContent() {
       {familyTestPickerMemberId && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
           <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-            
+
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-purple-50/90 to-white shrink-0">
               <div className="flex items-center gap-3 min-w-0">
@@ -1430,36 +1419,32 @@ function AddReferralContent() {
                 <button
                   type="button"
                   onClick={() => setPickerActiveTab("all")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    pickerActiveTab === "all" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${pickerActiveTab === "all" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    }`}
                 >
                   All Tests ({allAvailableItems.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickerActiveTab("custom")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    pickerActiveTab === "custom" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${pickerActiveTab === "custom" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    }`}
                 >
                   My Profiles ({customProfiles?.length || 0})
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickerActiveTab("packages")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    pickerActiveTab === "packages" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${pickerActiveTab === "packages" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    }`}
                 >
                   Wellness Packages (12)
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickerActiveTab("tests")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    pickerActiveTab === "tests" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${pickerActiveTab === "tests" ? "bg-[#382685] text-white shadow-2xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    }`}
                 >
                   Clinical Tests (90+)
                 </button>
@@ -1490,14 +1475,12 @@ function AddReferralContent() {
                           [familyTestPickerMemberId]: updated
                         }))
                       }}
-                      className={`p-3 rounded-2xl flex items-center justify-between gap-3 text-xs transition-all cursor-pointer my-1 ${
-                        isSelected ? "bg-purple-50/90 border border-purple-200 text-purple-950 font-bold shadow-2xs" : "hover:bg-slate-50 border border-transparent text-slate-700"
-                      }`}
+                      className={`p-3 rounded-2xl flex items-center justify-between gap-3 text-xs transition-all cursor-pointer my-1 ${isSelected ? "bg-purple-50/90 border border-purple-200 text-purple-950 font-bold shadow-2xs" : "hover:bg-slate-50 border border-transparent text-slate-700"
+                        }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`h-5 w-5 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected ? "bg-[#251b5c] border-[#251b5c] text-white" : "border-slate-300 bg-white"
-                        }`}>
+                        <div className={`h-5 w-5 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-[#251b5c] border-[#251b5c] text-white" : "border-slate-300 bg-white"
+                          }`}>
                           {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                         </div>
                         <div className="min-w-0">

@@ -160,6 +160,8 @@ export interface CRACustomProfile {
   directIncentive: number
   createdAt: string
   shareLink: string
+  isCustomerCreated?: boolean
+  createdByRole?: "customer" | "cra"
 }
 
 export interface CRAOrgProfile {
@@ -2114,13 +2116,20 @@ export function useWorkflowStore() {
     discountedPrice: number
     realizedRevenue: number
     directIncentive: number
+    isCustomerCreated?: boolean
+    createdByRole?: "customer" | "cra"
   }) => {
     const profileId = `profile-${Date.now().toString().slice(-6)}`
+    const isCustomer = Boolean(data.isCustomerCreated || state.isCustomerLoggedIn)
+    const authorName = isCustomer ? (state.customer?.name || state.currentUser.name || "Customer") : state.currentUser.name
+    const authorId = isCustomer ? (state.customer?.id || state.currentUser.id) : state.currentUser.id
+    const refCode = isCustomer ? (state.customer?.generatedReferralCode || state.currentUser.code || "REF-10") : state.currentUser.code
+
     const newProfile: CRACustomProfile = {
       id: profileId,
-      craId: state.currentUser.id,
-      craName: state.currentUser.name,
-      brandOrOrgName: data.brandOrOrgName,
+      craId: authorId,
+      craName: authorName,
+      brandOrOrgName: data.brandOrOrgName || (isCustomer ? `${authorName}'s Health Profile` : "AVM Labs Partner"),
       profileTitle: data.profileTitle,
       description: data.description,
       category: data.category,
@@ -2130,17 +2139,19 @@ export function useWorkflowStore() {
       discountedPrice: data.discountedPrice,
       realizedRevenue: data.realizedRevenue,
       directIncentive: data.directIncentive,
+      isCustomerCreated: isCustomer,
+      createdByRole: isCustomer ? "customer" : "cra",
       createdAt: "Just now",
       shareLink: typeof window !== "undefined"
-        ? `${window.location.origin}/booking?ref=${state.currentUser.code}&profile=${profileId}`
-        : `https://avmlabs.com/booking?ref=${state.currentUser.code}&profile=${profileId}`
+        ? `${window.location.origin}/booking?ref=${refCode}&profile=${profileId}`
+        : `https://avmlabs.com/booking?ref=${refCode}&profile=${profileId}`
     }
 
     const liveEvent: LiveActivityEvent = {
       id: `EVT-${Date.now()}`,
       type: "new_referral",
       title: "New Custom Profile Created",
-      subtitle: `"${data.profileTitle}" published by ${state.currentUser.name}`,
+      subtitle: `"${data.profileTitle}" created by ${authorName}`,
       timestamp: "Just now",
       isLive: true
     }

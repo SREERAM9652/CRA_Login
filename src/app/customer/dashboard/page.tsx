@@ -823,14 +823,23 @@ export default function CustomerDashboardPage() {
                   {filteredPackages.length} Profiles
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => router.push('/booking')}
-                className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
-              >
-                <span>See all ({allCatalogItems.length}+)</span>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/customer/dashboard/make-my-profile"
+                  className="text-xs font-bold text-[#1e3a8a] bg-blue-50 border border-blue-200/80 px-2.5 py-1 rounded-lg hover:bg-blue-100/70 transition-colors flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  <span>Make My Profile</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => router.push('/booking')}
+                  className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
+                >
+                  <span>See all ({allCatalogItems.length}+)</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Product Cards Grid: Clean, Compact, Classic */}

@@ -87,7 +87,7 @@ function BookingWizardContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { customer, isCustomerLoggedIn, beneficiaries: storeBeneficiaries, addPrescriptionRequest, createCustomerBooking, payForOrder, loginCustomer } = useWorkflowStore()
+  const { customer, isCustomerLoggedIn, beneficiaries: storeBeneficiaries, addPrescriptionRequest, createCustomerBooking, payForOrder, loginCustomer, customProfiles } = useWorkflowStore()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -102,6 +102,7 @@ function BookingWizardContent() {
 
   const initialTestParam = searchParams.get("test")
   const initialPkgParam = searchParams.get("package")
+  const initialProfileParam = searchParams.get("profile") || searchParams.get("profileId")
   const initialSearchParam = searchParams.get("search") || ""
   const initialRefParam = searchParams.get("ref") || ""
   const initialStepParam = searchParams.get("step")
@@ -109,6 +110,21 @@ function BookingWizardContent() {
   const isFamilyParam = searchParams.get("mode") === "family" || !!searchParams.get("benId")
 
   const allAvailableItems = useMemo<BookingItem[]>(() => {
+    // 1. Custom Profiles created via Make My Profile
+    const customItems: BookingItem[] = (customProfiles || []).map((cp) => ({
+      id: cp.id,
+      type: "package",
+      code: "PROFILE",
+      name: cp.profileTitle,
+      category: `Custom Profile (${cp.brandOrOrgName})`,
+      mrp: cp.totalMrp,
+      discount: cp.totalMrp - cp.discountedPrice,
+      price: cp.discountedPrice,
+      parameterCount: `${cp.selectedTestCodes.length} Tests Bundled`,
+      sampleType: "Blood & Urine"
+    }))
+
+    // 2. Curated Wellness Packages
     const packages: BookingItem[] = HEALTH_PACKAGES.map((pkg, idx) => {
       const discount = Math.round(pkg.mrp * 0.20)
       const price = pkg.mrp - discount
@@ -126,6 +142,7 @@ function BookingWizardContent() {
       }
     })
 
+    // 3. Clinical Pathology Tests
     const tests: BookingItem[] = CRA_TESTS.map((test) => {
       const discount = Math.round(test.catalogueRate * 0.20)
       const price = test.catalogueRate - discount
@@ -143,8 +160,8 @@ function BookingWizardContent() {
       }
     })
 
-    return [...packages, ...tests]
-  }, [])
+    return [...customItems, ...packages, ...tests]
+  }, [customProfiles])
 
   // Wizard Step State (1: Select Test, 2: Beneficiaries & Assignment, 3: Slot, 4: Review & Pay, 5: Success)
   const [step, setStep] = useState(initialStepParam ? (parseInt(initialStepParam, 10) || 1) : 1)
@@ -355,6 +372,15 @@ function BookingWizardContent() {
       }
     }
 
+    if (initialProfileParam) {
+      const match = allAvailableItems.find(i => i.id === initialProfileParam)
+      if (match) {
+        setSelectedItemIds([match.id])
+        setBeneficiaries(prev => prev.map((b, i) => i === 0 ? { ...b, selectedTestIds: [match.id] } : b))
+        return
+      }
+    }
+
     if (initialTestParam) {
       const match = allAvailableItems.find(i => i.id === initialTestParam || i.code === initialTestParam)
       if (match) {
@@ -368,7 +394,7 @@ function BookingWizardContent() {
         setBeneficiaries(prev => prev.map((b, i) => i === 0 ? { ...b, selectedTestIds: [match.id] } : b))
       }
     }
-  }, [initialTestParam, initialPkgParam, searchParams, allAvailableItems])
+  }, [initialTestParam, initialPkgParam, initialProfileParam, searchParams, allAvailableItems])
 
   // Handle Prescription Submission
   const handlePrescriptionSubmit = (e: React.FormEvent) => {
@@ -867,14 +893,14 @@ function BookingWizardContent() {
                                 onClick={() => setDropdownTab("packages")}
                                 className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-colors cursor-pointer ${dropdownTab === "packages" ? "bg-[#1e3a8a] text-white" : "bg-white text-slate-600 border border-slate-200"}`}
                               >
-                                Profiles (12)
+                                Profiles ({HEALTH_PACKAGES.length + (customProfiles?.length || 0)})
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setDropdownTab("tests")}
                                 className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-colors cursor-pointer ${dropdownTab === "tests" ? "bg-[#1e3a8a] text-white" : "bg-white text-slate-600 border border-slate-200"}`}
                               >
-                                Tests (90+)
+                                Tests ({CRA_TESTS.length})
                               </button>
                             </div>
                           </div>
@@ -922,6 +948,21 @@ function BookingWizardContent() {
                         </div>
                       )}
                     </div>
+
+                    {/* Active Custom Profile Banner */}
+                    {step1SelectedItems.some(i => i.code === "CUSTOM") && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-[#1e3a8a] shrink-0" />
+                          <span className="text-slate-700">
+                            Custom Health Profile Loaded: <strong className="text-[#1e3a8a]">{step1SelectedItems.find(i => i.code === "CUSTOM")?.name}</strong>
+                          </span>
+                        </div>
+                        <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                          20% Discount
+                        </span>
+                      </div>
+                    )}
 
                     {/* Quick 1-Tap Popular Chips */}
                     <div className="space-y-1.5 pt-1">

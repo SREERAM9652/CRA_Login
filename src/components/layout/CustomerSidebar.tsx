@@ -84,6 +84,7 @@ export function CustomerSidebar({
   const navLinks = [
     { name: "My Health Dashboard", href: "/customer/dashboard", icon: LayoutDashboard },
     { name: "Find Tests & Book", href: "/booking", icon: Search },
+    { name: "Make My Profile", href: "/customer/dashboard/make-my-profile", icon: Sparkles },
     { name: "Orders & Appointments", href: "/customer/dashboard/orders", icon: ClipboardList },
     { name: "Digital Lab Reports", href: "/customer/dashboard/reports", icon: FileText },
   ]
@@ -91,6 +92,7 @@ export function CustomerSidebar({
   const allNavItems = [
     { name: "My Health Dashboard", href: "/customer/dashboard", icon: LayoutDashboard },
     { name: "Find Tests & Book", href: "/booking", icon: Search },
+    { name: "Make My Profile", href: "/customer/dashboard/make-my-profile", icon: Sparkles },
     { name: "Orders & Appointments", href: "/customer/dashboard/orders", icon: ClipboardList },
     { name: "Digital Lab Reports", href: "/customer/dashboard/reports", icon: FileText },
     { name: "Family Beneficiaries", href: "/customer/dashboard/beneficiaries", icon: Users },
